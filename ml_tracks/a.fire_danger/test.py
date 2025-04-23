@@ -52,6 +52,13 @@ def main(config):
                                 num_layers=config['model_args']['num_layers'],
                                 channel_attention=True)
 
+    elif config["model_type"] == "mlp":
+        model = config.init_obj('arch', module_arch,
+                                input_dim=(len(dynamic_features) + len(static_features))*(config["dataset"]["args"]["lag"]),
+                                dropout=config['model_args']['dropout'],
+                                hidden_dims=config['model_args']['hidden_dims'],
+                                output_dim=config['model_args']['output_dim'])
+
     # get function handles of loss and metrics
     criterion = getattr(module_loss, config['loss'])
     metric_ftns = [getattr(module_metric, met) for met in config['metrics']]
@@ -87,6 +94,8 @@ def main(config):
 
             if config['model_type'] in ['transformer', 'gtn']:
                 input_ = torch.transpose(input_, 0, 1)
+            elif config['model_type'] == 'mlp':
+                input_ = input_.view(input_.shape[0], -1)
             outputs = model(input_)
             m = nn.Softmax(dim=1)
             outputs = m(outputs)

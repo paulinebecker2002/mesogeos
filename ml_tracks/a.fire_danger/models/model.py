@@ -153,3 +153,24 @@ class TransformerNet(nn.Module):
         x = self.classifier(x)
 
         return x
+
+class MLP(nn.Module):
+    def __init__(self, input_dim=24, output_dim=2, hidden_dims=[128, 64], dropout=0.1, activation='relu'):
+        super(MLP, self).__init__()
+        layers = []
+        prev_dim = input_dim
+
+        for hidden_dims in hidden_dims:
+            layers.append(nn.Linear(prev_dim, hidden_dims))
+            layers.append(nn.ReLU())
+            if dropout > 0:
+                layers.append(nn.Dropout(dropout))
+            prev_dim = hidden_dims
+
+        layers.append(nn.Linear(prev_dim, output_dim))
+        self.net = nn.Sequential(*layers)
+
+    def forward(self, x):
+        return self.net(x)
+
+

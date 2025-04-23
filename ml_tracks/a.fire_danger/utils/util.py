@@ -60,15 +60,16 @@ class MetricTracker:
 
     def update(self, key, nominator, denominator):
         if self.writer is not None:
-            self.writer.add_scalar(key, nominator, denominator)
+            self.writer.add_scalar(key, (nominator / (denominator + 1e-8)), denominator) #self.writer.add_scalar(key, nominator, denominator)
         self._data.total[key] += nominator
         self._data.counts[key] += denominator
         self._data.average[key] = self._data.total[key] / self._data.counts[key]
 
 
     def aucpr_update(self, key, preds, labels):
+        ap = average_precision_score(labels, preds) #new
         if self.writer is not None:
-            self.writer.add_scalar(key, preds, labels)
+            self.writer.add_scalar(key, ap) #old: self.writer.add_scalar(key, preds, labels)
         self._data.total[key].extend(preds)
         self._data.counts[key].extend(labels)
         self._data.average[key] = average_precision_score(self._data.counts[key], self._data.total[key])

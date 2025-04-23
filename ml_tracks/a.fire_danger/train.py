@@ -10,6 +10,9 @@ import models.model as module_arch
 from parse_config import ConfigParser
 from trainer import Trainer
 from utils import prepare_device
+import matplotlib.pyplot as plt
+import shap
+
 
 def main(config):
     # fix random seeds for reproducibility
@@ -55,6 +58,12 @@ def main(config):
                                 dim_feedforward=config['model_args']['ff_dim'],
                                 num_layers=config['model_args']['num_layers'],
                                 channel_attention=True)
+    elif config["model_type"] == "mlp":
+        model = config.init_obj('arch', module_arch,
+                                input_dim=(len(dynamic_features) + len(static_features))*(config["dataset"]["args"]["lag"]),
+                                dropout=config['model_args']['dropout'],
+                                hidden_dims=config['model_args']['hidden_dims'],
+                                output_dim=config['model_args']['output_dim'])
 
     logger.info(model)
 
@@ -82,6 +91,29 @@ def main(config):
     trainer.train()
 
 
+    #SHAP values
+    if config["model_type"] == "mlp":
+        model.eval()
+        batch = next(iter(dataloader['val']))
+        dynamic, static, _, labels = batch
+        static = static.unsqueeze(1).repeat(1, dynamic.shape[1], 1)
+        input_ = torch.cat([dynamic, static], dim=2)
+        input_ = input_.view(input_.shape[0], -1).to(device)
+
+        def model_predict(x_numpy):
+            x_tensor = torch.tensor(x_numpy, dtype=torch.float32).to(device)
+            with torch.no_grad():
+                out = model(x_tensor)
+                return out.cpu().numpy()
+
+        explainer = shap.GradientExplainer(model, input_[:100])
+        shap_values = explainer.shap_values(input_[:10])
+        shap.summary_plot(shap_values[0], input_[:10].cpu().numpy(), feature_names=[f'f{i}' for i in range(input_.shape[1])])
+        plt.tight_layout()
+        plt.savefig("/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a.fire_danger/saved/shap_summary_plot.png", dpi=300)
+        plt.close()
+
+
 if __name__ == '__main__':
     args = argparse.ArgumentParser(description='PyTorch Template')
     args.add_argument('-c', '--config', default=None, type=str,
@@ -95,7 +127,10 @@ if __name__ == '__main__':
     CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')
     options = [
         CustomArgs(['--lr', '--learning_rate'], type=float, target='optimizer;args;lr'),
-        CustomArgs(['--bs', '--batch_size'], type=int, target='datasets;args;batch_size'),
+        CustomArgs(['--bs', '--batch_size'], type=int, target='dataloader;args;batch_size'),
+        CustomArgs(['--ep', '--epochs'], type=int, target='trainer;epochs'),
+        CustomArgs(['--dr', '--dropout'], type=float, target='model_args;dropout'),
+        CustomArgs(['--hd', '--hidden-dims'], type=lambda s: [int(x) for x in s.split(',')], target='model_args;hidden_dims'),
     ]
     config = ConfigParser.from_args(args, options)
     main(config)

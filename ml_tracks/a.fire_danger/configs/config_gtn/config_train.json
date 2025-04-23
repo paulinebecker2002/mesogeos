@@ -16,7 +16,7 @@
     "dataset": {
         "type": "FireDataset",
         "args":{
-            "dataset_root": "",
+            "dataset_root": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a.fire_danger/a.danger_forecasting",
             "problem_class": "classification",
             "nan_fill": 0,
             "neg_pos_ratio": 2,
@@ -63,7 +63,7 @@
         "monitor": "min val_loss",
         "early_stop": 50,
 
-        "tensorboard": false
+        "tensorboard": true
     },
 
 

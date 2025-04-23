@@ -51,6 +51,8 @@ class Trainer(BaseTrainer):
             self.optimizer.zero_grad()
             if self.config['model_type'] in ['transformer', 'gtn']:
                 input_ = torch.transpose(input_, 0, 1)
+            elif self.config['model_type'] == 'mlp':
+                input_ = input_.view(input_.shape[0], -1)
             outputs = self.model(input_)
             m = nn.Softmax(dim=1)
             outputs = m(outputs)
@@ -111,6 +113,8 @@ class Trainer(BaseTrainer):
 
                 if self.config['model_type'] in ['transformer', 'gtn']:
                     input_ = torch.transpose(input_, 0, 1)
+                elif self.config['model_type'] == 'mlp':
+                    input_ = input_.view(input_.shape[0], -1)
                 outputs = self.model(input_)
                 m = nn.Softmax(dim=1)
                 outputs = m(outputs)
