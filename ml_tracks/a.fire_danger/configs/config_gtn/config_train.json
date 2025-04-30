@@ -4,6 +4,11 @@
     "n_gpu": 1,
     "gpu_id": 1,
 
+  "shap": {
+    "checkpoint_path": "",
+    "base_save_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a.fire_danger/saved/shap-plots/"
+  },
+
     "arch": {
         "type": "TransformerNet",
         "args": {}

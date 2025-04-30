@@ -4,6 +4,11 @@
     "n_gpu": 1,
     "gpu_id": 0,
 
+  "shap": {
+    "checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a.fire_danger/saved/models/lala/0423_190036/model_best.pth",
+    "base_save_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a.fire_danger/saved/shap-plots/"
+  },
+
     "arch": {
         "type": "SimpleLSTM",
         "args": {}

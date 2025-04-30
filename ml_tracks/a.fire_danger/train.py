@@ -91,29 +91,6 @@ def main(config):
     trainer.train()
 
 
-    #SHAP values
-    if config["model_type"] == "mlp":
-        model.eval()
-        batch = next(iter(dataloader['val']))
-        dynamic, static, _, labels = batch
-        static = static.unsqueeze(1).repeat(1, dynamic.shape[1], 1)
-        input_ = torch.cat([dynamic, static], dim=2)
-        input_ = input_.view(input_.shape[0], -1).to(device)
-
-        def model_predict(x_numpy):
-            x_tensor = torch.tensor(x_numpy, dtype=torch.float32).to(device)
-            with torch.no_grad():
-                out = model(x_tensor)
-                return out.cpu().numpy()
-
-        explainer = shap.GradientExplainer(model, input_[:100])
-        shap_values = explainer.shap_values(input_[:10])
-        shap.summary_plot(shap_values[0], input_[:10].cpu().numpy(), feature_names=[f'f{i}' for i in range(input_.shape[1])])
-        plt.tight_layout()
-        plt.savefig("/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a.fire_danger/saved/shap_summary_plot.png", dpi=300)
-        plt.close()
-
-
 if __name__ == '__main__':
     args = argparse.ArgumentParser(description='PyTorch Template')
     args.add_argument('-c', '--config', default=None, type=str,
