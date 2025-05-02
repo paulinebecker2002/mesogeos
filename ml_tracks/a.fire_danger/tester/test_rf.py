@@ -1,6 +1,6 @@
 import os
 import joblib
-from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score, classification_report, confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score, average_precision_score, classification_report, confusion_matrix, ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
 import torchvision
 import io
@@ -34,16 +34,19 @@ def test_rf(config):
 
     X_test, y_test = extract_numpy(dataloader)
     y_pred = rf.predict(X_test)
+    y_proba = rf.predict_proba(X_test)[:, 1]
 
     acc = accuracy_score(y_test, y_pred)
     prec = precision_score(y_test, y_pred)
     rec = recall_score(y_test, y_pred)
     f1 = f1_score(y_test, y_pred)
+    auprc = average_precision_score(y_test, y_proba)
 
     writer.add_scalar("test/accuracy", acc)
     writer.add_scalar("test/precision", prec)
     writer.add_scalar("test/recall", rec)
     writer.add_scalar("test/f1_score", f1)
+    writer.add_scalar("test/auprc", auprc)
 
     cm = confusion_matrix(y_test, y_pred)
     disp = ConfusionMatrixDisplay(confusion_matrix=cm)
@@ -66,3 +69,4 @@ def test_rf(config):
     logger.info(f"precision    : {prec:.6f}")
     logger.info(f"recall       : {rec:.6f}")
     logger.info(f"f1_score     : {f1:.6f}")
+    logger.info(f"auprc        : {auprc:.6f}")

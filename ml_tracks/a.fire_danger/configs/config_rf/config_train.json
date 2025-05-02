@@ -13,11 +13,12 @@
     "type": "RandomForest",
     "args": {}
   },
+
   "model_args": {
-    "n_estimators": 691,
-    "max_depth": null,
+    "n_estimators": 200,
+    "max_depth": 10,
     "min_samples_split": 5,
-    "min_samples_leaf": 4,
+    "min_samples_leaf": 2,
     "max_features": "sqrt",
     "class_weight": "balanced"},
 
