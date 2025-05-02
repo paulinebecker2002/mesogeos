@@ -8,12 +8,8 @@ import models.model as module_arch
 from parse_config import ConfigParser
 from utils import MetricTracker
 from logger import TensorboardWriter
-from pathlib import Path
-from glob import glob
-import numpy as np
+from tester.test_rf import test_rf
 import torch.nn as nn
-import collections
-
 
 
 def main(config):
@@ -31,8 +27,10 @@ def main(config):
     device = 'cpu'
     # # build models architecture
     if config["model_type"] == "lstm":
-        model = config.init_obj('arch', module_arch, input_dim=len(dynamic_features) + len(static_features),
-                                output_lstm=config['model_args']['dim'], dropout=config['model_args']['dropout'])
+        model = config.init_obj('arch', module_arch,
+                                input_dim=len(dynamic_features) + len(static_features),
+                                output_lstm=config['model_args']['dim'],
+                                dropout=config['model_args']['dropout'])
 
     elif config["model_type"] == "transformer":
         model = config.init_obj('arch', module_arch, seq_len=config["dataset"]["args"]["lag"],
@@ -58,6 +56,14 @@ def main(config):
                                 dropout=config['model_args']['dropout'],
                                 hidden_dims=config['model_args']['hidden_dims'],
                                 output_dim=config['model_args']['output_dim'])
+    elif config["model_type"] == "gru":
+        model = config.init_obj('arch', module_arch,
+                                input_dim=len(dynamic_features) + len(static_features),
+                                output_gru=config['model_args']['dim'],
+                                dropout=config['model_args']['dropout'])
+    elif config["model_type"] == "rf":
+        test_rf(config)
+        return
 
     # get function handles of loss and metrics
     criterion = getattr(module_loss, config['loss'])

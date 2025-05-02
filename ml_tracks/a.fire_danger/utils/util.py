@@ -1,11 +1,11 @@
 import json
 import torch
 import pandas as pd
+import numpy as np
 from pathlib import Path
 from itertools import repeat
 from collections import OrderedDict
 from sklearn.metrics import average_precision_score
-
 
 def ensure_dir(dirname):
     dirname = Path(dirname)
@@ -43,6 +43,18 @@ def prepare_device(n_gpu_use, num_device):
     device = torch.device('cuda:' + str(num_device) if n_gpu_use > 0 else 'cpu')
     list_ids = list(range(n_gpu_use))
     return device, list_ids
+
+def extract_numpy(dataloader):
+    X_all, y_all = [], []
+    for dynamic, static, _, y in dataloader:
+        static = static.unsqueeze(1).repeat(1, dynamic.shape[1], 1)
+        y = y.numpy()
+        input_ = torch.cat([dynamic, static], dim=2)
+        input_ = input_.view(input_.shape[0], -1).numpy()
+        X_all.append(input_)
+        y_all.append(y)
+    return np.vstack(X_all), np.concatenate(y_all)
+
 
 class MetricTracker:
     def __init__(self, *keys, writer=None):

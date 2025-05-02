@@ -10,8 +10,9 @@ import models.model as module_arch
 from parse_config import ConfigParser
 from trainer import Trainer
 from utils import prepare_device
-import matplotlib.pyplot as plt
-import shap
+from trainer.trainer_rf import train_rf
+#from trainer.trainer_tune_rf import train_rf
+
 
 
 def main(config):
@@ -38,8 +39,10 @@ def main(config):
     device, device_ids = prepare_device(config['n_gpu'], config['gpu_id'])
     # build models architecture, then print to console
     if config["model_type"] == "lstm":
-        model = config.init_obj('arch', module_arch, input_dim=len(dynamic_features) + len(static_features),
-                                output_lstm=config['model_args']['dim'], dropout=config['model_args']['dropout'])
+        model = config.init_obj('arch', module_arch,
+                                input_dim=len(dynamic_features) + len(static_features),
+                                output_lstm=config['model_args']['dim'],
+                                dropout=config['model_args']['dropout'])
 
     elif config["model_type"] == "transformer":
         model = config.init_obj('arch', module_arch, seq_len=config["dataset"]["args"]["lag"],
@@ -64,6 +67,15 @@ def main(config):
                                 dropout=config['model_args']['dropout'],
                                 hidden_dims=config['model_args']['hidden_dims'],
                                 output_dim=config['model_args']['output_dim'])
+    elif config["model_type"] == "gru":
+        model = config.init_obj('arch', module_arch,
+                                input_dim=len(dynamic_features) + len(static_features),
+                                output_gru=config['model_args']['dim'],
+                                dropout=config['model_args']['dropout'])
+    elif config["model_type"] == "rf":
+        # separate training process as Random Forest is not a torch model
+        train_rf(config, dataloader['train'], dataloader['val'])
+        return
 
     logger.info(model)
 

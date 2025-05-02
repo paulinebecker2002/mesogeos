@@ -174,3 +174,31 @@ class MLP(nn.Module):
         return self.net(x)
 
 
+class SimpleGRU(nn.Module):
+    def __init__(self, input_dim=24, output_gru=128, dropout=0.5):
+        super().__init__()
+        self.gru = nn.GRU(input_dim, output_gru, num_layers=1, batch_first=True)
+        self.ln1 = torch.nn.LayerNorm(input_dim)
+
+        self.fc1 = torch.nn.Linear(output_gru, output_gru)
+        self.drop1 = torch.nn.Dropout(dropout)
+        self.relu = torch.nn.ReLU()
+        self.fc2 = torch.nn.Linear(output_gru, output_gru // 2)
+        self.drop2 = torch.nn.Dropout(dropout)
+        self.fc3 = torch.nn.Linear(output_gru // 2, 2)
+
+        self.fc_nn = torch.nn.Sequential(
+            self.fc1,
+            self.drop1,
+            self.relu,
+            self.fc2,
+            self.drop2,
+            self.relu,
+            self.fc3
+        )
+
+    def forward(self, x):
+        x = self.ln1(x)
+        lstm_gru, _ = self.gru(x)
+        x = self.fc_nn(lstm_gru[:, -1, :])
+        return x
