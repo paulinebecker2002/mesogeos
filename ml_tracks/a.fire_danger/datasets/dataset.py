@@ -72,16 +72,18 @@ class FireDataset(Dataset):
                                       neg_pos_ratio)
 
         if train_val_test == 'train':
-            print(f'Positives: {len(self.train_positives) / 30} / Negatives: {len(self.train_negatives) / 30}')
+            print(f'Train Positives: {len(self.train_positives) / 30} / Train Negatives: {len(self.train_negatives) / 30}')
             self.all = pd.concat([self.train_positives, self.train_negatives]).reset_index()
+            print("Training Dataset length", len(self.all) / 30)
         elif train_val_test == 'val':
-            print(f'Positives: {len(self.val_positives) / 30} / Negatives: {len(self.val_negatives) / 30}')
+            print(f'Validation Positives: {len(self.val_positives) / 30} / Validation Negatives: {len(self.val_negatives) / 30}')
             self.all = pd.concat([self.val_positives, self.val_negatives]).reset_index()
+            print("Validation Dataset length", len(self.all) / 30)
         elif train_val_test == 'test':
-            print(f'Positives: {len(self.test_positives) / 30} / Negatives: {len(self.test_negatives) / 30}')
+            print(f'Test Positives: {len(self.test_positives) / 30} / Test Negatives: {len(self.test_negatives) / 30}')
             self.all = pd.concat([self.test_positives, self.test_negatives]).reset_index()
+            print("Test Dataset length", len(self.all) / 30)
 
-        print("Dataset length", len(self.all) / 30)
 
         self.labels = self.all.label.tolist()
         self.dynamic = self.all[self.dynamic_features]

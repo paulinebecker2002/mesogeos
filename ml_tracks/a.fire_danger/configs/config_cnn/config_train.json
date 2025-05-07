@@ -1,6 +1,6 @@
 {
   "name": "lala",
-  "model_type": "rf",
+  "model_type": "cnn",
   "n_gpu": 1,
   "gpu_id": 0,
 
@@ -10,17 +10,13 @@
   },
 
   "arch": {
-    "type": "RandomForest",
+    "type": "SimpleCNN",
     "args": {}
   },
-
   "model_args": {
-    "n_estimators": 686,
-    "max_depth": null,
-    "min_samples_split": 5,
-    "min_samples_leaf": 1,
-    "max_features": "sqrt",
-    "class_weight": "balanced"},
+    "dim": 128,
+    "dropout": 0.5,
+  "input_channels": 1},
 
   "dataset": {
     "type": "FireDataset",

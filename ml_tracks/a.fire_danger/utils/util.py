@@ -5,7 +5,7 @@ import numpy as np
 from pathlib import Path
 from itertools import repeat
 from collections import OrderedDict
-from sklearn.metrics import average_precision_score
+from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score, average_precision_score, confusion_matrix, ConfusionMatrixDisplay, classification_report
 
 def ensure_dir(dirname):
     dirname = Path(dirname)
@@ -55,6 +55,13 @@ def extract_numpy(dataloader):
         y_all.append(y)
     return np.vstack(X_all), np.concatenate(y_all)
 
+def calculate_metrics(y_values, y_pred, y_proba):
+    acc = accuracy_score(y_values, y_pred)
+    prec = precision_score(y_values, y_pred)
+    rec = recall_score(y_values, y_pred)
+    f1 = f1_score(y_values, y_pred)
+    auprc = average_precision_score(y_values, y_proba)
+    return acc, prec, rec, f1, auprc
 
 class MetricTracker:
     def __init__(self, *keys, writer=None):

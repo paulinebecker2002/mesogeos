@@ -10,8 +10,8 @@ import models.model as module_arch
 from parse_config import ConfigParser
 from trainer import Trainer
 from utils import prepare_device
-from trainer.trainer_rf import train_rf
-#from trainer.trainer_tune_rf import train_rf
+#from trainer.trainer_rf import train_rf
+from trainer.trainer_tune_rf import train_rf
 
 
 
@@ -72,8 +72,15 @@ def main(config):
                                 input_dim=len(dynamic_features) + len(static_features),
                                 output_gru=config['model_args']['dim'],
                                 dropout=config['model_args']['dropout'])
+    elif config["model_type"] == "cnn":
+        model = config.init_obj('arch', module_arch,
+                                input_channels=config["model_args"]["input_channels"],
+                                seq_len=config["dataset"]["args"]["lag"],
+                                num_features=len(dynamic_features) + len(static_features),
+                                dim=config["model_args"]["dim"],
+                                dropout=config["model_args"]["dropout"])
     elif config["model_type"] == "rf":
-        # separate training process as Random Forest is not a torch model
+        # separate training process as Random Forest is not a torch mowas isdel
         train_rf(config, dataloader['train'], dataloader['val'])
         return
 

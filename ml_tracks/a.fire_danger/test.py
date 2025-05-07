@@ -61,6 +61,13 @@ def main(config):
                                 input_dim=len(dynamic_features) + len(static_features),
                                 output_gru=config['model_args']['dim'],
                                 dropout=config['model_args']['dropout'])
+    elif config["model_type"] == "cnn":
+        model = config.init_obj('arch', module_arch,
+                                input_channels=config["model_args"]["input_channels"],
+                                seq_len=config["dataset"]["args"]["lag"],
+                                num_features=len(dynamic_features) + len(static_features),
+                                dim=config["model_args"]["dim"],
+                                dropout=config["model_args"]["dropout"])
     elif config["model_type"] == "rf":
         test_rf(config)
         return

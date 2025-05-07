@@ -9,7 +9,7 @@ import PIL.Image
 import datasets.dataset as module_data
 import dataloaders.dataloader as module_dataloader
 from logger import TensorboardWriter
-from utils.util import extract_numpy
+from utils.util import extract_numpy, calculate_metrics
 
 
 def test_rf(config):
@@ -36,11 +36,7 @@ def test_rf(config):
     y_pred = rf.predict(X_test)
     y_proba = rf.predict_proba(X_test)[:, 1]
 
-    acc = accuracy_score(y_test, y_pred)
-    prec = precision_score(y_test, y_pred)
-    rec = recall_score(y_test, y_pred)
-    f1 = f1_score(y_test, y_pred)
-    auprc = average_precision_score(y_test, y_proba)
+    acc, prec, rec, f1, auprc = calculate_metrics(y_test, y_pred, y_proba)
 
     writer.add_scalar("test/accuracy", acc)
     writer.add_scalar("test/precision", prec)

@@ -1,7 +1,6 @@
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score, average_precision_score, confusion_matrix, ConfusionMatrixDisplay, classification_report
 import numpy as np
-import torch
 import torchvision
 import os
 import joblib
@@ -9,7 +8,7 @@ import io
 import matplotlib.pyplot as plt
 import PIL.Image
 from logger import TensorboardWriter
-from utils.util import extract_numpy
+from utils.util import extract_numpy, calculate_metrics
 
 def train_rf(config, dataloader_train, dataloader_val):
 
@@ -30,14 +29,9 @@ def train_rf(config, dataloader_train, dataloader_val):
 
     rf.fit(X_train, y_train)
     y_pred = rf.predict(X_val)
-    y_proba = rf.predict_proba(X_train)[:, 1]
+    y_proba = rf.predict_proba(X_val)[:, 1]
 
-    # Calculate metrics
-    acc = accuracy_score(y_val, y_pred)
-    prec = precision_score(y_val, y_pred)
-    rec = recall_score(y_val, y_pred)
-    f1 = f1_score(y_val, y_pred)
-    auprc = average_precision_score(y_train, y_proba)
+    acc, prec, rec, f1, auprc = calculate_metrics(y_val, y_pred, y_proba)
 
     #Tensorboard
     logger = config.get_logger('trainer', config['trainer']['verbosity'])
@@ -58,7 +52,7 @@ def train_rf(config, dataloader_train, dataloader_val):
     writer.add_scalar("metrics/precision", prec)
     writer.add_scalar("metrics/recall", rec)
     writer.add_scalar("metrics/f1_score", f1)
-    writer.add_scalar("test/auprc", auprc)
+    writer.add_scalar("metrics/auprc", auprc)
 
     cm = confusion_matrix(y_val, y_pred)
     disp = ConfusionMatrixDisplay(confusion_matrix=cm)
@@ -78,6 +72,14 @@ def train_rf(config, dataloader_train, dataloader_val):
     writer.add_text("classification_report", f"```\n{report}\n```")
 
     #Logger
+    logger.info("Hyperparameters:")
+    logger.info(f"n_estimators : {config['model_args']['n_estimators']}")
+    logger.info(f"max_depth    : {config['model_args']['max_depth']}")
+    logger.info(f"min_samples_split : {config['model_args']['min_samples_split']}")
+    logger.info(f"min_samples_leaf : {config['model_args']['min_samples_leaf']}")
+    logger.info(f"max_features : {config['model_args']['max_features']}")
+    logger.info(f"class_weight : {config['model_args']['class_weight']}")
+    logger.info(f"random_state : {config['seed']}")
     logger.info("Random Forest Evaluation:")
     logger.info(f"accuracy     : {acc:.6f}")
     logger.info(f"precision    : {prec:.6f}")

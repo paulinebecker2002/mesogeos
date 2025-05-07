@@ -202,3 +202,30 @@ class SimpleGRU(nn.Module):
         lstm_gru, _ = self.gru(x)
         x = self.fc_nn(lstm_gru[:, -1, :])
         return x
+
+class SimpleCNN(nn.Module):
+    def __init__(self, input_channels=1, seq_len=30, num_features=24, dim=128, dropout=0.5):
+        super(SimpleCNN, self).__init__()
+        self.seq_len = seq_len
+        self.num_features = num_features
+        self.conv1 = nn.Conv2d(input_channels, 16, kernel_size=(3, 3), padding=1)
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=(3, 3), padding=1)
+        self.pool = nn.MaxPool2d((2, 2))
+        self.dropout = nn.Dropout(dropout)
+        self.flatten = nn.Flatten()
+
+        conv_output_h = seq_len // 4
+        conv_output_w = num_features // 4
+        linear_input_size = 32 * conv_output_h * conv_output_w
+
+        self.fc = nn.Linear(linear_input_size, 2)
+    def forward(self, x):
+        x = x.unsqueeze(1)
+        print(f"Input shape: {x.shape}")
+        x = self.pool(torch.relu(self.conv1(x)))
+        x = self.pool(torch.relu(self.conv2(x)))
+        x = self.flatten(x)
+
+
+        x = self.dropout(x)
+        return self.fc(x)

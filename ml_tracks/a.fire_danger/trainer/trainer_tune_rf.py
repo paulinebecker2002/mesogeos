@@ -9,18 +9,9 @@ import io
 import matplotlib.pyplot as plt
 import PIL.Image
 from logger import TensorboardWriter
+from utils.util import extract_numpy, calculate_metrics
 
 def train_rf(config, dataloader_train, dataloader_val):
-    def extract_numpy(dataloader):
-        X_all, y_all = [], []
-        for dynamic, static, _, y in dataloader:
-            static = static.unsqueeze(1).repeat(1, dynamic.shape[1], 1)
-            y = y.numpy()
-            input_ = torch.cat([dynamic, static], dim=2)
-            input_ = input_.view(input_.shape[0], -1).numpy()
-            X_all.append(input_)
-            y_all.append(y)
-        return np.vstack(X_all), np.concatenate(y_all)
 
     X_train, y_train = extract_numpy(dataloader_train)
     X_val, y_val = extract_numpy(dataloader_val)
@@ -72,17 +63,16 @@ def train_rf(config, dataloader_train, dataloader_val):
     rf = search.best_estimator_  # retrain best model on full training set
     rf.fit(X_train, y_train)
     y_pred = rf.predict(X_val)
+    y_proba = rf.predict_proba(X_val)[:, 1]
 
     # --- Metrics
-    acc = accuracy_score(y_val, y_pred)
-    prec = precision_score(y_val, y_pred)
-    rec = recall_score(y_val, y_pred)
-    f1 = f1_score(y_val, y_pred)
+    acc, prec, rec, f1, auprc = calculate_metrics(y_val, y_pred, y_proba)
 
     writer.add_scalar("metrics/accuracy", acc)
     writer.add_scalar("metrics/precision", prec)
     writer.add_scalar("metrics/recall", rec)
     writer.add_scalar("metrics/f1_score", f1)
+    writer.add_scalar("metrics/auprc", auprc)
 
     # --- Confusion matrix
     cm = confusion_matrix(y_val, y_pred)
@@ -112,14 +102,15 @@ def train_rf(config, dataloader_train, dataloader_val):
     logger.info(f"precision    : {prec:.6f}")
     logger.info(f"recall       : {rec:.6f}")
     logger.info(f"f1_score     : {f1:.6f}")
+    logger.info(f"auprc        : {auprc:.6f}")
     logger.info("Top %d wichtigste Features:", top_n)
-    for rank in range(top_n):
-        fname = feature_names[sorted_idx[rank]]
-        imp = importances[sorted_idx[rank]]
-        logger.info(f"{fname:<24} → {imp:.4f}")
-        writer.add_scalar(f"feature_importance/{fname}", imp)
+    #for rank in range(top_n):
+     #   fname = feature_names[sorted_idx[rank]]
+      #  imp = importances[sorted_idx[rank]]
+       # logger.info(f"{fname:<24} → {imp:.4f}")
+        #writer.add_scalar(f"feature_importance/{fname}", imp)
 
-    plot_feature_importances(writer, 20, importances, feature_names)
+    #plot_feature_importances(writer, 20, importances, feature_names)
 
     return rf
 
