@@ -14,6 +14,10 @@
     "args": {}
   },
 
+  "finetune": {
+    "sklearn_tune": "GridSearch"
+  },
+
   "model_args": {
     "n_estimators": 686,
     "max_depth": null,

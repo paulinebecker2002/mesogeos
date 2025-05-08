@@ -10,7 +10,6 @@ import models.model as module_arch
 from parse_config import ConfigParser
 from trainer import Trainer
 from utils import prepare_device
-#from trainer.trainer_rf import train_rf
 from trainer.trainer_tune_rf import train_rf
 
 
@@ -127,6 +126,8 @@ if __name__ == '__main__':
         CustomArgs(['--ep', '--epochs'], type=int, target='trainer;epochs'),
         CustomArgs(['--dr', '--dropout'], type=float, target='model_args;dropout'),
         CustomArgs(['--hd', '--hidden-dims'], type=lambda s: [int(x) for x in s.split(',')], target='model_args;hidden_dims'),
+        CustomArgs(['--ft', '--finetune'], type=str, target='finetune;sklearn_tune'),
+
     ]
     config = ConfigParser.from_args(args, options)
     main(config)

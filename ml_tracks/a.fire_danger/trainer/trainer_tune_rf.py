@@ -1,11 +1,13 @@
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score, confusion_matrix, ConfusionMatrixDisplay, classification_report
-from sklearn.model_selection import RandomizedSearchCV
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classification_report
+from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
 from scipy.stats import randint
 import numpy as np
 import torch
 import torchvision
 import io
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import PIL.Image
 from logger import TensorboardWriter
@@ -25,28 +27,51 @@ def train_rf(config, dataloader_train, dataloader_val):
     stat_feats = config["features"]["static"]
     feature_names = [f"{name}_lag{t}" for t in range(lag) for name in dyn_feats + stat_feats]
 
-    # --- RandomizedSearchCV
-    param_dist = {
-        "n_estimators": randint(100, 800),
-        "max_depth": [10, 20, None],
-        "min_samples_split": [2, 5, 10],
-        "min_samples_leaf": [1, 2, 4],
-        "max_features": ["sqrt", "log2"],
-        "class_weight": ["balanced"]
-    }
+    if config["finetune"]["sklearn_tune"] == "RandomizedSearch":
+        param_dist = {
+            "n_estimators": randint(100, 800),
+            "max_depth": [10, 20, None],
+            "min_samples_split": [2, 5, 10],
+            "min_samples_leaf": [1, 2, 4],
+            "max_features": ["sqrt", "log2"],
+            "class_weight": ["balanced"]
+        }
 
-    base_rf = RandomForestClassifier(random_state=config["seed"])
-    search = RandomizedSearchCV(
-        estimator=base_rf,
-        param_distributions=param_dist,
-        n_iter=30,
-        scoring="f1",
-        cv=3,
-        verbose=1,
-        random_state=config["seed"],
-        n_jobs=-1
-    )
-    logger.info("Starting RandomizedSearchCV to tune hyperparameters...")
+        base_rf = RandomForestClassifier(random_state=config["seed"])
+        search = RandomizedSearchCV(
+            estimator=base_rf,
+            param_distributions=param_dist,
+            n_iter=30,
+            scoring="f1",
+            cv=3,
+            verbose=1,
+            random_state=config["seed"],
+            n_jobs=-1
+        )
+        logger.info("Starting RandomizedSearchCV to tune hyperparameters...")
+
+    elif config["finetune"]["sklearn_tune"] == "GridSearch":
+        param_grid = {
+            "n_estimators": [616, 618, 620, 622, 624, 626],
+            "max_depth": [None],
+            "min_samples_split": [4, 5, 6],
+            "min_samples_leaf": [2, 3],
+            "max_features": ["sqrt"],
+            "class_weight": ["balanced"]
+        }
+
+        base_rf = RandomForestClassifier(random_state=config["seed"])
+        search = GridSearchCV(
+            estimator=base_rf,
+            param_grid=param_grid,
+            scoring="f1",
+            cv=3,
+            verbose=1,
+            n_jobs=-1
+        )
+        logger.info("Starting GridSearchCV to tune hyperparameters...")
+
+
     search.fit(X_train, y_train)
     logger.info("Best Parameters: %s", search.best_params_)
 
@@ -60,7 +85,7 @@ def train_rf(config, dataloader_train, dataloader_val):
         params = results['params'][idx]
         logger.info(f"Rank {rank+1:2d}: F1 = {mean_score:.4f} (+/- {std_score:.4f}) | Params: {params}")
 
-    rf = search.best_estimator_  # retrain best model on full training set
+    rf = search.best_estimator_
     rf.fit(X_train, y_train)
     y_pred = rf.predict(X_val)
     y_proba = rf.predict_proba(X_val)[:, 1]
