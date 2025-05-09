@@ -52,10 +52,10 @@ def train_rf(config, dataloader_train, dataloader_val):
 
     elif config["finetune"]["sklearn_tune"] == "GridSearch":
         param_grid = {
-            "n_estimators": [616, 618, 620, 622, 624, 626],
+            "n_estimators": [626, 628, 630, 632],
             "max_depth": [None],
             "min_samples_split": [4, 5, 6],
-            "min_samples_leaf": [2, 3],
+            "min_samples_leaf": [3],
             "max_features": ["sqrt"],
             "class_weight": ["balanced"]
         }

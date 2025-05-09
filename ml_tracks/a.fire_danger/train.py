@@ -10,8 +10,8 @@ import models.model as module_arch
 from parse_config import ConfigParser
 from trainer import Trainer
 from utils import prepare_device
-from trainer.trainer_tune_rf import train_rf
-
+#from trainer.trainer_tune_rf import train_rf
+from trainer.trainer_rf import train_rf
 
 
 def main(config):

@@ -94,6 +94,8 @@ class TransformerNet(nn.Module):
             dim_feedforward=dim_feedforward,
             dropout=dropout,
         )
+
+        #data processing over time
         self.transformer_encoder_time = nn.TransformerEncoder(
             encoder_layer_time,
             num_layers=num_layers,
@@ -105,6 +107,8 @@ class TransformerNet(nn.Module):
             dim_feedforward=dim_feedforward,
             dropout=dropout,
         )
+
+        #data processing over feature dimensions
         self.transformer_encoder_channel = nn.TransformerEncoder(
             encoder_layer_channel,
             num_layers=num_layers,
@@ -127,7 +131,7 @@ class TransformerNet(nn.Module):
 
     def forward(self, x_):
 
-        x = torch.tanh(self.lin_time(x_))
+        x = torch.tanh(self.lin_time(x_)) #[seq_len, batch_size, d_model]
         x = self.pos_encoder(x)
         x = self.transformer_encoder_time(x)
         x = x[0, :, :]

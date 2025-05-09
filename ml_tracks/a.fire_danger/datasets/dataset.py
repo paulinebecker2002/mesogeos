@@ -44,10 +44,19 @@ class FireDataset(Dataset):
             last_date = group['time'].iloc[-1]
             return last_date[:4]
 
-        self.positives['YEAR'] = self.positives.groupby(self.positives.index // 30).apply(get_last_year).values.repeat(
-            30)
-        self.negatives['YEAR'] = self.negatives.groupby(self.negatives.index // 30).apply(get_last_year).values.repeat(
-            30)
+        self.positives['YEAR'] = self.positives.groupby(self.positives.index // 30).apply(get_last_year).values.repeat(30)
+        self.negatives['YEAR'] = self.negatives.groupby(self.negatives.index // 30).apply(get_last_year).values.repeat(30)
+
+        #grouped = self.positives.groupby(self.positives.index // 30)
+        #years = grouped.apply(get_last_year)
+        #repeats = grouped.size().values
+        #self.positives['YEAR'] = np.repeat(years.values, repeats)
+
+        #grouped = self.negatives.groupby(self.negatives.index // 30)
+        #years = grouped.apply(get_last_year)
+        #repeats = grouped.size().values
+        #self.negatives['YEAR'] = np.repeat(years.values, repeats)
+
 
         val_year = ['2020']
         test_year = ['2021', '2022']
