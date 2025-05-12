@@ -8,7 +8,7 @@ def setup_logging(save_dir, log_config='logger/logger_config.json', default_leve
     """
     Setup logging configuration
     """
-    log_config = Path(log_config)
+    log_config = Path(__file__).resolve().parents[1] / Path(log_config)
     if log_config.is_file():
         config = read_json(log_config)
         # modify logging paths based on run config

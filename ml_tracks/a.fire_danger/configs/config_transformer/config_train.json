@@ -1,5 +1,5 @@
 {
-    "name": "lala",
+    "name": "transformer",
     "model_type": "transformer",
     "n_gpu": 1,
     "gpu_id": 0,
@@ -22,7 +22,7 @@
     "dataset": {
         "type": "FireDataset",
         "args":{
-            "dataset_root": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a.fire_danger/a.danger_forecasting_dataset",
+            "dataset_root": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a.fire_danger/a.danger_forecasting",
             "problem_class": "classification",
             "nan_fill": 0,
             "neg_pos_ratio": 2,

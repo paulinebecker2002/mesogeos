@@ -15,6 +15,7 @@ from trainer.trainer_rf import train_rf
 
 
 def main(config):
+    print(f"Available GPUs: {torch.cuda.device_count()}")
     # fix random seeds for reproducibility
     SEED = config['seed']
     torch.manual_seed(SEED)
@@ -22,6 +23,11 @@ def main(config):
     torch.backends.cudnn.benchmark = False
     np.random.seed(SEED)
     logger = config.get_logger('train')
+    logger.info(f"Learning rate:       {config['optimizer']['args'].get('lr')}")
+    logger.info(f"Dropout:             {config['model_args'].get('dropout')}")
+    logger.info(f"Batch size:          {config['dataloader']['args'].get('batch_size')}")
+    logger.info(f"Hidden dims:         {config['model_args'].get('hidden_dims')}")
+    logger.info(f"Epochs:              {config['trainer'].get('epochs')}")
 
     # setup datasets instances
     dynamic_features = config["features"]["dynamic"]

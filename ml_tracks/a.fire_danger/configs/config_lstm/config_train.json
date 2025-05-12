@@ -1,5 +1,5 @@
 {
-    "name": "lala",
+    "name": "lstm",
     "model_type": "lstm",
     "n_gpu": 1,
     "gpu_id": 0,

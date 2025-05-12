@@ -1,6 +1,6 @@
-{   "model_path": "",
+{   "model_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a.fire_danger/saved/models/lala/0510_102707/model_best.pth",
     "model_type": "gtn",
-    "name": "lala",
+    "name": "gtn",
     "n_gpu": 1,
     "gpu_id": 1,
 

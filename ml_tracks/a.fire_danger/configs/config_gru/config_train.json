@@ -1,5 +1,5 @@
 {
-  "name": "lala",
+  "name": "gru",
   "model_type": "gru",
   "n_gpu": 1,
   "gpu_id": 0,

@@ -1,5 +1,5 @@
 {
-  "name": "lala",
+  "name": "cnn",
   "model_type": "cnn",
   "n_gpu": 1,
   "gpu_id": 0,

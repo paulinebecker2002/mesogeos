@@ -136,8 +136,10 @@ class Trainer(BaseTrainer):
                                                         met(outputs[:, 1], labels)[1])
 
         # add histogram of models parameters to the tensorboard
-        for name, p in self.model.named_parameters():
-            self.writer.add_histogram(name, p, bins='auto')
+        if epoch % 2 == 0:
+            for name, p in self.model.named_parameters():
+                if p is not None and p.numel() > 0:
+                    self.writer.add_histogram(name, p, bins='auto')
         return self.valid_metrics.result()
 
     def _progress(self, batch_idx):

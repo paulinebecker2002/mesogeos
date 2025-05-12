@@ -1,5 +1,5 @@
 {
-    "name": "lala",
+    "name": "gtn",
     "model_type": "gtn",
     "n_gpu": 1,
     "gpu_id": 1,
@@ -72,31 +72,35 @@
     },
 
 
-    "features": {
-        "dynamic": ["d2m",
-                       "lai",
-                       "lst_day",
-                       "lst_night",
-                       "ndvi",
-                       "rh",
-                       "smi",
-                       "sp",
-                       "ssrd",
-                       "t2m",
-                       "tp",
-                       "wind_speed"],
-        "static": [
-                       "dem",
-                       "roads_distance",
-                       "slope",
-                       "lc_agriculture",
-                       "lc_forest",
-                       "lc_grassland",
-                       "lc_settlement",
-                       "lc_shrubland",
-                       "lc_sparse_vegetation",
-                       "lc_water_bodies",
-                       "lc_wetland",
-                       "population"]
-    }
+  "features": {
+    "dynamic": [
+            "d2m",
+            "lai",
+            "lst_day",
+            "lst_night",
+            "ndvi",
+            "rh",
+            "smi",
+            "sp",
+            "ssrd",
+            "t2m",
+            "tp",
+            "wind_direction",
+            "wind_speed"],
+    "static": [
+            "aspect",
+            "curvature",
+            "dem",
+            "roads_distance",
+            "slope",
+            "lc_agriculture",
+            "lc_forest",
+            "lc_grassland",
+            "lc_settlement",
+            "lc_shrubland",
+            "lc_sparse_vegetation",
+            "lc_water_bodies",
+            "lc_wetland",
+            "population"]
+  }
 }

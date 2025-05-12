@@ -1,5 +1,5 @@
 {
-  "name": "lala",
+  "name": "mlp",
   "model_type": "mlp",
   "n_gpu": 1,
   "gpu_id": 0,
@@ -13,7 +13,8 @@
     "type": "MLP",
     "args": {}
   },
-  "model_args": {"output_dim": 2,
+  "model_args": {
+    "output_dim": 2,
     "hidden_dims": [128, 64],
     "dropout": 0.1},
 
@@ -60,7 +61,7 @@
   "trainer": {
     "epochs": 30,
 
-    "save_dir": "saved/",
+    "save_dir": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a.fire_danger/saved",
     "save_period": 1,
     "verbosity": 2,
 

@@ -225,7 +225,6 @@ class SimpleCNN(nn.Module):
         self.fc = nn.Linear(linear_input_size, 2)
     def forward(self, x):
         x = x.unsqueeze(1)
-        print(f"Input shape: {x.shape}")
         x = self.pool(torch.relu(self.conv1(x)))
         x = self.pool(torch.relu(self.conv2(x)))
         x = self.flatten(x)

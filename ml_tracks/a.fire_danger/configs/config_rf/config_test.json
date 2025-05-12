@@ -1,6 +1,6 @@
 {   "model_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a.fire_danger/saved/log/lala/0508_181132/random_forest_model_0508_181132.pkl",
   "model_type": "rf",
-  "name": "lala",
+  "name": "rf",
   "n_gpu": 1,
   "gpu_id": 1,
 
