@@ -1,12 +1,14 @@
 #!/bin/bash
-#SBATCH --job-name=lstm-gridsearch
-#SBATCH --partition=cpuonly
+#SBATCH --job-name=1lstm-gridsearch
+#SBATCH --partition=accelerated
 #SBATCH --account=hk-project-p0024498
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=16
-#SBATCH --mem=200G
-#SBATCH --time=04:00:00
+#SBATCH --cpus-per-task=8
+#SBATCH --gpus=1
+#SBATCH --gres=gpu:1
+#SBATCH --mem=480G
+#SBATCH --time=1-04:00:00
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=pauline.becker@student.kit.edu
 
@@ -22,11 +24,11 @@ TEST_SCRIPT="/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_
 
 cd /hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a.fire_danger
 # GridSearch Parameters
-for lr in 0.001
+for lr in 0.001 0.005 0.01
 do
-  for dr in 0.1
+  for dr in 0.1 0.3 0.5
   do
-    for bs in 128
+    for bs in 128 256
     do
       echo "Running with lr=$lr, dropout=$dr, batch_size=$bs"
       $PYTHON $TRAIN_SCRIPT \
