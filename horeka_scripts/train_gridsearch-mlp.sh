@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=1gridsearch_mlp
+#SBATCH --job-name=mlp_gridsearch
 #SBATCH --partition=accelerated
 #SBATCH --account=hk-project-p0024498
 #SBATCH --nodes=1
@@ -8,7 +8,7 @@
 #SBATCH --gpus=1
 #SBATCH --gres=gpu:1
 #SBATCH --mem=480G
-#SBATCH --time=1-04:00:00
+#SBATCH --time=12:00:00
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=pauline.becker@student.kit.edu
 
@@ -24,11 +24,11 @@ TEST_SCRIPT="/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_
 
 cd /hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a.fire_danger
 # GridSearch Parameters
-for lr in 0.001 0.005 0.01
+for lr in 0.001 0.00125 0.00075
 do
-  for dr in 0.1 0.3 0.5
+  for dr in 0.075 0.1 0.125
   do
-    for bs in 128 256
+    for bs in 256
     do
       echo "Running with lr=$lr, dropout=$dr, batch_size=$bs"
       $PYTHON $TRAIN_SCRIPT \

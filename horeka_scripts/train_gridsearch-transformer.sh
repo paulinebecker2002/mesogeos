@@ -24,11 +24,11 @@ TEST_SCRIPT="/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_
 
 cd /hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a.fire_danger
 # GridSearch Parameters
-for lr in 0.001 0.005 0.01
+for lr in 0.00025 0.0005 0.00075
 do
-  for dr in 0.1 0.3 0.5
+  for dr in 0.05 0.1 0.15
   do
-    for bs in 128 256
+    for bs in 512 1024
     do
       echo "Running with lr=$lr, dropout=$dr, batch_size=$bs"
       $PYTHON $TRAIN_SCRIPT \

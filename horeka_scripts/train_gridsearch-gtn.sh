@@ -1,14 +1,12 @@
 #!/bin/bash
 #SBATCH --job-name=gtn-gridsearch
-#SBATCH --partition=accelerated
+#SBATCH --partition=cpuonly
 #SBATCH --account=hk-project-p0024498
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=8
-#SBATCH --gpus=1
-#SBATCH --gres=gpu:0
-#SBATCH --mem=480G
-#SBATCH --time=1-04:00:00
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=450G
+#SBATCH --time=04:00:00
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=pauline.becker@student.kit.edu
 
