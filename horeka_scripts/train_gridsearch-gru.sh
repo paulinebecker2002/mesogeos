@@ -8,7 +8,7 @@
 #SBATCH --gpus=1
 #SBATCH --gres=gpu:1
 #SBATCH --mem=480G
-#SBATCH --time=2-00:00:00
+#SBATCH --time=04:00:00
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=pauline.becker@student.kit.edu
 
@@ -39,7 +39,7 @@ do
 
       # Get latest run_id (last modified dir in models/$MODEL_NAME/)
       RUN_ID=$(ls -t $SAVE_DIR/$MODEL_NAME/ | head -n 1)
-      MODEL_PATH="$SAVE_DIR/models/$MODEL_NAME/$RUN_ID/model_best.pth"
+      MODEL_PATH="$SAVE_DIR/$MODEL_NAME/$RUN_ID/model_best.pth"
 
       echo "Testing model: $MODEL_PATH"
       $PYTHON $TEST_SCRIPT \

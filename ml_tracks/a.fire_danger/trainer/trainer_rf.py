@@ -44,6 +44,8 @@ def train_rf(config, dataloader_train, dataloader_val):
     feature_names = [f"{name}_lag{t}" for t in range(lag) for name in dyn_feats + stat_feats]
 
     top_n = min(720, len(feature_names))
+    logger.info("Top %d wichtigste Features:", top_n)
+    logger.info("Sorted Feature Importances:")
     importances, sorted_idx = calculate_feature_importances(rf, feature_names, logger, writer, top_n=top_n)
     plot_feature_importances(writer, 20, importances, feature_names)
 
@@ -87,8 +89,6 @@ def train_rf(config, dataloader_train, dataloader_val):
     logger.info(f"f1_score     : {f1:.6f}")
     logger.info(f"auprc        : {auprc:.6f}")
     logger.info(f"Model ID used for saving: {model_id}")
-    logger.info("Top %d wichtigste Features:", top_n)
-    logger.info("Sorted Feature Importances:")
 
 
     model_path = os.path.join(config.log_dir, f"random_forest_model_{model_id}.pkl")
@@ -96,6 +96,25 @@ def train_rf(config, dataloader_train, dataloader_val):
     logger.info(f"Random Forest model saved to: {os.path.abspath(model_path)}")
 
     return rf
+
+def objective_rf(trial, config, dataloader_train, dataloader_val):
+    # Suggest Hyperparameters via Optuna
+    config['model_args']['n_estimators'] = trial.suggest_int('n_estimators', 200, 1000)
+    config['model_args']['max_depth'] = trial.suggest_int('max_depth', None, 1, 50)
+    config['model_args']['min_samples_split'] = trial.suggest_int('min_samples_split', 2, 10)
+    config['model_args']['min_samples_leaf'] = trial.suggest_int('min_samples_leaf', 1, 10)
+    config['model_args']['max_features'] = trial.suggest_categorical('max_features', ['auto', 'sqrt'])
+    config['model_args']['class_weight'] = trial.suggest_categorical('class_weight', ['balanced', 'balanced_subsample'])
+
+    # Train Random Forest with current trial config
+    rf = train_rf(config, dataloader_train, dataloader_val)
+
+    # Evaluate (F1-score or AUPRC as Optuna objective)
+    X_val, y_val = extract_numpy(dataloader_val)
+    y_pred = rf.predict(X_val)
+
+    f1 = f1_score(y_val, y_pred)
+    return f1
 
 def calculate_feature_importances(rf, feature_names, logger, writer, top_n=20):
     importances = rf.feature_importances_

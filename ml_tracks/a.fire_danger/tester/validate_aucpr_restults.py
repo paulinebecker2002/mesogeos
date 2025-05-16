@@ -3,11 +3,11 @@ import re
 import subprocess
 from pathlib import Path
 
-MODEL_NAME = "gtn"  # Change this to the model name you want to analyze
+MODEL_NAME = "cnn"  # Change this to the model name you want to analyze
 BASE_DIR = Path(f"/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a.fire_danger/saved/log/{MODEL_NAME}")
 
 best_model = None
-best_f1 = -1
+best_aucpr = -1
 
 
 f1_pattern = re.compile(r"val_f1_score\s+:\s+([0-9.]+)")
@@ -43,9 +43,9 @@ for log_file in BASE_DIR.glob("*/info.log"):
                     if f1_score is not None and auprc is not None and precision is not None and recall is not None:
                         break
 
-                if f1_score is not None:
-                    if f1_score > best_f1:
-                        best_f1 = f1_score
+                if auprc is not None:
+                    if auprc > best_aucpr:
+                        best_aucpr = auprc
                         best_model = log_file
                         best_metrics = {
                             "f1_score": f1_score,

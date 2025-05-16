@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 from base import BaseTrainer
 from utils import inf_loop, MetricTracker
+from pathlib import Path
 
 
 class Trainer(BaseTrainer):
@@ -30,6 +31,8 @@ class Trainer(BaseTrainer):
 
         self.train_metrics = MetricTracker('loss', *[m.__name__ for m in self.metric_ftns], writer=self.writer)
         self.valid_metrics = MetricTracker('loss', *[m.__name__ for m in self.metric_ftns], writer=self.writer)
+        self.best_val_f1 = 0.0
+        self.best_val_aucpr = 0.0
 
     def _train_epoch(self, epoch):
         """
@@ -135,8 +138,17 @@ class Trainer(BaseTrainer):
                         self.valid_metrics.aucpr_update(met.__name__, met(outputs[:, 1], labels)[0],
                                                         met(outputs[:, 1], labels)[1])
 
+
+        current_val_f1 = self.valid_metrics.result().get('f1_score', 0.0)
+        if current_val_f1 > self.best_val_f1:
+            self.best_val_f1 = current_val_f1
+
+        current_val_aucpr = self.valid_metrics.result().get('aucpr', 0.0)
+        if current_val_aucpr > self.best_val_aucpr:
+            self.best_val_aucpr = current_val_aucpr
+
         # add histogram of models parameters to the tensorboard
-        if epoch % 2 == 0:
+        if epoch % 2 == 0 and self.config["model_type"] != "mlp":
             for name, p in self.model.named_parameters():
                 if p is not None and p.numel() > 0:
                     self.writer.add_histogram(name, p, bins='auto')

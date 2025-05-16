@@ -46,9 +46,9 @@ def prepare_device(n_gpu_use, num_device):
 
 def extract_numpy(dataloader):
     X_all, y_all = [], []
-    for dynamic, static, _, y in dataloader:
+    for dynamic, static, *_, y in dataloader:
         static = static.unsqueeze(1).repeat(1, dynamic.shape[1], 1)
-        y = y.numpy()
+        y = y.numpy().astype(int)
         input_ = torch.cat([dynamic, static], dim=2)
         input_ = input_.view(input_.shape[0], -1).numpy()
         X_all.append(input_)
