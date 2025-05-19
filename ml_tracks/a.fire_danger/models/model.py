@@ -232,3 +232,42 @@ class SimpleCNN(nn.Module):
 
         x = self.dropout(x)
         return self.fc(x)
+
+class TFTNet(nn.Module):
+    def __init__(self, input_dim=12, static_dim=12, seq_len=30, d_model=128, nhead=8, num_layers=2, dropout=0.1):
+        super().__init__()
+        self.seq_len = seq_len
+        self.static_proj = nn.Linear(static_dim, d_model)
+        self.dynamic_proj = nn.Linear(input_dim, d_model)
+
+        self.pos_encoder = PositionalEncoding(d_model, dropout, max_len=seq_len)
+
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=d_model,
+            nhead=nhead,
+            dim_feedforward=2*d_model,
+            dropout=dropout,
+            activation="relu"
+        )
+        self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
+
+        self.final_fc = nn.Sequential(
+            nn.Linear(d_model, d_model // 2),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(d_model // 2, 2)
+        )
+
+    def forward(self, dynamic, static):
+        dyn = self.dynamic_proj(dynamic)                       # [B, T, D]
+        stat = self.static_proj(static).unsqueeze(1)           # [B, 1, D]
+        stat = stat.expand(-1, self.seq_len, -1)               # [B, T, D]
+
+        x = dyn + stat
+
+        x = torch.transpose(x, 0, 1)                            # → [T, B, D]
+        x = self.pos_encoder(x)
+        x = self.transformer(x)                                 # [T, B, D]
+        x = x[-1]
+        out = self.final_fc(x)                                  # [B, 2]
+        return out

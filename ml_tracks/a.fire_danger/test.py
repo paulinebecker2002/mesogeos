@@ -69,6 +69,15 @@ def main(config):
                                 num_features=len(dynamic_features) + len(static_features),
                                 dim=config["model_args"]["dim"],
                                 dropout=config["model_args"]["dropout"])
+    elif config["model_type"] == "tft":
+        model = config.init_obj('arch', module_arch,
+                                input_dim=len(dynamic_features),
+                                static_dim=len(static_features),
+                                seq_len=config["dataset"]["args"]["lag"],
+                                d_model=config['model_args']['model_dim'],
+                                nhead=config['model_args']['nheads'],
+                                num_layers=config['model_args']['num_layers'],
+                                dropout=config['model_args']['dropout'])
     elif config["model_type"] == "rf":
         test_rf(config)
         return
@@ -98,11 +107,17 @@ def main(config):
     test_metrics.reset()
 
     with torch.no_grad():
-        for batch_idx, (dynamic, static, bas_size, labels) in enumerate(dataloader):
-            static = static.unsqueeze(1).repeat(1, dynamic.shape[1], 1)
+        for batch_idx, batch in enumerate(dataloader):
+            (dynamic, static, bas_size, labels) = batch[:4]
+            if config['model_type'] == 'tft':
+                dynamic = dynamic.to(device, dtype=torch.float32)
+                static = static.to(device, dtype=torch.float32)
+                input_ = (dynamic, static)
+            else:
+                static = static.unsqueeze(1).repeat(1, dynamic.shape[1], 1)
+                input_ = torch.cat([dynamic, static], dim=2)
+                input_ = input_.to(device, dtype=torch.float32)
             labels = labels.to(device, dtype=torch.long)
-            input_ = torch.cat([dynamic, static], dim=2)
-            input_ = input_.to(device, dtype=torch.float32)
             bas_size = bas_size.to(device, dtype=torch.float32)
             # bas_size=1
 
@@ -110,7 +125,10 @@ def main(config):
                 input_ = torch.transpose(input_, 0, 1)
             elif config['model_type'] == 'mlp':
                 input_ = input_.view(input_.shape[0], -1)
-            outputs = model(input_)
+            if config['model_type'] == 'tft':
+                outputs = model(dynamic, static)
+            else:
+                outputs = model(input_)
             m = nn.Softmax(dim=1)
             outputs = m(outputs)
 

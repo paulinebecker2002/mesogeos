@@ -86,6 +86,15 @@ def main(config):
                                 num_features=len(dynamic_features) + len(static_features),
                                 dim=config["model_args"]["dim"],
                                 dropout=config["model_args"]["dropout"])
+    elif config["model_type"] == "tft":
+        model = config.init_obj('arch', module_arch,
+                                input_dim=len(dynamic_features),
+                                static_dim=len(static_features),
+                                seq_len=config["dataset"]["args"]["lag"],
+                                d_model=config['model_args']['model_dim'],
+                                nhead=config['model_args']['nheads'],
+                                num_layers=config['model_args']['num_layers'],
+                                dropout=config['model_args']['dropout'])
     elif config["model_type"] == "rf":
         # separate training process as Random Forest is not a torch mowas isdel
         #train_rf(config, dataloader['train'], dataloader['val'])
@@ -95,7 +104,7 @@ def main(config):
             return objective_rf(trial, config, dataloader['train'], dataloader['val'])
 
         study = optuna.create_study(direction='maximize')
-        study.optimize(optuna_objective, n_trials=50)
+        study.optimize(optuna_objective, n_trials=30)
 
         logger.info("Best trial:")
         logger.info(study.best_trial)

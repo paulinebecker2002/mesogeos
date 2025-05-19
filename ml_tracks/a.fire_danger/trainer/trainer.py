@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 from base import BaseTrainer
 from utils import inf_loop, MetricTracker
+import pandas as pd
 from pathlib import Path
 
 
@@ -44,11 +45,18 @@ class Trainer(BaseTrainer):
         self.model.train()
         self.train_metrics.reset()
 
-        for batch_idx, (dynamic, static, bas_size, labels) in enumerate(self.data_loader):
-            static = static.unsqueeze(1).repeat(1, dynamic.shape[1], 1)
+        for batch_idx, batch in enumerate(self.data_loader):
+            (dynamic, static, bas_size, labels) = batch[:4]
+            if self.config['model_type'] == 'tft':
+                dynamic = dynamic.to(self.device, dtype=torch.float32)
+                static = static.to(self.device, dtype=torch.float32)
+                input_ = (dynamic, static)
+            else:
+                static = static.unsqueeze(1).repeat(1, dynamic.shape[1], 1)
+                input_ = torch.cat([dynamic, static], dim=2)
+                input_ = input_.to(self.device, dtype=torch.float32)
+
             labels = labels.to(self.device, dtype=torch.long)
-            input_ = torch.cat([dynamic, static], dim=2)
-            input_ = input_.to(self.device, dtype=torch.float32)
             bas_size = bas_size.to(self.device, dtype=torch.float32)
             # bas_size=1
             self.optimizer.zero_grad()
@@ -56,7 +64,10 @@ class Trainer(BaseTrainer):
                 input_ = torch.transpose(input_, 0, 1)
             elif self.config['model_type'] == 'mlp':
                 input_ = input_.view(input_.shape[0], -1)
-            outputs = self.model(input_)
+            if self.config['model_type'] == 'tft':
+                outputs = self.model(*input_)  # dynamic, static getrennt übergeben
+            else:
+                outputs = self.model(input_)
             m = nn.Softmax(dim=1)
             outputs = m(outputs)
 
@@ -105,12 +116,20 @@ class Trainer(BaseTrainer):
         """
         self.model.eval()
         self.valid_metrics.reset()
+        self.val_outputs = []
+
         with torch.no_grad():
-            for batch_idx, (dynamic, static, bas_size, labels) in enumerate(self.valid_data_loader):
-                static = static.unsqueeze(1).repeat(1, dynamic.shape[1], 1)
+            for batch_idx, (dynamic, static, bas_size, labels, lats, lons) in enumerate(self.valid_data_loader):
+                if self.config['model_type'] == 'tft':
+                    dynamic = dynamic.to(self.device, dtype=torch.float32)
+                    static = static.to(self.device, dtype=torch.float32)
+                    input_ = (dynamic, static)
+                else:
+                    static = static.unsqueeze(1).repeat(1, dynamic.shape[1], 1)
+                    input_ = torch.cat([dynamic, static], dim=2)
+                    input_ = input_.to(self.device, dtype=torch.float32)
+
                 labels = labels.to(self.device, dtype=torch.long)
-                input_ = torch.cat([dynamic, static], dim=2)
-                input_ = input_.to(self.device, dtype=torch.float32)
                 bas_size = bas_size.to(self.device, dtype=torch.float32)
                 # bas_size=1
 
@@ -118,9 +137,17 @@ class Trainer(BaseTrainer):
                     input_ = torch.transpose(input_, 0, 1)
                 elif self.config['model_type'] == 'mlp':
                     input_ = input_.view(input_.shape[0], -1)
-                outputs = self.model(input_)
+                if self.config['model_type'] == 'tft':
+                    outputs = self.model(*input_)  # dynamic, static getrennt übergeben
+                else:
+                    outputs = self.model(input_)
                 m = nn.Softmax(dim=1)
                 outputs = m(outputs)
+
+                softmax_probs = outputs[:, 1].detach().cpu().numpy()
+                lats = lats.detach().cpu().numpy()
+                lons = lons.detach().cpu().numpy()
+                self.val_outputs.append((softmax_probs, lats, lons))
 
                 loss = self.criterion(torch.log(outputs + self.e), labels)
                 loss = torch.mean(loss * bas_size)
@@ -148,10 +175,21 @@ class Trainer(BaseTrainer):
             self.best_val_aucpr = current_val_aucpr
 
         # add histogram of models parameters to the tensorboard
-        if epoch % 2 == 0 and self.config["model_type"] != "mlp":
+        #and self.config["model_type"] != "transformer"
+        if epoch % 2 == 0 and (self.config["model_type"] != "mlp" and self.config["model_type"] != "tft" and self.config["model_type"] != "transformer") and self.config["model_type"] != "gtn":
             for name, p in self.model.named_parameters():
                 if p is not None and p.numel() > 0:
                     self.writer.add_histogram(name, p, bins='auto')
+
+        all_probs, all_lats, all_lons = zip(*self.val_outputs)
+        df = pd.DataFrame({
+            'prob': np.concatenate(all_probs),
+            'lat': np.concatenate(all_lats),
+            'lon': np.concatenate(all_lons)
+        })
+        output_path = Path(self.config.save_dir) / f"val_softmax_outputs_epoch{epoch}.csv"
+        df.to_csv(output_path, index=False)
+        self.logger.info(f"Saved softmax predictions with coordinates to: {output_path}")
         return self.valid_metrics.result()
 
     def _progress(self, batch_idx):

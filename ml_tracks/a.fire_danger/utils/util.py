@@ -46,13 +46,13 @@ def prepare_device(n_gpu_use, num_device):
 
 def extract_numpy(dataloader):
     X_all, y_all = [], []
-    for dynamic, static, *_, y in dataloader:
+    for batch in dataloader:
+        dynamic, static, bas_size, labels = batch[:4]
         static = static.unsqueeze(1).repeat(1, dynamic.shape[1], 1)
-        y = y.numpy().astype(int)
         input_ = torch.cat([dynamic, static], dim=2)
         input_ = input_.view(input_.shape[0], -1).numpy()
         X_all.append(input_)
-        y_all.append(y)
+        y_all.append(labels.numpy().astype(int))
     return np.vstack(X_all), np.concatenate(y_all)
 
 def calculate_metrics(y_values, y_pred, y_proba):

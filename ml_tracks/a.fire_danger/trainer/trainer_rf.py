@@ -17,6 +17,9 @@ def train_rf(config, dataloader_train, dataloader_val):
     X_train, y_train = extract_numpy(dataloader_train)
     X_val, y_val = extract_numpy(dataloader_val)
 
+    print("Unique y_train labels:", np.unique(y_train))
+    print("Unique y_val labels:", np.unique(y_val))
+
     rf = RandomForestClassifier(
         n_estimators=config['model_args']['n_estimators'],
         max_depth=config['model_args']['max_depth'],
@@ -100,7 +103,7 @@ def train_rf(config, dataloader_train, dataloader_val):
 def objective_rf(trial, config, dataloader_train, dataloader_val):
     # Suggest Hyperparameters via Optuna
     config['model_args']['n_estimators'] = trial.suggest_int('n_estimators', 200, 1000)
-    config['model_args']['max_depth'] = trial.suggest_int('max_depth', None, 1, 50)
+    config['model_args']['max_depth'] = trial.suggest_categorical('max_depth', [None] + list(range(1, 51)))
     config['model_args']['min_samples_split'] = trial.suggest_int('min_samples_split', 2, 10)
     config['model_args']['min_samples_leaf'] = trial.suggest_int('min_samples_leaf', 1, 10)
     config['model_args']['max_features'] = trial.suggest_categorical('max_features', ['auto', 'sqrt'])

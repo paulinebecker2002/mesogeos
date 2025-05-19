@@ -111,6 +111,8 @@ class FireDataset(Dataset):
         static = self.static.iloc[idx * 30:(idx + 1) * 30].values[0, :]
         burned_areas_size = np.log(self.burned_areas_size.iloc[idx * 30:(idx + 1) * 30].values[0])
         labels = self.labels[idx * 30]
+        x = self.all.iloc[idx * 30]['x']
+        y = self.all.iloc[idx * 30]['y']
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=RuntimeWarning)
@@ -123,4 +125,4 @@ class FireDataset(Dataset):
         dynamic = np.nan_to_num(dynamic, nan=self.nan_fill)
         static = np.nan_to_num(static, nan=self.nan_fill)
 
-        return dynamic, static, burned_areas_size, labels
+        return dynamic, static, burned_areas_size, labels, x, y
