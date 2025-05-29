@@ -1,30 +1,29 @@
 #!/bin/bash
-#SBATCH --job-name=gtn_train_cpu
-#SBATCH --partition=gpu_mi300
+#SBATCH --job-name=tft_train_cpu
+#SBATCH --partition=cpu
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --gpus=1
-#SBATCH --gres=gpu:1
-#SBATCH --mem=480G
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=320G
 #SBATCH --time=2-00:00:00
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=pauline.becker@student.kit.edu
 
 PYTHON="/pfs/data6/home/ka/ka_iti/ka_hr7238/miniconda3/envs/mesogeos_bw/bin/python3.8"
-MODEL_NAME="gtn"
+MODEL_NAME="tft"
 
-CONFIG_TRAIN_PATH="/pfs/work9/workspace/scratch/ka_hr7238-mesogeos/code/ml_tracks/a.fire_danger/configs/config_gtn/config_train.json"
+CONFIG_TRAIN_PATH="/pfs/work9/workspace/scratch/ka_hr7238-mesogeos/code/ml_tracks/a.fire_danger/configs/config_tft/config_train.json"
 TRAIN_SCRIPT="/pfs/work9/workspace/scratch/ka_hr7238-mesogeos/code/ml_tracks/a.fire_danger/train.py"
 SAVE_DIR="/pfs/work9/workspace/scratch/ka_hr7238-mesogeos/code/ml_tracks/a.fire_danger/saved/models"
 
-CONFIG_TEST_PATH="/pfs/work9/workspace/scratch/ka_hr7238-mesogeos/code/ml_tracks/a.fire_danger/configs/config_gtn/config_test.json"
+CONFIG_TEST_PATH="/pfs/work9/workspace/scratch/ka_hr7238-mesogeos/code/ml_tracks/a.fire_danger/configs/config_tft/config_test.json"
 TEST_SCRIPT="/pfs/work9/workspace/scratch/ka_hr7238-mesogeos/code/ml_tracks/a.fire_danger/test.py"
 
 cd /pfs/work9/workspace/scratch/ka_hr7238-mesogeos/code/ml_tracks/a_fire_danger
 # GridSearch Parameters
-for lr in 0.001 0.0001 0.00001
+for lr in 0.001
 do
-  for dr in 0.1 0.3 0.5
+  for dr in 0.5
   do
     for bs in 256
     do

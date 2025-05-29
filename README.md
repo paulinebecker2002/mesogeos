@@ -60,7 +60,7 @@ Find the code to generate a datacube like mesogeos in [datacube_creation](datacu
 
 This track defines wildfire danger forecasting as a binary classification problem.
 
-More details in [Track A](./ml_tracks/a.fire_danger/)
+More details in [Track A](ml_tracks/a_fire_danger/)
 
 ### Track B: Final Burned Area Prediction
 
