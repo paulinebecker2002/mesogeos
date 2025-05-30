@@ -37,6 +37,7 @@ def get_shap_explanation(model, model_type, input_all, device, seq_len, static_f
         background = input_all[indices].detach().cpu().numpy()
         test_input = input_all.detach().cpu().numpy()
 
+
         explainer = shap.KernelExplainer(model_wrapper, background)
         shap_values = explainer.shap_values(test_input, nsamples=1000)
 
@@ -55,9 +56,9 @@ def get_shap_explanation(model, model_type, input_all, device, seq_len, static_f
             return output.cpu().numpy()
 
         np.random.seed(42)
-        indices = np.random.choice(len(input_all), 20, replace=False)
-        background = input_all[indices].detach().cpu().numpy().reshape(20, -1)
-        test_input = input_all[:100].detach().cpu().numpy().reshape(100, -1)
+        indices = np.random.choice(len(input_all), 100, replace=False)
+        background = input_all[indices].detach().cpu().numpy().reshape(100, -1)
+        test_input = input_all[:1000].detach().cpu().numpy().reshape(1000, -1)
 
         explainer = shap.KernelExplainer(model_wrapper, background)
         shap_values = explainer.shap_values(test_input, nsamples=1000)
@@ -82,7 +83,9 @@ def get_shap_explanation(model, model_type, input_all, device, seq_len, static_f
         np.random.seed(42)
         indices = np.random.choice(len(input_all), 100, replace=False)
         background = input_all[indices].detach().cpu().numpy().reshape(100, -1)
+        #background = input_all[:10].detach().cpu().numpy().reshape(10, -1)
         test_input = input_all.detach().cpu().numpy().reshape(input_all.shape[0], -1)
+        #test_input = input_all[:10].detach().cpu().numpy().reshape(10, -1)
 
         explainer = shap.KernelExplainer(model_wrapper, background)
         shap_values = explainer.shap_values(test_input, nsamples=1000) #test only nsamples of feature-kombinations
@@ -148,13 +151,16 @@ def main(config):
         model.eval()
 
         all_inputs = []
+        coords_x, coords_y = [], []
         for batch in dataloader:
-            dynamic, static, bas_size, labels = batch[:4]
+            dynamic, static, bas_size, labels, x, y = batch[:6]
             static = static.unsqueeze(1).repeat(1, dynamic.shape[1], 1)
             input_ = torch.cat([dynamic, static], dim=2)
             if config["model_type"] == "mlp":
                 input_ = input_.view(input_.shape[0], -1)
             all_inputs.append(input_)
+            coords_x.extend(x.cpu().numpy())
+            coords_y.extend(y.cpu().numpy())
 
         input_all = torch.cat(all_inputs, dim=0).to(device).float()
         print(type(input_all), input_all.shape)
@@ -162,7 +168,6 @@ def main(config):
 
     shap_values = get_shap_explanation(model, model_type, input_all, device, seq_len, static_features, dynamic_features, logger)
 
-    #store SHAP values
     model_id = os.path.basename(os.path.dirname(checkpoint_path))
     timestamp = datetime.now().strftime("%m%d_%H%M%S")
     shap_save_path = os.path.join(base_save_path, timestamp, f"shap_values_{model_id}_{model_type}.npz")
@@ -180,6 +185,20 @@ def main(config):
 
     if logger:
         logger.info(f"SHAP values saved at: {shap_save_path}")
+
+    base_feature_names = [name.split("_t-")[0] for name in feature_names]
+    print(base_feature_names)
+    shap_df = pd.DataFrame(shap_values[1], columns=feature_names)
+    shap_df.columns = base_feature_names
+    shap_agg = shap_df.groupby(axis=1, level=0).mean()  # → (n_samples, n_base_features)
+    df_shap = shap_agg.copy()
+    df_shap['x'] = coords_x
+    df_shap['y'] = coords_y
+    csv_save_path = os.path.join(base_save_path, timestamp, f"shap_map_{model_type}.csv")
+    os.makedirs(os.path.dirname(csv_save_path), exist_ok=True)
+    df_shap.to_csv(csv_save_path, index=False)
+
+    logger.info(f"Saved SHAP value + coordinate map CSV to: {csv_save_path}")
 
 
 if __name__ == '__main__':

@@ -119,7 +119,7 @@ class Trainer(BaseTrainer):
         self.val_outputs = []
 
         with torch.no_grad():
-            for batch_idx, (dynamic, static, bas_size, labels, lats, lons) in enumerate(self.valid_data_loader):
+            for batch_idx, (dynamic, static, bas_size, labels, x, y) in enumerate(self.valid_data_loader):
                 if self.config['model_type'] == 'tft':
                     dynamic = dynamic.to(self.device, dtype=torch.float32)
                     static = static.to(self.device, dtype=torch.float32)
@@ -145,9 +145,9 @@ class Trainer(BaseTrainer):
                 outputs = m(outputs)
 
                 softmax_probs = outputs[:, 1].detach().cpu().numpy()
-                lats = lats.detach().cpu().numpy()
-                lons = lons.detach().cpu().numpy()
-                self.val_outputs.append((softmax_probs, lats, lons))
+                x = x.detach().cpu().numpy()
+                y = y.detach().cpu().numpy()
+                self.val_outputs.append((softmax_probs, x, y))
 
                 loss = self.criterion(torch.log(outputs + self.e), labels)
                 loss = torch.mean(loss * bas_size)
