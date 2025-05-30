@@ -24,18 +24,13 @@ def get_feature_names(config):
 
 
 def plot_shap_summary(shap_values, shap_class, input_tensor, feature_names, checkpoint_path, base_path, model_type, logger=None):
-    unsupported_models = ['cnn', 'gtn', 'rf']
-    if model_type in unsupported_models:
-        if logger:
-            logger.warning(f"SHAP Summary Plot is not supported for model_type={model_type}. Skipping plot.")
-        return
     model_id = os.path.basename(os.path.dirname(checkpoint_path))
-    save_path = os.path.join(base_path, model_id, f"shap_summary_plot_{model_id}_{model_type}_{shap_class}.png")
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    save_file = os.path.join(base_path, f"shap_summary_plot_{model_id}_{model_type}_{shap_class}.png")
+    os.makedirs(os.path.dirname(save_file), exist_ok=True)
 
     print(f"Shape input: {input_tensor.shape}, SHAP: {np.array(shap_values).shape}")
 
-    if model_type in ["lstm", "gru", "tft", "transformer"]:
+    if model_type in ["lstm", "gru", "tft", "transformer", "gtn", "cnn"]:
         # For shap.summary_plot we need 2D input: [B, F_total]
         if input_tensor.dim() == 3:
             input_for_plot = input_tensor.view(input_tensor.shape[0], -1)
@@ -55,16 +50,16 @@ def plot_shap_summary(shap_values, shap_class, input_tensor, feature_names, chec
     plt.tight_layout()
     class_label = "Fire Danger (Class 1)" if shap_class == 1 else "No Fire Danger (Class 0)"
     plt.title(f"SHAP Summary Plot – {class_label}", fontsize=14)
-    plt.savefig(save_path, dpi=300)
+    plt.savefig(save_file, dpi=300)
     plt.close()
     if logger:
-        logger.info(f"SHAP Summary Plot stored at: {save_path}")
+        logger.info(f"SHAP Summary Plot stored at: {save_file}")
 
 
 def plot_grouped_feature_importance(shap_values, shap_class, feature_names, checkpoint_path, base_path, model_type, logger=None):
     model_id = os.path.basename(os.path.dirname(checkpoint_path))
-    save_path = os.path.join(base_path, model_id, f"grouped_shap_plot_{model_id}_{model_type}_{shap_class}.png")
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    save_file = os.path.join(base_path, f"grouped_shap_plot_{model_id}_{model_type}_{shap_class}.png")
+    os.makedirs(os.path.dirname(save_file), exist_ok=True)
 
     if model_type in ["lstm", "gru", "tft", "transformer"]:
         shap_values = shap_values.reshape(shap_values.shape[0], -1)
@@ -81,23 +76,25 @@ def plot_grouped_feature_importance(shap_values, shap_class, feature_names, chec
     plt.ylabel("Mean |SHAP value|")
     plt.title("Total influence per feature (aggregated over time)")
     plt.tight_layout()
-    plt.savefig(save_path, dpi=300)
+    plt.savefig(save_file, dpi=300)
     plt.close()
     if logger:
-        logger.info(f"SHAP Grouped Plot stored at: {save_path}")
+        logger.info(f"SHAP Grouped Plot stored at: {save_file}")
 
 
-def plot_shap_temporal_heatmap(shap_values, feature_names, checkpoint_path, base_path, model_type, logger=None):
+def plot_shap_temporal_heatmap(shap_values, shap_class, feature_names, checkpoint_path, base_path, model_type, logger=None):
     model_id = os.path.basename(os.path.dirname(checkpoint_path))
-    save_path = os.path.join(base_path, model_id, f"shap_temporal_heatmap_{model_id}_{model_type}.png")
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    save_file = os.path.join(base_path, f"shap_temporal_heatmap_{model_id}_{model_type}_{shap_class}.png")
+    os.makedirs(os.path.dirname(save_file), exist_ok=True)
 
-    if model_type == "mlp":
+    if model_type in ["mlp", "lstm", "gru", "cnn", "transformer", "gtn", "tft"]:
         shap_df = pd.DataFrame(shap_values).T
-    elif model_type == "lstm":
+    elif model_type == "None":
         n_samples, seq_len, n_features = shap_values.shape
         shap_values = shap_values.transpose(2, 1, 0).reshape(n_features * seq_len, n_samples)
         shap_df = pd.DataFrame(shap_values)
+    else:
+        shap_df = pd.DataFrame(shap_values).T
 
     shap_df.columns = [f"instance_{i}" for i in range(shap_df.shape[1])]
     shap_df["feature"] = [name.split("_t-")[0] for name in feature_names]
@@ -112,16 +109,16 @@ def plot_shap_temporal_heatmap(shap_values, feature_names, checkpoint_path, base
     plt.xlabel("Timestep")
     plt.ylabel("Feature")
     plt.tight_layout()
-    plt.savefig(save_path, dpi=300)
+    plt.savefig(save_file, dpi=300)
     plt.close()
 
     if logger:
-        logger.info(f"SHAP-Heatmap saved at: {save_path}")
+        logger.info(f"SHAP-Heatmap saved at: {save_file}")
 
 def plot_shap_difference_bar(shap_class0, shap_class1, feature_names, checkpoint_path, base_path, model_type, logger=None):
     model_id = os.path.basename(os.path.dirname(checkpoint_path))
-    save_path = os.path.join(base_path, model_id, f"shap_difference_plot_{model_id}_{model_type}.png")
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    save_file = os.path.join(base_path, f"shap_difference_plot_{model_id}_{model_type}.png")
+    os.makedirs(os.path.dirname(save_file), exist_ok=True)
 
     # Compute mean SHAP difference per feature
     shap_diff = np.mean(shap_class1, axis=0) - np.mean(shap_class0, axis=0)
@@ -144,18 +141,18 @@ def plot_shap_difference_bar(shap_class0, shap_class1, feature_names, checkpoint
     plt.xlabel("SHAP-Difference (class 1 - class 0)")
     plt.title("SHAP-Difference per Feature: Fire Danger (class 1) vs. No Fire Danger (class 0)")
     plt.tight_layout()
-    plt.savefig(save_path, dpi=300)
+    plt.savefig(save_file, dpi=300)
     plt.close()
 
     if logger:
-        logger.info(f"SHAP Difference Plot saved at: {save_path}")
+        logger.info(f"SHAP Difference Plot saved at: {save_file}")
 
 
 def plot_shap_difference_aggregated(shap_class0, shap_class1, feature_names, checkpoint_path, base_path, model_type, logger=None):
 
     model_id = os.path.basename(os.path.dirname(checkpoint_path))
-    save_path = os.path.join(base_path, model_id, f"shap_difference_aggregated_plot_{model_id}_{model_type}.png")
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    save_file = os.path.join(base_path, f"shap_difference_aggregated_plot_{model_id}_{model_type}.png")
+    os.makedirs(os.path.dirname(save_file), exist_ok=True)
 
 
     shap_diff = np.mean(shap_class1, axis=0) - np.mean(shap_class0, axis=0)
@@ -178,11 +175,11 @@ def plot_shap_difference_aggregated(shap_class0, shap_class1, feature_names, che
     plt.figure(figsize=(10, 6))
     plt.barh(grouped["BaseFeature"], grouped["SHAP_Diff"], color="darkorange")
     plt.axvline(0, color="black", linestyle="--")
-    plt.xlabel("Aggregierte SHAP-Difference (class 1 - class 0)")
-    plt.title("Aggregierte SHAP-Difference per Feature (aggregated over time): ")
+    plt.xlabel("Aggregated SHAP-Difference over time (class 1 - class 0)")
+    plt.title("Mean Feature Contribution Difference Between Classes: ")
     plt.tight_layout()
-    plt.savefig(save_path, dpi=300)
+    plt.savefig(save_file, dpi=300)
     plt.close()
 
     if logger:
-        logger.info(f"Aggregated SHAP Difference Plot saved at: {save_path}")
+        logger.info(f"Aggregated SHAP Difference Plot saved at: {save_file}")

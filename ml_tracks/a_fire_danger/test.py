@@ -90,7 +90,6 @@ def main(config):
 
     logger.info('Loading checkpoint: {} ...'.format(config["model_path"]))
     checkpoint = torch.load(config["model_path"], map_location=device)
-    print(checkpoint["state_dict"].keys())
 
     state_dict = checkpoint['state_dict']
     if config['n_gpu'] > 1:

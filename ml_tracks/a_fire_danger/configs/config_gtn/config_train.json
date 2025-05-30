@@ -2,10 +2,11 @@
     "name": "gtn",
     "model_type": "gtn",
     "n_gpu": 1,
-    "gpu_id": 1,
+    "gpu_id": 0,
 
   "shap": {
-    "checkpoint_path": "",
+    "checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/models/gtn/0520_203840/model_best.pth",
+    "shap_path": "",
     "class": "1"
   },
 

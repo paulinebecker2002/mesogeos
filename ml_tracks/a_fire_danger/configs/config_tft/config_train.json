@@ -5,7 +5,8 @@
   "gpu_id": 0,
 
   "shap": {
-    "checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/models/tft/0527_085237/model_best.pth",
+    "checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/models/tft/0529_193434/model_best.pth",
+    "shap_path": "",
     "class": "1"
   },
 

@@ -17,15 +17,16 @@ def main(config):
     checkpoint_path = config["shap"]["checkpoint_path"]
     shap_class = config["shap"]["class"]
     model_type = config["model_type"]
-    base_save_path = f"/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/{model_type}/"
+    shap_path = config["shap"]["shap_path"]
     model_id = os.path.basename(os.path.dirname(checkpoint_path))
-    shap_path = os.path.join(base_save_path, model_id, f"shap_values_{model_id}_{model_type}.npz")
+    feature_names = get_feature_names(config)
 
-    shap_data = np.load(shap_path)
-    input_tensor_path = shap_path.replace(".npz", "_input.npy")
+    shap_file = os.path.join(shap_path, f"shap_values_{model_id}_{model_type}.npz")
+    shap_data = np.load(shap_file)
+
+    input_tensor_path = os.path.join(shap_path, f"shap_values_{model_id}_{model_type}_input.npy")
     input_tensor_np = np.load(input_tensor_path)
     input_tensor = torch.tensor(input_tensor_np)
-    feature_names = get_feature_names(config)
 
     if shap_class == 0:
         shap_values = shap_data['class_0']
@@ -33,12 +34,12 @@ def main(config):
         shap_values = shap_data['class_1']
 
     print(f"Shape input: {input_tensor.shape}, SHAP: {np.array(shap_values).shape}")
-    plot_grouped_feature_importance(shap_values, shap_class, feature_names, checkpoint_path, base_save_path, model_type, logger)
-    plot_shap_summary(shap_values, shap_class, input_tensor[:100], feature_names, checkpoint_path, base_save_path, model_type, logger)
-    #plot_shap_difference_bar( shap_data['class_0'], shap_data['class_1'], feature_names, checkpoint_path, base_save_path, model_type, logger)
-    #plot_shap_difference_aggregated( shap_data['class_0'], shap_data['class_1'], feature_names, checkpoint_path, base_save_path, model_type, logger)
+    plot_grouped_feature_importance(shap_values, shap_class, feature_names, checkpoint_path, shap_path, model_type, logger)
+    plot_shap_summary(shap_values, shap_class, input_tensor, feature_names, checkpoint_path, shap_path, model_type, logger)
+    plot_shap_difference_bar( shap_data['class_0'], shap_data['class_1'], feature_names, checkpoint_path, shap_path, model_type, logger)
+    plot_shap_difference_aggregated( shap_data['class_0'], shap_data['class_1'], feature_names, checkpoint_path, shap_path, model_type, logger)
 
-    #plot_shap_temporal_heatmap(shap_values, feature_names, checkpoint_path, base_save_path, model_type, logger)
+    plot_shap_temporal_heatmap(shap_values, shap_class, feature_names, checkpoint_path, shap_path, model_type, logger)
 
 
 if __name__ == '__main__':
