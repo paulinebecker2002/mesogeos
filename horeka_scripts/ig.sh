@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=shap_rf
+#SBATCH --job-name=ig_tft
 #SBATCH --partition=accelerated
 #SBATCH --account=hk-project-p0024498
 #SBATCH --nodes=1
@@ -13,7 +13,8 @@
 #SBATCH --mail-user=pauline.becker@student.kit.edu
 
 
+export PYTHONPATH="/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger"
 cd /hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger
 
 
-~/miniconda3/envs/mesogeos_py38/bin/python shap_local/compute_shap.py --config configs/config_rf/config_train.json
+~/miniconda3/envs/mesogeos_py38/bin/python integrated_gradients/compute_ig.py --config configs/config_tft/config_train.json

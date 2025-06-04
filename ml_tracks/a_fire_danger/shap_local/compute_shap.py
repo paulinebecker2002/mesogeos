@@ -8,9 +8,7 @@ import os
 import pandas as pd
 import joblib
 from parse_config import ConfigParser
-from utils.util import (set_seed, build_model, get_dataloader, prepare_device, extract_numpy)
-from shap_utils import get_feature_names
-
+from utils.util import (set_seed, build_model, get_dataloader, prepare_device, extract_numpy, get_feature_names)
 def get_shap_explanation(model, model_type, input_all, device, seq_len, static_features, dynamic_features, logger=None):
     """
     Select the appropriate SHAP explainer for the given model type and compute SHAP values.
@@ -42,6 +40,8 @@ def get_shap_explanation(model, model_type, input_all, device, seq_len, static_f
         shap_values = explainer.shap_values(test_input, nsamples=1000)
 
     elif model_type in ['tft']:
+        n_background = 100
+        batch_size = 100
 
         def model_wrapper(x_numpy_flat):
             x_numpy = x_numpy_flat.reshape(-1, seq_len, len(dynamic_features) + len(static_features))
@@ -55,13 +55,21 @@ def get_shap_explanation(model, model_type, input_all, device, seq_len, static_f
                 output = torch.softmax(output, dim=1)
             return output.cpu().numpy()
 
-        np.random.seed(42)
-        indices = np.random.choice(len(input_all), 100, replace=False)
-        background = input_all[indices].detach().cpu().numpy().reshape(100, -1)
-        test_input = input_all[:1000].detach().cpu().numpy().reshape(1000, -1)
+        background = input_all[:n_background].detach().cpu().numpy().reshape(100, -1)
+        test_input = input_all.detach().cpu().numpy().reshape(input_all.shape[0], -1)
 
         explainer = shap.KernelExplainer(model_wrapper, background)
-        shap_values = explainer.shap_values(test_input, nsamples=1000)
+
+        shap_values = [[], []]
+        for i in range(0, test_input.shape[0], batch_size):
+            batch = test_input[i:i + batch_size]
+            sv = explainer.shap_values(batch, nsamples=100)
+            shap_values[0].append(sv[0])
+            shap_values[1].append(sv[1])
+
+        # Zu einer Matrix zusammenfügen
+        shap_values[0] = np.concatenate(shap_values[0], axis=0)
+        shap_values[1] = np.concatenate(shap_values[1], axis=0)
 
     elif model_type in ['lstm', 'gru', 'cnn', 'transformer', 'gtn']:
         if logger:
@@ -104,7 +112,7 @@ def generate_rf_shap_values(model, dataloader, base_save_path, model_id, feature
     explainer = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(X_val)  # list of arrays: one per class
     timestamp = datetime.now().strftime("%m%d_%H%M%S")
-    shap_save_path = os.path.join(base_save_path, model_id, timestamp, f"shap_values_{model_id}_rf.npz")
+    shap_save_path = os.path.join(base_save_path, timestamp, f"shap_values_{model_id}_rf.npz")
     os.makedirs(os.path.dirname(shap_save_path), exist_ok=True)
 
     # Save as .npz and .csv
@@ -115,6 +123,23 @@ def generate_rf_shap_values(model, dataloader, base_save_path, model_id, feature
 
     if logger:
         logger.info(f"[RF] SHAP values saved at: {shap_save_path}")
+
+    coords_x, coords_y = X_val[:, -2], X_val[:, -1]  # assuming last two cols = x, y
+
+    # Aggregate SHAP by base feature
+    base_feature_names = [name.split("_t-")[0] for name in feature_names]
+    shap_df = pd.DataFrame(shap_values[1], columns=feature_names)
+    shap_df.columns = base_feature_names
+    shap_agg = shap_df.groupby(axis=1, level=0).mean()  # (n_samples, n_base_features)
+
+    df_shap = shap_agg.copy()
+    df_shap["x"] = coords_x
+    df_shap["y"] = coords_y
+    csv_save_path = os.path.join(shap_save_path, f"shap_map_rf.csv")
+    df_shap.to_csv(csv_save_path, index=False)
+
+    if logger:
+        logger.info(f"[RF] SHAP value + coordinate map CSV saved to: {csv_save_path}")
 
 def main(config):
     SEED = config['seed']

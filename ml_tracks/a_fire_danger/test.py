@@ -1,13 +1,16 @@
 import argparse
 import collections
 import torch
+import pandas as pd
+import numpy as np
+from pathlib import Path
 import datasets.dataset as module_data
 import dataloaders.dataloader as module_dataloader
 import models.loss as module_loss
 import models.metric as module_metric
 import models.model as module_arch
 from parse_config import ConfigParser
-from utils import MetricTracker
+from utils import MetricTracker, build_model
 from logger import TensorboardWriter
 from tester.test_rf import test_rf
 import torch.nn as nn
@@ -29,60 +32,11 @@ def main(config):
     # device, device_ids = prepare_device(config['n_gpu'], config['gpu_id'])
     device = 'cpu'
     # # build models architecture
-    if config["model_type"] == "lstm":
-        model = config.init_obj('arch', module_arch,
-                                input_dim=len(dynamic_features) + len(static_features),
-                                output_lstm=config['model_args']['dim'],
-                                dropout=config['model_args']['dropout'])
-
-    elif config["model_type"] == "transformer":
-        model = config.init_obj('arch', module_arch, seq_len=config["dataset"]["args"]["lag"],
-                                input_dim=len(dynamic_features) + len(static_features),
-                                d_model=config['model_args']['model_dim'],
-                                nhead=config['model_args']['nheads'],
-                                dim_feedforward=config['model_args']['ff_dim'],
-                                num_layers=config['model_args']['num_layers'],
-                                channel_attention=False)
-
-    elif config["model_type"] == "gtn":
-        model = config.init_obj('arch', module_arch, seq_len=config["dataset"]["args"]["lag"],
-                                input_dim=len(dynamic_features) + len(static_features),
-                                d_model=config['model_args']['model_dim'],
-                                nhead=config['model_args']['nheads'],
-                                dim_feedforward=config['model_args']['ff_dim'],
-                                num_layers=config['model_args']['num_layers'],
-                                channel_attention=True)
-
-    elif config["model_type"] == "mlp":
-        model = config.init_obj('arch', module_arch,
-                                input_dim=(len(dynamic_features) + len(static_features))*(config["dataset"]["args"]["lag"]),
-                                dropout=config['model_args']['dropout'],
-                                hidden_dims=config['model_args']['hidden_dims'],
-                                output_dim=config['model_args']['output_dim'])
-    elif config["model_type"] == "gru":
-        model = config.init_obj('arch', module_arch,
-                                input_dim=len(dynamic_features) + len(static_features),
-                                output_gru=config['model_args']['dim'],
-                                dropout=config['model_args']['dropout'])
-    elif config["model_type"] == "cnn":
-        model = config.init_obj('arch', module_arch,
-                                input_channels=config["model_args"]["input_channels"],
-                                seq_len=config["dataset"]["args"]["lag"],
-                                num_features=len(dynamic_features) + len(static_features),
-                                dim=config["model_args"]["dim"],
-                                dropout=config["model_args"]["dropout"])
-    elif config["model_type"] == "tft":
-        model = config.init_obj('arch', module_arch,
-                                input_dim=len(dynamic_features),
-                                static_dim=len(static_features),
-                                seq_len=config["dataset"]["args"]["lag"],
-                                d_model=config['model_args']['model_dim'],
-                                nhead=config['model_args']['nheads'],
-                                num_layers=config['model_args']['num_layers'],
-                                dropout=config['model_args']['dropout'])
-    elif config["model_type"] == "rf":
+    if config["model_type"] == "rf":
         test_rf(config)
         return
+    else:
+        model = build_model(config, dynamic_features, static_features)
 
     # get function handles of loss and metrics
     criterion = getattr(module_loss, config['loss'])
@@ -108,9 +62,10 @@ def main(config):
     test_metrics = MetricTracker('loss', *[m.__name__ for m in metric_ftns], writer=writer)
     test_metrics.reset()
 
+    val_outputs = []
     with torch.no_grad():
         for batch_idx, batch in enumerate(dataloader):
-            (dynamic, static, bas_size, labels) = batch[:4]
+            (dynamic, static, bas_size, labels, x, y) = batch[:6]
             if config['model_type'] == 'tft':
                 dynamic = dynamic.to(device, dtype=torch.float32)
                 static = static.to(device, dtype=torch.float32)
@@ -134,6 +89,10 @@ def main(config):
             m = nn.Softmax(dim=1)
             outputs = m(outputs)
 
+            softmax_probs = outputs[:, 1].detach().cpu().numpy()
+            x = x.detach().cpu().numpy()
+            y = y.detach().cpu().numpy()
+            val_outputs.append((softmax_probs, x, y))
             loss = criterion(torch.log(outputs + e), labels)
             loss = torch.mean(loss * bas_size)
 
@@ -151,6 +110,15 @@ def main(config):
 
     log = test_metrics.result()
     logger.info(log)
+    all_probs, all_lats, all_lons = zip(*val_outputs)
+    df = pd.DataFrame({
+        'prob': np.concatenate(all_probs),
+        'lat': np.concatenate(all_lats),
+        'lon': np.concatenate(all_lons)
+    })
+    output_path = Path(config.save_dir) / f"test_softmax_outputs.csv"
+    df.to_csv(output_path, index=False)
+    logger.info(f"Saved test softmax predictions with coordinates to: {output_path}")
 
 
 if __name__ == '__main__':

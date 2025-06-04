@@ -6,7 +6,7 @@
 
   "shap": {
     "checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/models/lstm/0513_230004/model_best.pth",
-    "shap_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/lstm/0513_230004/0530_004434",
+    "shap_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/lstm/0530_160506",
     "class": "1"
   },
 
@@ -14,8 +14,10 @@
         "type": "SimpleLSTM",
         "args": {}
     },
-    "model_args": {"dim": 128,
-                 "dropout": 0.5},
+  "model_args": {
+    "dim": 128,
+    "dropout": 0.25
+  },
 
     "dataset": {
         "type": "FireDataset",
@@ -28,23 +30,23 @@
             "seed": 12345
         }
     },
-    "dataloader": {
-        "type": "FireDataloader",
-        "args": {
-            "batch_size": 256,
-            "shuffle": true,
-            "num_workers": 2,
-            "pin_memory": false
-        }
-    },
-    "optimizer": {
-        "type": "Adam",
-        "args":{
-            "lr": 0.004,
-            "weight_decay": 0.0063,
-            "amsgrad": false
-        }
-    },
+  "dataloader": {
+    "type": "FireDataloader",
+    "args": {
+      "batch_size": 256,
+      "shuffle": true,
+      "num_workers": 2,
+      "pin_memory": false
+    }
+  },
+  "optimizer": {
+    "type": "Adam",
+    "args": {
+      "lr": 0.001,
+      "weight_decay": 0.0063,
+      "amsgrad": false
+    }
+  },
     "seed": 12345,
     "loss": "nll_loss",
     "metrics": [

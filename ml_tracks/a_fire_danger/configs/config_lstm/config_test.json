@@ -8,29 +8,39 @@
         "type": "SimpleLSTM",
         "args": {}
     },
-    "model_args": {"dim": 128,
-                 "dropout": 0.5},
+  "model_args": {
+    "dim": 128,
+    "dropout": 0.25
+  },
 
-    "dataset": {
-        "type": "FireDataset",
-        "args":{
-            "dataset_root": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/a.danger_forecasting",
-            "problem_class": "classification",
-            "nan_fill": 0,
-            "neg_pos_ratio": 2,
-            "lag": 30,
-            "seed": 12345
-        }
-    },
-    "dataloader": {
-        "type": "FireDataloader",
-        "args": {
-            "batch_size": 256,
-            "shuffle": true,
-            "num_workers": 2,
-            "pin_memory": false
-        }
-    },
+  "dataset": {
+    "type": "FireDataset",
+    "args":{
+      "dataset_root": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/a.danger_forecasting",
+      "problem_class": "classification",
+      "nan_fill": 0,
+      "neg_pos_ratio": 2,
+      "lag": 30,
+      "seed": 12345
+    }
+  },
+  "dataloader": {
+    "type": "FireDataloader",
+    "args": {
+      "batch_size": 256,
+      "shuffle": true,
+      "num_workers": 2,
+      "pin_memory": false
+    }
+  },
+  "optimizer": {
+    "type": "Adam",
+    "args": {
+      "lr": 0.001,
+      "weight_decay": 0.0063,
+      "amsgrad": false
+    }
+  },
 
     "seed": 12345,
     "loss": "nll_loss",

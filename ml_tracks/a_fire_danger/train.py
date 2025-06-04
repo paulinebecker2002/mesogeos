@@ -34,8 +34,8 @@ def main(config):
     static_features = config["features"]["static"]
 
     dataloader = {
-        "train": get_dataloader(config, static_features, dynamic_features ,mode='train'),
-        "val": get_dataloader(config, static_features, dynamic_features ,mode='val'),
+        "train": get_dataloader(config, static_features, dynamic_features, mode='train'),
+        "val": get_dataloader(config, static_features, dynamic_features, mode='val'),
     }
 
     device, device_ids = prepare_device(config['n_gpu'], config['gpu_id'])

@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import shap
-import torch
+
 
 
 def get_feature_names(config):
@@ -23,15 +23,14 @@ def get_feature_names(config):
 
 
 
-def plot_shap_summary(shap_values, shap_class, input_tensor, feature_names, checkpoint_path, base_path, model_type, logger=None):
+def plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, checkpoint_path, base_path, model_type, logger=None):
     model_id = os.path.basename(os.path.dirname(checkpoint_path))
-    save_file = os.path.join(base_path, f"shap_summary_plot_{model_id}_{model_type}_{shap_class}.png")
+    save_file = os.path.join(base_path, f"shap_beeswarm_plot_{model_id}_{model_type}_{shap_class}.png")
     os.makedirs(os.path.dirname(save_file), exist_ok=True)
 
     print(f"Shape input: {input_tensor.shape}, SHAP: {np.array(shap_values).shape}")
 
     if model_type in ["lstm", "gru", "tft", "transformer", "gtn", "cnn"]:
-        # For shap.summary_plot we need 2D input: [B, F_total]
         if input_tensor.dim() == 3:
             input_for_plot = input_tensor.view(input_tensor.shape[0], -1)
         else:
@@ -40,20 +39,16 @@ def plot_shap_summary(shap_values, shap_class, input_tensor, feature_names, chec
         input_for_plot = input_tensor
     print(f"Shape input: {input_tensor.shape}, SHAP: {np.array(shap_values).shape}")
 
-    shap.summary_plot(
-        shap_values,
-        input_for_plot.cpu().numpy(),
-        feature_names=feature_names,
-        show=False
-    )
+    expl = shap.Explanation(values=shap_values, data=input_for_plot.cpu().numpy(), feature_names=feature_names)
+    shap.plots.beeswarm(expl, max_display= 25, show=False)
 
     plt.tight_layout()
-    class_label = "Fire Danger (Class 1)" if shap_class == 1 else "No Fire Danger (Class 0)"
+    class_label = f"Fire Danger (Class {shap_class})"
     plt.title(f"SHAP Summary Plot – {class_label}", fontsize=14)
     plt.savefig(save_file, dpi=300)
     plt.close()
     if logger:
-        logger.info(f"SHAP Summary Plot stored at: {save_file}")
+        logger.info(f"SHAP Beeswarm Plot stored at: {save_file}")
 
 
 def plot_grouped_feature_importance(shap_values, shap_class, feature_names, checkpoint_path, base_path, model_type, logger=None):
@@ -100,8 +95,8 @@ def plot_shap_temporal_heatmap(shap_values, shap_class, feature_names, checkpoin
     shap_df["feature"] = [name.split("_t-")[0] for name in feature_names]
     shap_df["time"] = [int(name.split("_t-")[1]) for name in feature_names]
 
-    shap_df_long = pd.melt(shap_df, id_vars=["feature", "time"], var_name="instance", value_name="shap")
-    heatmap_data = shap_df_long.groupby(["feature", "time"])["shap"].apply(lambda x: np.mean(np.abs(x))).unstack()
+    shap_df_long = pd.melt(shap_df, id_vars=["feature", "time"], var_name="instance", value_name="shap_local")
+    heatmap_data = shap_df_long.groupby(["feature", "time"])["shap_local"].apply(lambda x: np.mean(np.abs(x))).unstack()
 
     plt.figure(figsize=(12, 8))
     sns.heatmap(heatmap_data, cbar_kws={"label": "Mean SHAP value"}, cmap="coolwarm", center=0)
@@ -183,3 +178,37 @@ def plot_shap_difference_aggregated(shap_class0, shap_class1, feature_names, che
 
     if logger:
         logger.info(f"Aggregated SHAP Difference Plot saved at: {save_file}")
+
+def plot_shap_waterfall(shap_values, shap_class, input_tensor, feature_names, sample_idx,
+                        checkpoint_path, base_path, model_type, logger=None):
+    """
+    Plot SHAP waterfall plot for a single instance (sample_idx) and save to file.
+    """
+    model_id = os.path.basename(os.path.dirname(checkpoint_path))
+    save_file = os.path.join(base_path, f"shap_waterfall_plot_{model_id}_{model_type}_class{shap_class}_sample{sample_idx}.png")
+    os.makedirs(os.path.dirname(save_file), exist_ok=True)
+
+    # Prepare input and SHAP values for one sample
+    if model_type in ["lstm", "gru", "tft", "transformer", "gtn", "cnn"]:
+        if input_tensor.dim() == 3:
+            input_tensor = input_tensor.view(input_tensor.shape[0], -1)
+
+    sample_input = input_tensor[sample_idx].cpu().numpy()
+    sample_shap = shap_values[sample_idx]
+    base_value = shap_values.mean(0).sum()
+
+    expl = shap.Explanation(
+        values=sample_shap,
+        data=sample_input,
+        base_values=base_value,
+        feature_names=feature_names
+    )
+
+    shap.plots.waterfall(expl, max_display=25, show=False)
+    plt.title(f"SHAP Waterfall – Sample {sample_idx} (Class {shap_class})", fontsize=14)
+    plt.tight_layout()
+    plt.savefig(save_file, dpi=300)
+    plt.close()
+
+    if logger:
+        logger.info(f"SHAP Waterfall Plot saved at: {save_file}")

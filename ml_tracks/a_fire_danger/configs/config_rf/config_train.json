@@ -5,7 +5,7 @@
   "gpu_id": 0,
 
   "shap": {
-    "checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/log/rf/0522_103649/random_forest_model_0522_103649.pkl",
+    "checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/horeka_scripts/saved/log/rf/0604_052725/random_forest_model_0604_052725.pkl",
     "shap_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/rf/0522_103649/0529_205740",
     "class": "1"
   },
@@ -24,7 +24,7 @@
     "max_depth": 32,
     "min_samples_split": 3,
     "min_samples_leaf": 3,
-    "max_features": "auto",
+    "max_features": "sqrt",
     "class_weight": "balanced"},
 
   "dataset": {

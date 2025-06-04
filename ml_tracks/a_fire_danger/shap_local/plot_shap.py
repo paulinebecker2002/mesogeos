@@ -4,11 +4,10 @@ import os
 import numpy as np
 import torch
 from parse_config import ConfigParser
-from shap_utils import (
-    get_feature_names, plot_shap_summary,
-    plot_grouped_feature_importance, plot_shap_temporal_heatmap, plot_shap_difference_bar,
-    plot_shap_difference_aggregated
-)
+from utils.util import get_feature_names
+from shap_utils import (plot_beeswarm,
+                        plot_grouped_feature_importance, plot_shap_temporal_heatmap, plot_shap_difference_bar,
+                        plot_shap_difference_aggregated, plot_shap_waterfall)
 
 
 def main(config):
@@ -34,13 +33,14 @@ def main(config):
         shap_values = shap_data['class_1']
 
     print(f"Shape input: {input_tensor.shape}, SHAP: {np.array(shap_values).shape}")
-    plot_grouped_feature_importance(shap_values, shap_class, feature_names, checkpoint_path, shap_path, model_type, logger)
-    plot_shap_summary(shap_values, shap_class, input_tensor, feature_names, checkpoint_path, shap_path, model_type, logger)
-    plot_shap_difference_bar( shap_data['class_0'], shap_data['class_1'], feature_names, checkpoint_path, shap_path, model_type, logger)
-    plot_shap_difference_aggregated( shap_data['class_0'], shap_data['class_1'], feature_names, checkpoint_path, shap_path, model_type, logger)
+    #plot_grouped_feature_importance(shap_values, shap_class, feature_names, checkpoint_path, shap_path, model_type, logger)
+    #plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, checkpoint_path, shap_path, model_type, logger)
+    #plot_shap_difference_bar( shap_data['class_0'], shap_data['class_1'], feature_names, checkpoint_path, shap_path, model_type, logger)
+    #plot_shap_difference_aggregated( shap_data['class_0'], shap_data['class_1'], feature_names, checkpoint_path, shap_path, model_type, logger)
 
-    plot_shap_temporal_heatmap(shap_values, shap_class, feature_names, checkpoint_path, shap_path, model_type, logger)
-
+    #plot_shap_temporal_heatmap(shap_values, shap_class, feature_names, checkpoint_path, shap_path, model_type, logger)
+    sample_idx = 0
+    plot_shap_waterfall(shap_values, shap_class, input_tensor, feature_names, sample_idx, checkpoint_path, shap_path, model_type, logger)
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser(description='Compute SHAP values')

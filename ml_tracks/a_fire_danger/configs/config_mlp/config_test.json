@@ -1,4 +1,4 @@
-{   "model_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/horeka_scripts/saved/models/lala/0510_162106/model_best.pth",
+{   "model_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/models/mlp/0517_175347/model_best.pth",
   "model_type": "mlp",
   "name": "mlp",
   "n_gpu": 1,
@@ -8,9 +8,14 @@
     "type": "MLP",
     "args": {}
   },
-  "model_args": {"output_dim": 2,
-    "hidden_dims": [128, 64],
-    "dropout": 0.1},
+  "model_args": {
+    "output_dim": 2,
+    "hidden_dims": [
+      256,
+      128
+    ],
+    "dropout": 0.28368573479323045
+  },
 
   "dataset": {
     "type": "FireDataset",
@@ -26,10 +31,18 @@
   "dataloader": {
     "type": "FireDataloader",
     "args": {
-      "batch_size": 256,
+      "batch_size": 128,
       "shuffle": true,
       "num_workers": 2,
       "pin_memory": false
+    }
+  },
+  "optimizer": {
+    "type": "Adam",
+    "args": {
+      "lr": 0.0005175546229305162,
+      "weight_decay": 0.0003222340427864813,
+      "amsgrad": false
     }
   },
 

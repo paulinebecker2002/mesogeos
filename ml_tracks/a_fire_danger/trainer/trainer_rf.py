@@ -1,14 +1,11 @@
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import f1_score, confusion_matrix, ConfusionMatrixDisplay, classification_report
 import numpy as np
-import torchvision
 import os
 import joblib
-import io
 import matplotlib.pyplot as plt
-import PIL.Image
 from logger import TensorboardWriter
-from utils.util import extract_numpy, calculate_metrics
+from utils.util import extract_numpy, calculate_metrics, get_feature_names
 
 def train_rf(config, dataloader_train, dataloader_val):
 
@@ -63,13 +60,13 @@ def train_rf(config, dataloader_train, dataloader_val):
     lag = config["dataset"]["args"]["lag"]
     dyn_feats = config["features"]["dynamic"]
     stat_feats = config["features"]["static"]
-    feature_names = [f"{name}_lag{t}" for t in range(lag) for name in dyn_feats + stat_feats]
+    feature_names = get_feature_names(config)
 
     top_n = min(720, len(feature_names))
     logger.info("Top %d wichtigste Features:", top_n)
     logger.info("Sorted Feature Importances:")
     importances, sorted_idx = calculate_feature_importances(rf, feature_names, logger, writer, top_n=top_n)
-    plot_feature_importances(writer, 20, importances, feature_names)
+    plot_feature_importances(config, model_id, importances, feature_names, top_k=20)
 
 
     writer.add_scalar("metrics/accuracy", acc)
@@ -82,20 +79,14 @@ def train_rf(config, dataloader_train, dataloader_val):
     disp = ConfusionMatrixDisplay(confusion_matrix=cm)
     fig, ax = plt.subplots(figsize=(5, 5))
     disp.plot(ax=ax)
-
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png')
-    buf.seek(0)
-
-    confusionMatrix = PIL.Image.open(buf).convert('RGB')
-    confusionMatrix = torchvision.transforms.ToTensor()(confusionMatrix)
-    writer.add_image("confusion_matrix", confusionMatrix)
-    plt.close()
+    cm_path = os.path.join(config.log_dir, f"confusion_matrix_{model_id}.png")
+    fig.savefig(cm_path)
+    plt.close(fig)
+    logger.info(f"Confusion matrix saved to: {os.path.abspath(cm_path)}")
 
     report = classification_report(y_val, y_pred, digits=4)
     writer.add_text("classification_report", f"```\n{report}\n```")
 
-    #check if all trees were trained
     actual_n_estimators = len(rf.estimators_)
     expected_n_estimators = rf.n_estimators
 
@@ -132,7 +123,6 @@ def train_rf(config, dataloader_train, dataloader_val):
     return rf
 
 def optuna_rf(trial, config, dataloader_train, dataloader_val):
-    # Suggest Hyperparameters via Optuna
     config['model_args']['n_estimators'] = trial.suggest_int('n_estimators', 200, 1000)
     config['model_args']['max_depth'] = trial.suggest_categorical('max_depth', [None] + list(range(1, 51)))
     config['model_args']['min_samples_split'] = trial.suggest_int('min_samples_split', 2, 10)
@@ -140,7 +130,6 @@ def optuna_rf(trial, config, dataloader_train, dataloader_val):
     config['model_args']['max_features'] = trial.suggest_categorical('max_features', ['auto', 'sqrt'])
     config['model_args']['class_weight'] = trial.suggest_categorical('class_weight', ['balanced', 'balanced_subsample'])
 
-    # Train Random Forest with current trial config
     rf = train_rf(config, dataloader_train, dataloader_val)
 
     # Evaluate (F1-score or AUPRC as Optuna objective)
@@ -161,8 +150,7 @@ def calculate_feature_importances(rf, feature_names, logger, writer, top_n=20):
         writer.add_scalar(f"feature_importance/{fname}", imp)
 
     return importances, sorted_idx
-def plot_feature_importances(writer, top_k, importances, feature_names):
-
+def plot_feature_importances(config, model_id, importances, feature_names, top_k=20):
     top_idx = np.argsort(importances)[::-1][:top_k]
     top_names = [feature_names[i] for i in top_idx]
     top_vals = [importances[i] for i in top_idx]
@@ -175,12 +163,11 @@ def plot_feature_importances(writer, top_k, importances, feature_names):
     ax.set_title("Top 20 Feature Importances")
     plt.tight_layout()
 
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png')
-    buf.seek(0)
-    image = PIL.Image.open(buf).convert('RGB')
-    image = torchvision.transforms.ToTensor()(image)
-    writer.add_image("feature_importance/top20", image)
-    plt.close()
+    # Speicherpfad für Feature Importance Plot
+    fi_path = os.path.join(config.log_dir, f"feature_importance_top{top_k}_{model_id}.png")
+    fig.savefig(fi_path)
+    plt.close(fig)
 
-    return image
+    config.get_logger('trainer', config['trainer']['verbosity']).info(
+        f"Feature importance plot saved to: {os.path.abspath(fi_path)}"
+    )

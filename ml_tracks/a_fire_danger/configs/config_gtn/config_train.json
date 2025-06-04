@@ -6,7 +6,7 @@
 
   "shap": {
     "checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/models/gtn/0520_203840/model_best.pth",
-    "shap_path": "",
+    "shap_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/gtn/0530_201817",
     "class": "1"
   },
 
@@ -14,39 +14,41 @@
         "type": "TransformerNet",
         "args": {}
     },
-    "model_args": {"ff_dim": 512,
-                   "nheads": 4,
-                   "num_layers": 4,
-                   "model_dim": 256},
-
-    "dataset": {
-        "type": "FireDataset",
-        "args":{
-            "dataset_root": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/a.danger_forecasting",
-            "problem_class": "classification",
-            "nan_fill": 0,
-            "neg_pos_ratio": 2,
-            "lag": 30,
-            "seed": 12345
-        }
-    },
-    "dataloader": {
-        "type": "FireDataloader",
-        "args": {
-            "batch_size": 256,
-            "shuffle": true,
-            "num_workers": 16,
-            "pin_memory": false
-        }
-    },
-    "optimizer": {
-        "type": "Adam",
-        "args":{
-            "lr": 0.00012,
-            "weight_decay": 0.0045,
-            "amsgrad": false
-        }
-    },
+  "model_args": {
+    "ff_dim": 512,
+    "nheads": 4,
+    "num_layers": 4,
+    "model_dim": 256,
+    "dropout": 0.3
+  },
+  "dataset": {
+    "type": "FireDataset",
+    "args": {
+      "dataset_root": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/a.danger_forecasting",
+      "problem_class": "classification",
+      "nan_fill": 0,
+      "neg_pos_ratio": 2,
+      "lag": 30,
+      "seed": 12345
+    }
+  },
+  "dataloader": {
+    "type": "FireDataloader",
+    "args": {
+      "batch_size": 128,
+      "shuffle": true,
+      "num_workers": 16,
+      "pin_memory": false
+    }
+  },
+  "optimizer": {
+    "type": "Adam",
+    "args": {
+      "lr": 0.0001,
+      "weight_decay": 0.0045,
+      "amsgrad": false
+    }
+  },
     "seed": 12345,
     "loss": "nll_loss",
     "metrics": [

@@ -8,13 +8,14 @@
     "type": "SimpleGRU",
     "args": {}
   },
-  "model_args": {"dim": 128,
-    "dropout": 0.5},
-
+  "model_args": {
+    "dim": 128,
+    "dropout": 0.1
+  },
   "dataset": {
     "type": "FireDataset",
-    "args":{
-      "dataset_root": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/a.danger_forecasting",
+    "args": {
+      "dataset_root": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a.fire_danger/a.danger_forecasting",
       "problem_class": "classification",
       "nan_fill": 0,
       "neg_pos_ratio": 2,
@@ -25,10 +26,18 @@
   "dataloader": {
     "type": "FireDataloader",
     "args": {
-      "batch_size": 256,
+      "batch_size": 128,
       "shuffle": true,
       "num_workers": 2,
       "pin_memory": false
+    }
+  },
+  "optimizer": {
+    "type": "Adam",
+    "args": {
+      "lr": 0.00125,
+      "weight_decay": 0.0063,
+      "amsgrad": false
     }
   },
 

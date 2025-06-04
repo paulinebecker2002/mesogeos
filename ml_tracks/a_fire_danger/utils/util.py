@@ -146,6 +146,21 @@ def set_seed(seed):
     torch.backends.cudnn.benchmark = False
     np.random.seed(seed)
 
+def get_feature_names(config):
+    dynamic = config['features']['dynamic']
+    static = config['features']['static']
+    lag = config['dataset']['args']['lag']
+
+    feature_names = []
+    for t in range(lag):
+        for name in dynamic:
+            feature_names.append(f"{name}_t-{lag - t}")
+        for name in static:
+            feature_names.append(f"{name}_t-{lag - t}")
+
+    return feature_names
+
+
 
 class MetricTracker:
     def __init__(self, *keys, writer=None):

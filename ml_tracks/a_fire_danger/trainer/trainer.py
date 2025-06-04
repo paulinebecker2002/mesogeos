@@ -86,8 +86,7 @@ class Trainer(BaseTrainer):
                 if met.__name__ not in ['aucpr']:
                     self.train_metrics.update(met.__name__, met(output, labels)[0], met(output, labels)[1])
                 elif met.__name__ == 'aucpr':
-                    self.train_metrics.aucpr_update(met.__name__, met(outputs[:, 1], labels)[0],
-                                                        met(outputs[:, 1], labels)[1])
+                    self.train_metrics.aucpr_update(met.__name__, met(outputs[:, 1], labels)[0], met(outputs[:, 1], labels)[1])
 
             if batch_idx % self.log_step == 0:
                 self.logger.debug('Train Epoch: {} {} Loss: {:.6f}'.format(
@@ -101,7 +100,7 @@ class Trainer(BaseTrainer):
 
         if self.do_validation:
             val_log = self._valid_epoch(epoch)
-            log.update(**{'val_'+k : v for k, v in val_log.items()})
+            log.update(**{'val_'+k: v for k, v in val_log.items()})
 
         if self.lr_scheduler is not None:
             self.lr_scheduler.step()
@@ -147,16 +146,17 @@ class Trainer(BaseTrainer):
                 softmax_probs = outputs[:, 1].detach().cpu().numpy()
                 x = x.detach().cpu().numpy()
                 y = y.detach().cpu().numpy()
-                self.val_outputs.append((softmax_probs, x, y))
 
                 loss = self.criterion(torch.log(outputs + self.e), labels)
                 loss = torch.mean(loss * bas_size)
 
                 output = torch.argmax(outputs, dim=1)
+                truths = labels.detach().cpu().numpy()
+                preds = output.detach().cpu().numpy()
 
+                self.val_outputs.append((softmax_probs, x, y, truths, preds))
                 self.writer.set_step((epoch - 1) * len(self.valid_data_loader) + batch_idx, 'valid')
                 self.valid_metrics.update('loss', loss.item()*dynamic.size(0), dynamic.size(0))
-
 
                 for met in self.metric_ftns:
                     if met.__name__ not in ['aucpr']:
@@ -164,7 +164,6 @@ class Trainer(BaseTrainer):
                     elif met.__name__ == 'aucpr':
                         self.valid_metrics.aucpr_update(met.__name__, met(outputs[:, 1], labels)[0],
                                                         met(outputs[:, 1], labels)[1])
-
 
         current_val_f1 = self.valid_metrics.result().get('f1_score', 0.0)
         if current_val_f1 > self.best_val_f1:
@@ -176,18 +175,24 @@ class Trainer(BaseTrainer):
 
         # add histogram of models parameters to the tensorboard
         #and self.config["model_type"] != "transformer"
+
         if epoch % 2 == 0 and (self.config["model_type"] != "tft" and self.config["model_type"] != "transformer") and self.config["model_type"] != "gtn":
             for name, p in self.model.named_parameters():
                 if p is not None and p.numel() > 0:
+                    if p is not None:
+                        print(f"{name}: shape={p.shape}, dtype={p.dtype}, numel={p.numel()}")
                     self.writer.add_histogram(name, p, bins='auto')
 
-        all_probs, all_lats, all_lons = zip(*self.val_outputs)
+        all_probs, all_lats, all_lons, all_truths, all_preds = zip(*self.val_outputs)
         df = pd.DataFrame({
             'prob': np.concatenate(all_probs),
             'lat': np.concatenate(all_lats),
-            'lon': np.concatenate(all_lons)
+            'lon': np.concatenate(all_lons),
+            'true_label': np.concatenate(all_truths),
+            'pred_label': np.concatenate(all_preds),
         })
-        output_path = Path(self.config.save_dir) / f"val_softmax_outputs_epoch{epoch}.csv"
+
+        output_path = Path(self.config.save_dir) / f"val_{self.config['model_type']}_outputs_epoch{epoch}.csv"
         df.to_csv(output_path, index=False)
         self.logger.info(f"Saved softmax predictions with coordinates to: {output_path}")
         return self.valid_metrics.result()
