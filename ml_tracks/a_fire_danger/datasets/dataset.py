@@ -9,7 +9,7 @@ import warnings
 class FireDataset(Dataset):
     def __init__(self, dataset_root: Path = None, problem_class: str = 'classification', train_val_test: str = 'train',
                  dynamic_features: list = None, static_features: list = None, nan_fill: float = 0,
-                 neg_pos_ratio: int = 2, lag: int = 30, seed: int = 12345):
+                 neg_pos_ratio: int = 2, lag: int = 30, seed: int = 12345, only_last_five: bool = False):
         """
         @param access_mode: spatial, temporal or spatiotemporal
         @param problem_class: classification or segmentation
@@ -30,6 +30,7 @@ class FireDataset(Dataset):
         self.nan_fill = nan_fill
         self.lag = lag
         self.seed = seed
+        self.only_last_five = only_last_five
 
         random.seed(self.seed)
 
@@ -108,7 +109,12 @@ class FireDataset(Dataset):
 
 
     def __getitem__(self, idx):
-        dynamic = self.dynamic.iloc[idx * 30:(idx + 1) * 30].values[-self.lag:, :]
+        full_dynamic = self.dynamic.iloc[idx * 30:(idx + 1) * 30].values[-self.lag:, :]
+        if self.only_last_five:
+            dynamic = full_dynamic[-5:, :]  # Tage 25–29 + Feuertag
+        else:
+            dynamic = full_dynamic
+
         static = self.static.iloc[idx * 30:(idx + 1) * 30].values[0, :]
         burned_areas_size = np.log(self.burned_areas_size.iloc[idx * 30:(idx + 1) * 30].values[0])
         labels = self.labels[idx * 30]

@@ -15,12 +15,13 @@
   "dataset": {
     "type": "FireDataset",
     "args": {
-      "dataset_root": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a.fire_danger/a.danger_forecasting",
+      "dataset_root": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/a.danger_forecasting",
       "problem_class": "classification",
       "nan_fill": 0,
       "neg_pos_ratio": 2,
       "lag": 30,
-      "seed": 12345
+      "seed": 12345,
+      "only_last_five": false
     }
   },
   "dataloader": {

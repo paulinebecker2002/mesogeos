@@ -104,7 +104,7 @@ if __name__ == '__main__':
         CustomArgs(['--gamma'], type=float, target='lr_scheduler;args;gamma'),
         CustomArgs(['--wd', '--weight_decay'], type=float, target='optimizer;args;weight_decay'),
         CustomArgs(['--ft', '--finetune'], type=str, target='finetune;sklearn_tune'),
-
+        CustomArgs(['--olf', '--only_last_five'], type=bool, target='dataset;args;only_last_five'),
     ]
     config = ConfigParser.from_args(args, options)
     main(config)
