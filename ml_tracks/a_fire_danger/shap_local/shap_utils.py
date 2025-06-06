@@ -4,24 +4,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import shap
-
-
-
-def get_feature_names(config):
-    dynamic = config['features']['dynamic']
-    static = config['features']['static']
-    lag = config['dataset']['args']['lag']
-
-    feature_names = []
-    for t in range(lag):
-        for name in dynamic:
-            feature_names.append(f"{name}_t-{lag - t}")
-        for name in static:
-            feature_names.append(f"{name}_t-{lag - t}")
-
-    return feature_names
-
-
+import matplotlib.colors as mcolors
+import matplotlib.cm as cm
 
 def plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, checkpoint_path, base_path, model_type, logger=None):
     model_id = os.path.basename(os.path.dirname(checkpoint_path))
@@ -39,12 +23,15 @@ def plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, checkpoi
         input_for_plot = input_tensor
     print(f"Shape input: {input_tensor.shape}, SHAP: {np.array(shap_values).shape}")
 
-    expl = shap.Explanation(values=shap_values, data=input_for_plot.cpu().numpy(), feature_names=feature_names)
-    shap.plots.beeswarm(expl, max_display= 25, show=False)
+    #in case we used less samples for SHAP computation than for the input tensor (=whole test input)
+    input_for_plot = input_for_plot[:shap_values.shape[0]]
 
-    plt.tight_layout()
+    expl = shap.Explanation(values=shap_values, data=input_for_plot.cpu().numpy(), feature_names=feature_names)
+    shap.plots.beeswarm(expl, max_display=25, show=False)
+
     class_label = f"Fire Danger (Class {shap_class})"
     plt.title(f"SHAP Summary Plot – {class_label}", fontsize=14)
+    plt.tight_layout()
     plt.savefig(save_file, dpi=300)
     plt.close()
     if logger:
@@ -212,3 +199,124 @@ def plot_shap_waterfall(shap_values, shap_class, input_tensor, feature_names, sa
 
     if logger:
         logger.info(f"SHAP Waterfall Plot saved at: {save_file}")
+
+
+def plot_shap_comparison_by_feature(shap_files, feature_name, feature_names, model_names, base_path, logger=None):
+    shap_values_all_models = []
+    num_samples = None
+
+    for shap_file, model_name in zip(shap_files, model_names):
+        shap_data = np.load(shap_file)
+
+        feature_index = [i for i, name in enumerate(feature_names) if name == feature_name]
+        if not feature_index:
+            raise ValueError(f"Feature {feature_name} not found in SHAP data for model {model_name}.")
+
+        shap_values = shap_data['class_1'][:, feature_index[0]]
+        shap_values_all_models.append(shap_values)
+
+        if num_samples is None:
+            num_samples = len(shap_values)
+        elif len(shap_values) != num_samples:
+            raise ValueError(f"Mismatch in number of samples between models. Expected {num_samples}, but got {len(shap_values)} for model {model_name}.")
+
+    shap_values_all_models = np.array(shap_values_all_models).T
+
+    # Define the custom red_blue color map
+    red_blue = mcolors.LinearSegmentedColormap.from_list(
+        "red_blue", ["blue", "white", "red"], N=256
+    )
+
+    norm = plt.Normalize(vmin=np.min(shap_values_all_models), vmax=np.max(shap_values_all_models))
+
+    plt.figure(figsize=(12, 8))
+    ax = plt.gca()
+
+    for i, model_name in enumerate(model_names):
+        shap_values_model = shap_values_all_models[:, i]
+        colors = red_blue(norm(shap_values_model))
+
+        ax.scatter(shap_values_model, [i + 0.1 * i] * len(shap_values_model), label=model_name, alpha=0.7, s=20, c=colors)
+
+    ax.set_xlabel("SHAP Values")
+    ax.set_ylabel("Models")
+    ax.set_yticks(range(len(model_names)))
+    ax.set_yticklabels(model_names)
+    ax.set_title(f"SHAP Value Comparison for Feature: {feature_name}")
+
+    cbar = plt.colorbar(cm.ScalarMappable(norm=norm, cmap=red_blue), ax=ax)
+    cbar.set_label('SHAP Value (Blue: Low, Red: High)')
+
+    save_file = os.path.join(base_path, f"shap_comparison_by_feature_{feature_name}.png")
+    os.makedirs(os.path.dirname(save_file), exist_ok=True)
+    plt.tight_layout()
+    plt.savefig(save_file, dpi=300)
+    plt.close()
+
+    if logger:
+        logger.info(f"SHAP Comparison Plot for Feature {feature_name} saved at: {save_file}")
+
+
+def plot_beeswarm_by_feature(shap_files, feature_name, feature_names, model_names, input_files, base_path):
+    shap_values_all_models = []
+    input_data_all_models = []
+    num_samples = None
+
+    # Loop through the models
+    for shap_file, model_name, input_file in zip(shap_files, model_names, input_files):
+        shap_data = np.load(shap_file)
+
+        # Find the index of the specified feature in the feature names
+        feature_index = [i for i, name in enumerate(feature_names) if name == feature_name]
+        if not feature_index:
+            raise ValueError(f"Feature {feature_name} not found in SHAP data for model {model_name}.")
+
+        # Extract SHAP values for the specified feature
+        shap_values = shap_data['class_1'][:, feature_index[0]]
+        shap_values_all_models.append(shap_values)
+
+        # Load input data for the current model
+        input_data = np.load(input_file)
+
+        if model_name in ["lstm", "gru", "tft", "transformer", "gtn", "cnn"]:
+            # If it's a 3D tensor, flatten it into 2D
+            if input_data.ndim == 3:
+                input_data_flat = input_data.reshape(input_data.shape[0], -1)
+            else:
+                input_data_flat = input_data
+        else:
+            input_data_flat = input_data  # No reshaping needed for other models
+
+        feature_data = input_data_flat[:, feature_index[0]]  # Extract only the specified feature
+        feature_data = feature_data.reshape(-1, 1)
+
+        input_data_all_models.append(feature_data)
+
+        #print(f"Shape of input data for {model_name}: {input_data.shape}")
+        #print(f"Shape of extracted feature data for {model_name}: {feature_data.shape}")
+        #print(f"Shape of SHAP values for {model_name}: {shap_values.shape}")
+
+
+        if num_samples is None:
+            num_samples = len(shap_values)
+        elif len(shap_values) != num_samples:
+            raise ValueError(f"Mismatch in number of samples between models. Expected {num_samples}, but got {len(shap_values)} for model {model_name}.")
+
+    input_data_all_models = np.concatenate(input_data_all_models, axis=-1)
+    shap_values_all_models = np.array(shap_values_all_models).T
+
+    expl = shap.Explanation(values=shap_values_all_models, data=input_data_all_models, feature_names=model_names)
+
+    save_file = os.path.join(base_path, f"beeswarm_by_feature_{feature_name}.png")
+    os.makedirs(os.path.dirname(save_file), exist_ok=True)
+
+    plt.figure(figsize=(8, 5))
+    shap.plots.beeswarm(expl, max_display=8, show=False, order=np.argsort(model_names))
+
+
+    plt.title(f"SHAP Value Comparison for Feature: {feature_name}")
+    plt.tight_layout()
+    plt.savefig(save_file, dpi=300)
+    plt.close()
+
+    print(f"SHAP Comparison Plot for Feature {feature_name} saved at: {save_file}")

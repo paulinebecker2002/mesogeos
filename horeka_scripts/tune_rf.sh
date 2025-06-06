@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=train_fire_rf
+#SBATCH --job-name=train_rf
 #SBATCH --partition=accelerated
 #SBATCH --account=hk-project-p0024498
 #SBATCH --nodes=1

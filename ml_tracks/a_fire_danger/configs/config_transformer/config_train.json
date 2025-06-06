@@ -10,6 +10,10 @@
       "class": "1"
     },
 
+    "ig": {
+      "ig_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/transformer/0602_163553"
+    },
+
     "arch": {
         "type": "TransformerNet",
         "args": {}

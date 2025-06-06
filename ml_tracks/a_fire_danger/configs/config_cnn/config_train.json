@@ -9,6 +9,11 @@
     "shap_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/cnn/0530_160107",
     "class": "1"
   },
+    "ig": {
+        "ig_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/cnn/0602_115458",
+        "only_positive": false,
+        "only_negative": false
+    },
 
   "arch": {
     "type": "SimpleCNN",

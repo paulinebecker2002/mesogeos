@@ -69,7 +69,9 @@ def build_model(config, dynamic_features, static_features):
     dynamic_dim = len(dynamic_features)
     static_dim = len(static_features)
     model_type = config["model_type"]
-    seq_len = config["dataset"]["args"]["lag"]
+    only_last_five = config["dataset"]["args"].get("only_last_five", False)
+    seq_len = 5 if only_last_five else config["dataset"]["args"].get("lag", 30)
+
 
     if model_type == "mlp":
         return config.init_obj('arch', module_arch,

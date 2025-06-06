@@ -10,11 +10,12 @@ from parse_config import ConfigParser
 from utils.util import set_seed, build_model, get_dataloader, prepare_device
 from utils.util import get_feature_names
 
+
 def get_baseline(input_tensor):
     return torch.zeros_like(input_tensor)
 
-def compute_ig_for_model(model, input_tensor, model_type, static_tensor=None, target_class=1, seq_len=None):
 
+def compute_ig_for_model(model, input_tensor, model_type, static_tensor=None, target_class=1, seq_len=None):
 
     if model_type in ["mlp", "lstm", "gru", "cnn"]:
         input_tensor.requires_grad_()
@@ -52,6 +53,7 @@ def compute_ig_for_model(model, input_tensor, model_type, static_tensor=None, ta
 
     return attributions
 
+
 def main(config):
     SEED = config['seed']
     set_seed(SEED)
@@ -75,15 +77,14 @@ def main(config):
     model.load_state_dict(checkpoint["state_dict"])
     model.to(device)
     model.eval()
+    logger.info(f"Computing IG in mini-batches for model_type={model_type}")
     if model_type in ["lstm", "gru", "tft"]:
         model.train()
 
-    ig_results, coord_x, coord_y = [], [], []
-
-    logger.info(f"Computing IG in mini-batches for model_type={model_type}")
+    ig_results, coord_x, coord_y, labels_all, input_all = [], [], [], [], []
 
     for batch_idx, batch in enumerate(dataloader):
-        dynamic, static, _, _, x, y = batch[:6]
+        dynamic, static, label, _, x, y = batch[:6]
         if model_type == "tft":
             input_ = dynamic  # Nur dynamische Features fürs Modell
         else:
@@ -97,6 +98,10 @@ def main(config):
 
         input_ = input_.float().to(device)
         static = static.float().to(device)
+
+        labels = batch[3]  # <- Index 3 laut __getitem__
+        labels_all.extend(labels.cpu().numpy())
+        input_all.append(input_.detach().cpu())
 
         if model_type == "tft":
             ig_dyn, ig_stat = compute_ig_for_model(model, input_, model_type, static_tensor=static,
@@ -119,19 +124,24 @@ def main(config):
     os.makedirs(save_path, exist_ok=True)
 
     ig_np = ig_all.numpy()
+    input_tensor = torch.cat(input_all, dim=0).numpy()
     print("[DEBUG] ig_all shape:", ig_all.shape)
     print("[DEBUG] ig_all.reshape: ", ig_np.reshape(ig_np.shape[0], -1).shape)
     print("[DEBUG] len(feature_names):", len(feature_names))
-    np.save(os.path.join(save_path, "ig_values.npy"), ig_np)
+    np.save(os.path.join(save_path, f"ig_values_{model_type}.npy"), ig_np)
+    np.save(os.path.join(save_path, f"ig_labels_{model_type}.npy"), np.array(labels_all))
+    np.save(os.path.join(save_path, f"ig_input_tensor_{model_type}.npy"), input_tensor)
 
     base_names = [f.split("_t-")[0] for f in feature_names]
     df = pd.DataFrame(ig_np.reshape(ig_np.shape[0], -1), columns=feature_names)
     df.columns = base_names
     df["x"] = coord_x
     df["y"] = coord_y
+    df["label"] = labels_all
     df.to_csv(os.path.join(save_path, f"ig_map_{model_type}.csv"), index=False)
 
     logger.info(f"IG saved to: {save_path}")
+
 
 if __name__ == "__main__":
     args = argparse.ArgumentParser(description='Compute Integrated Gradients')

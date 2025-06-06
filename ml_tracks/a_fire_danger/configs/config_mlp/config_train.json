@@ -9,6 +9,11 @@
   "shap_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/mlp/0530_150819",
   "class": "1"
 },
+    "ig": {
+        "ig_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/mlp/0606_103457",
+        "only_positive": false,
+        "only_negative": false
+    },
 
   "arch": {
     "type": "MLP",

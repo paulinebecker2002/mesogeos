@@ -9,6 +9,11 @@
     "shap_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/gru/0530_155939",
     "class": "1"
   },
+    "ig": {
+        "ig_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/gru/0602_112424",
+        "only_positive": false,
+        "only_negative": false
+    },
 
   "arch": {
     "type": "SimpleGRU",
