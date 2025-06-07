@@ -36,10 +36,6 @@ def get_shap_explanation(model, model_type, input_all, device, seq_len, static_f
         background = input_all[indices].detach().cpu().numpy()
         test_input = input_all.detach().cpu().numpy()
         #test_input = input_all[:10].detach().cpu().numpy()
-        print(f"Dimensionen von background: {background.shape}")
-        print(f"Beispielhafte Eingabedaten (input_all[:5]): {input_all[:5]}")
-        print(f"Dimensionen von test_input: {test_input.shape}")
-
 
         explainer = shap.KernelExplainer(model_wrapper, background)
         shap_values = explainer.shap_values(test_input, nsamples=1000)
@@ -62,6 +58,7 @@ def get_shap_explanation(model, model_type, input_all, device, seq_len, static_f
 
         background = input_all[:n_background].detach().cpu().numpy().reshape(n_background, -1)
         test_input = input_all.detach().cpu().numpy().reshape(input_all.shape[0], -1)
+        #test_input = input_all[:batch_size].detach().cpu().numpy().reshape(batch_size, -1)
 
         explainer = shap.KernelExplainer(model_wrapper, background)
 
@@ -125,6 +122,7 @@ def generate_rf_shap_values(model, dataloader, base_save_path, model_id, feature
     pd.DataFrame(shap_values[0], columns=feature_names).to_csv(shap_save_path.replace(".npz", "_class0.csv"), index=False)
     pd.DataFrame(shap_values[1], columns=feature_names).to_csv(shap_save_path.replace(".npz", "_class1.csv"), index=False)
     np.save(shap_save_path.replace(".npz", "_input.npy"), X_val)
+    np.save(shap_save_path.replace(".npz", "_labels.npy"), y_val)
 
     if logger:
         logger.info(f"[RF] SHAP values saved at: {shap_save_path}")
@@ -140,6 +138,7 @@ def generate_rf_shap_values(model, dataloader, base_save_path, model_id, feature
     df_shap = shap_agg.copy()
     df_shap["x"] = coords_x
     df_shap["y"] = coords_y
+    df_shap["label"] = y_val
     csv_save_path = os.path.join(base_save_path, timestamp, f"shap_map_rf.csv")
     df_shap.to_csv(csv_save_path, index=False)
 
@@ -180,7 +179,7 @@ def main(config):
         model = model.to(device)
         model.eval()
 
-        all_inputs, coords_x, coords_y, all_labels  = [], [], [], []
+        all_inputs, coords_x, coords_y, all_labels = [], [], [], []
         for batch in dataloader:
             dynamic, static, bas_size, labels, x, y = batch[:6]
             static = static.unsqueeze(1).repeat(1, dynamic.shape[1], 1)
@@ -212,6 +211,8 @@ def main(config):
     pd.DataFrame(shap_values[0], columns=feature_names).to_csv(shap_save_path.replace(".npz", "_class0.csv"), index=False)
     pd.DataFrame(shap_values[1], columns=feature_names).to_csv(shap_save_path.replace(".npz", "_class1.csv"), index=False)
     np.save(shap_save_path.replace(".npz", "_input.npy"), input_all.cpu().numpy())
+    np.save(shap_save_path.replace(".npz", "_labels.npy"), np.array(all_labels))
+
 
     if logger:
         logger.info(f"SHAP values saved at: {shap_save_path}")
@@ -221,9 +222,9 @@ def main(config):
     shap_df.columns = base_feature_names
     shap_agg = shap_df.groupby(axis=1, level=0).mean()  # → (n_samples, n_base_features)
     df_shap = shap_agg.copy()
-    df_shap['x'] = coords_x[:100]
-    df_shap['y'] = coords_y[:100]
-    df_shap['label'] = all_labels[:100]
+    df_shap['x'] = coords_x
+    df_shap['y'] = coords_y
+    df_shap['label'] = all_labels
     csv_save_path = os.path.join(base_save_path, timestamp, f"shap_map_{model_type}.csv")
     os.makedirs(os.path.dirname(csv_save_path), exist_ok=True)
     df_shap.to_csv(csv_save_path, index=False)

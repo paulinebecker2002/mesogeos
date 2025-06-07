@@ -6,12 +6,14 @@
 
     "shap": {
       "checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/models/transformer/0519_125059/model_best.pth",
-      "shap_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/transformer/0530_164841",
+      "shap_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/transformer/0607_065223",
       "class": "1"
     },
 
     "ig": {
-      "ig_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/transformer/0602_163553"
+      "ig_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/tft/0606_191700",
+        "only_positive": false,
+        "only_negative": false
     },
 
     "arch": {

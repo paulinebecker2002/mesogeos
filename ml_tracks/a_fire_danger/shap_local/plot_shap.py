@@ -17,6 +17,8 @@ def main(config):
     checkpoint_path = config["shap"]["checkpoint_path"]
     shap_class = config["shap"]["class"]
     model_type = config["model_type"]
+    only_pos = config["ig"]["only_positive"]
+    only_neg = config["ig"]["only_negative"]
     shap_path = config["shap"]["shap_path"]
     all_model_path = '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/all_model_comparison'
     model_id = os.path.basename(os.path.dirname(checkpoint_path))
@@ -24,6 +26,9 @@ def main(config):
 
     shap_file = os.path.join(shap_path, f"shap_values_{model_id}_{model_type}.npz")
     shap_data = np.load(shap_file)
+    labels_file = os.path.join(shap_path, f"shap_values_{model_id}_{model_type}_labels.npy")
+    labels = np.load(labels_file)
+
 
     input_tensor_path = os.path.join(shap_path, f"shap_values_{model_id}_{model_type}_input.npy")
     input_tensor_np = np.load(input_tensor_path)
@@ -33,6 +38,17 @@ def main(config):
         shap_values = shap_data['class_0']
     else:
         shap_values = shap_data['class_1']
+
+    if only_pos:
+        shap_values = shap_values[labels == 1]
+        model_id += "_positive"
+        print("Only positive IG values selected with shape:", shap_values.shape)
+    elif only_neg:
+        shap_values = shap_values[labels == 0]
+        model_id += "_negative"
+        print("Only negative IG values selected with shape:", shap_values.shape)
+    else:
+        print("Using all IG values with shape:", shap_values.shape)
 
 
     shap_files = [
@@ -59,22 +75,22 @@ def main(config):
 
     model_names = ['cnn', 'mlp', 'gru', 'lstm', 'transformer', 'gtn', 'rf', 'tft']
     #plot_shap_comparison_by_feature(shap_files, 'd2m_t-1', feature_names, model_names, shap_path, logger)
-    plot_beeswarm_by_feature(shap_files, 'lst_day_t-1', feature_names, model_names, input_files, all_model_path)
-    plot_beeswarm_by_feature(shap_files, 'lst_day_t-2', feature_names, model_names, input_files, all_model_path)
-    plot_beeswarm_by_feature(shap_files, 'rh_t-1', feature_names, model_names, input_files, all_model_path)
-    plot_beeswarm_by_feature(shap_files, 't2m_t-1', feature_names, model_names, input_files, all_model_path)
-    plot_beeswarm_by_feature(shap_files, 'd2m_t-1', feature_names, model_names, input_files, all_model_path)
-    plot_beeswarm_by_feature(shap_files, 'lst_night_t-1', feature_names, model_names, input_files, all_model_path)
-    plot_beeswarm_by_feature(shap_files, 'ndvi_t-1', feature_names, model_names, input_files, all_model_path)
-    plot_beeswarm_by_feature(shap_files, 't2m_t-2', feature_names, model_names, input_files, all_model_path)
-    plot_beeswarm_by_feature(shap_files, 'tp_t-1', feature_names, model_names, input_files, all_model_path)
-    plot_beeswarm_by_feature(shap_files, 'wind_speed_t-1', feature_names, model_names, input_files, all_model_path)
-    plot_beeswarm_by_feature(shap_files, 'lai_t-1', feature_names, model_names, input_files, all_model_path)
-    plot_beeswarm_by_feature(shap_files, 'lst_day_t-5', feature_names, model_names, input_files, all_model_path)
+    #plot_beeswarm_by_feature(shap_files, 'lst_day_t-1', feature_names, model_names, input_files, all_model_path)
+    #plot_beeswarm_by_feature(shap_files, 'lst_day_t-2', feature_names, model_names, input_files, all_model_path)
+    #plot_beeswarm_by_feature(shap_files, 'rh_t-1', feature_names, model_names, input_files, all_model_path)
+    #plot_beeswarm_by_feature(shap_files, 't2m_t-1', feature_names, model_names, input_files, all_model_path)
+    #plot_beeswarm_by_feature(shap_files, 'd2m_t-1', feature_names, model_names, input_files, all_model_path)
+    #plot_beeswarm_by_feature(shap_files, 'lst_night_t-1', feature_names, model_names, input_files, all_model_path)
+    #plot_beeswarm_by_feature(shap_files, 'ndvi_t-1', feature_names, model_names, input_files, all_model_path)
+    #plot_beeswarm_by_feature(shap_files, 't2m_t-2', feature_names, model_names, input_files, all_model_path)
+    #plot_beeswarm_by_feature(shap_files, 'tp_t-1', feature_names, model_names, input_files, all_model_path)
+    #plot_beeswarm_by_feature(shap_files, 'wind_speed_t-1', feature_names, model_names, input_files, all_model_path)
+    #plot_beeswarm_by_feature(shap_files, 'lai_t-1', feature_names, model_names, input_files, all_model_path)
+    #plot_beeswarm_by_feature(shap_files, 'lst_day_t-5', feature_names, model_names, input_files, all_model_path)
 
     print(f"Shape input: {input_tensor.shape}, SHAP: {np.array(shap_values).shape}")
     #plot_grouped_feature_importance(shap_values, shap_class, feature_names, checkpoint_path, shap_path, model_type, logger)
-    #plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, checkpoint_path, shap_path, model_type, logger)
+    plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, checkpoint_path, shap_path, model_type, logger)
     #plot_shap_difference_bar( shap_data['class_0'], shap_data['class_1'], feature_names, checkpoint_path, shap_path, model_type, logger)
     #plot_shap_difference_aggregated( shap_data['class_0'], shap_data['class_1'], feature_names, checkpoint_path, shap_path, model_type, logger)
 
@@ -91,6 +107,8 @@ if __name__ == '__main__':
     CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')
     options = [
         CustomArgs(['--cl', '--class'], type=int, target='shap;class'),
+        CustomArgs(['--only_positive', '--op'], type=lambda x: x.lower() in ['true', '1', 'yes'], target='ig;only_positive'),
+        CustomArgs(['--only_negative', '--on'], type=lambda x: x.lower() in ['true', '1', 'yes'], target='ig;only_negative'),
     ]
     config = ConfigParser.from_args(args, options)
     main(config)
