@@ -267,6 +267,9 @@ class TFTNet(nn.Module):
         super().__init__()
         self.seq_len = seq_len
 
+        self.dynamic_proj = nn.Linear(input_dim, d_model)
+        self.static_proj = nn.Linear(static_dim, d_model)
+
         # add Gated Residual Network to TFT
         self.static_grn = GRN(static_dim, hidden_dim=d_model, output_dim=d_model, dropout=dropout)
         self.dynamic_grn = GRN(input_dim, hidden_dim=d_model, output_dim=d_model, dropout=dropout)

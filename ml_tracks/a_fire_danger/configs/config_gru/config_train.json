@@ -9,7 +9,7 @@
     "shap_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/gru/0607_045922",
     "class": "1"
   },
-    "ig": {
+    "XAI": {
         "ig_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/gru/0606_191651",
         "only_positive": false,
         "only_negative": false
@@ -32,7 +32,7 @@
       "neg_pos_ratio": 2,
       "lag": 30,
       "seed": 12345,
-      "only_last_five": false
+      "last_n_timesteps": 30
     }
   },
   "dataloader": {

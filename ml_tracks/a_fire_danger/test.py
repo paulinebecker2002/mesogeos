@@ -134,6 +134,7 @@ if __name__ == '__main__':
     CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')
     options = [
         CustomArgs(['--model_path', '--mp'], type=str, target='model_path'),
+        CustomArgs(['--tlag', '--last_n_timesteps'], type=int, target='dataset;args;last_n_timesteps')
     ]
     config = ConfigParser.from_args(args, options)
     main(config)

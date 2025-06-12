@@ -7,8 +7,8 @@ import shap
 import matplotlib.colors as mcolors
 import matplotlib.cm as cm
 
-def plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, checkpoint_path, base_path, model_type, logger=None):
-    model_id = os.path.basename(os.path.dirname(checkpoint_path))
+
+def plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, model_id, base_path, model_type, logger=None):
     save_file = os.path.join(base_path, f"shap_beeswarm_plot_{model_id}_{model_type}_{shap_class}.png")
     os.makedirs(os.path.dirname(save_file), exist_ok=True)
 
@@ -24,7 +24,7 @@ def plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, checkpoi
     print(f"Shape input: {input_tensor.shape}, SHAP: {np.array(shap_values).shape}")
 
     #in case we used less samples for SHAP computation than for the input tensor (=whole test input)
-    input_for_plot = input_for_plot[:shap_values.shape[0]]
+    #input_for_plot = input_for_plot[:shap_values.shape[0]]
 
     expl = shap.Explanation(values=shap_values, data=input_for_plot.cpu().numpy(), feature_names=feature_names)
     shap.plots.beeswarm(expl, max_display=25, show=False)
@@ -38,8 +38,7 @@ def plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, checkpoi
         logger.info(f"SHAP Beeswarm Plot stored at: {save_file}")
 
 
-def plot_grouped_feature_importance(shap_values, shap_class, feature_names, checkpoint_path, base_path, model_type, logger=None):
-    model_id = os.path.basename(os.path.dirname(checkpoint_path))
+def plot_grouped_feature_importance(shap_values, shap_class, feature_names, model_id, base_path, model_type, logger=None):
     save_file = os.path.join(base_path, f"grouped_shap_plot_{model_id}_{model_type}_{shap_class}.png")
     os.makedirs(os.path.dirname(save_file), exist_ok=True)
 
@@ -64,8 +63,7 @@ def plot_grouped_feature_importance(shap_values, shap_class, feature_names, chec
         logger.info(f"SHAP Grouped Plot stored at: {save_file}")
 
 
-def plot_shap_temporal_heatmap(shap_values, shap_class, feature_names, checkpoint_path, base_path, model_type, logger=None):
-    model_id = os.path.basename(os.path.dirname(checkpoint_path))
+def plot_shap_temporal_heatmap(shap_values, shap_class, feature_names, model_id, base_path, model_type, logger=None):
     save_file = os.path.join(base_path, f"shap_temporal_heatmap_{model_id}_{model_type}_{shap_class}.png")
     os.makedirs(os.path.dirname(save_file), exist_ok=True)
 
@@ -97,8 +95,7 @@ def plot_shap_temporal_heatmap(shap_values, shap_class, feature_names, checkpoin
     if logger:
         logger.info(f"SHAP-Heatmap saved at: {save_file}")
 
-def plot_shap_difference_bar(shap_class0, shap_class1, feature_names, checkpoint_path, base_path, model_type, logger=None):
-    model_id = os.path.basename(os.path.dirname(checkpoint_path))
+def plot_shap_difference_bar(shap_class0, shap_class1, feature_names, model_id, base_path, model_type, logger=None):
     save_file = os.path.join(base_path, f"shap_difference_plot_{model_id}_{model_type}.png")
     os.makedirs(os.path.dirname(save_file), exist_ok=True)
 
@@ -130,9 +127,8 @@ def plot_shap_difference_bar(shap_class0, shap_class1, feature_names, checkpoint
         logger.info(f"SHAP Difference Plot saved at: {save_file}")
 
 
-def plot_shap_difference_aggregated(shap_class0, shap_class1, feature_names, checkpoint_path, base_path, model_type, logger=None):
+def plot_shap_difference_aggregated(shap_class0, shap_class1, feature_names, model_id, base_path, model_type, logger=None):
 
-    model_id = os.path.basename(os.path.dirname(checkpoint_path))
     save_file = os.path.join(base_path, f"shap_difference_aggregated_plot_{model_id}_{model_type}.png")
     os.makedirs(os.path.dirname(save_file), exist_ok=True)
 
@@ -167,11 +163,10 @@ def plot_shap_difference_aggregated(shap_class0, shap_class1, feature_names, che
         logger.info(f"Aggregated SHAP Difference Plot saved at: {save_file}")
 
 def plot_shap_waterfall(shap_values, shap_class, input_tensor, feature_names, sample_idx,
-                        checkpoint_path, base_path, model_type, logger=None):
+                        model_id, base_path, model_type, logger=None):
     """
     Plot SHAP waterfall plot for a single instance (sample_idx) and save to file.
     """
-    model_id = os.path.basename(os.path.dirname(checkpoint_path))
     save_file = os.path.join(base_path, f"shap_waterfall_plot_{model_id}_{model_type}_class{shap_class}_sample{sample_idx}.png")
     os.makedirs(os.path.dirname(save_file), exist_ok=True)
 

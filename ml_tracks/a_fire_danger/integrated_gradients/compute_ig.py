@@ -101,14 +101,17 @@ def main(config):
 
         labels = batch[3]  # <- Index 3 laut __getitem__
         labels_all.extend(labels.cpu().numpy())
-        input_all.append(input_.detach().cpu())
 
         if model_type == "tft":
+            static_expanded = static.unsqueeze(1).repeat(1, seq_len, 1)
+            input_full = torch.cat([input_, static_expanded], dim=2)
+            input_all.append(input_full.detach().cpu())
             ig_dyn, ig_stat = compute_ig_for_model(model, input_, model_type, static_tensor=static,
                                                    target_class=1, seq_len=seq_len)
             ig_batch = torch.cat([ig_dyn, ig_stat.unsqueeze(1).repeat(1, seq_len, 1)], dim=-1)
         else:
             ig_batch = compute_ig_for_model(model, input_, model_type, target_class=1, seq_len=seq_len)
+            input_all.append(input_.detach().cpu())
 
         ig_results.append(ig_batch.detach().cpu())
         coord_x.extend(x.cpu().numpy())

@@ -20,6 +20,7 @@ from utils.util import set_seed, build_model, get_dataloader
 def main(config):
 
     SEED = config['seed']
+    time_lag = config['dataset']['args']['last_n_timesteps']
     set_seed(SEED)
 
     logger = config.get_logger('train')
@@ -74,8 +75,8 @@ def main(config):
     optimizer = config.init_obj('optimizer', torch.optim, trainable_params)
     lr_scheduler = config.init_obj('lr_scheduler', torch.optim.lr_scheduler, optimizer)
 
-    if config['dataset']['args']['only_last_five']:
-        logger.info("Using only the last five timesteps for training.")
+    if time_lag != 30:
+        logger.info(f"Using only the last {time_lag} timesteps for training.")
 
     trainer = Trainer(model, criterion, metrics, optimizer,
                       config=config,
@@ -107,7 +108,7 @@ if __name__ == '__main__':
         CustomArgs(['--gamma'], type=float, target='lr_scheduler;args;gamma'),
         CustomArgs(['--wd', '--weight_decay'], type=float, target='optimizer;args;weight_decay'),
         CustomArgs(['--ft', '--finetune'], type=str, target='finetune;sklearn_tune'),
-        CustomArgs(['--olf', '--only_last_five'], type=lambda x: x.lower() in ['true', '1', 'yes'], target='dataset;args;only_last_five'),
+        CustomArgs(['--tlag', '--last_n_timesteps'], type=int, target='dataset;args;last_n_timesteps')
     ]
     config = ConfigParser.from_args(args, options)
     main(config)

@@ -5,10 +5,15 @@
   "gpu_id": 0,
 
   "shap": {
-    "checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/horeka_scripts/saved/log/rf/0604_052725/random_forest_model_0604_052725.pkl",
-    "shap_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/rf/0522_103649/0529_205740",
+    "checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/horeka_scripts/saved/log/rf/0612_082906/random_forest_model_0612_082906.pkl",
+    "shap_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/rf/0607_124719",
     "class": "1"
   },
+    "XAI": {
+        "ig_path": null,
+        "only_positive": false,
+        "only_negative": false
+    },
 
   "arch": {
     "type": "RandomForest",
@@ -36,7 +41,7 @@
       "neg_pos_ratio": 2,
       "lag": 30,
       "seed": 12345,
-      "only_last_five": false
+      "last_n_timesteps": 30
     }
   },
   "dataloader": {

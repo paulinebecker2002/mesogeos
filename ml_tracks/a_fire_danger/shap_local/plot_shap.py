@@ -17,8 +17,8 @@ def main(config):
     checkpoint_path = config["shap"]["checkpoint_path"]
     shap_class = config["shap"]["class"]
     model_type = config["model_type"]
-    only_pos = config["ig"]["only_positive"]
-    only_neg = config["ig"]["only_negative"]
+    only_pos = config["XAI"]["only_positive"]
+    only_neg = config["XAI"]["only_negative"]
     shap_path = config["shap"]["shap_path"]
     all_model_path = '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/all_model_comparison'
     model_id = os.path.basename(os.path.dirname(checkpoint_path))
@@ -41,10 +41,12 @@ def main(config):
 
     if only_pos:
         shap_values = shap_values[labels == 1]
+        input_tensor = input_tensor[labels == 1]
         model_id += "_positive"
         print("Only positive IG values selected with shape:", shap_values.shape)
     elif only_neg:
         shap_values = shap_values[labels == 0]
+        input_tensor = input_tensor[labels == 0]
         model_id += "_negative"
         print("Only negative IG values selected with shape:", shap_values.shape)
     else:
@@ -59,7 +61,7 @@ def main(config):
         '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/transformer/0530_164841/shap_values_0519_125059_transformer.npz',
         '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/gtn/0530_201817/shap_values_0520_203840_gtn.npz',
         '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/rf/0604_161105/shap_values_0604_052725_rf.npz',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/tft/0606_123052/shap_values_0529_193434_tft.npz'
+        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/tft/0607_040620/shap_values_0529_193434_tft.npz'
     ]
 
     input_files = [
@@ -70,7 +72,7 @@ def main(config):
         '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/transformer/0530_164841/shap_values_0519_125059_transformer_input.npy',
         '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/gtn/0530_201817/shap_values_0520_203840_gtn_input.npy',
         '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/rf/0604_161105/shap_values_0604_052725_rf_input.npy',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/tft/0606_123052/shap_values_0529_193434_tft_input.npy'
+        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/tft/0607_040620/shap_values_0529_193434_tft_input.npy'
     ]
 
     model_names = ['cnn', 'mlp', 'gru', 'lstm', 'transformer', 'gtn', 'rf', 'tft']
@@ -89,14 +91,15 @@ def main(config):
     #plot_beeswarm_by_feature(shap_files, 'lst_day_t-5', feature_names, model_names, input_files, all_model_path)
 
     print(f"Shape input: {input_tensor.shape}, SHAP: {np.array(shap_values).shape}")
-    #plot_grouped_feature_importance(shap_values, shap_class, feature_names, checkpoint_path, shap_path, model_type, logger)
-    plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, checkpoint_path, shap_path, model_type, logger)
-    #plot_shap_difference_bar( shap_data['class_0'], shap_data['class_1'], feature_names, checkpoint_path, shap_path, model_type, logger)
-    #plot_shap_difference_aggregated( shap_data['class_0'], shap_data['class_1'], feature_names, checkpoint_path, shap_path, model_type, logger)
+    #plot_grouped_feature_importance(shap_values, shap_class, feature_names, model_id, shap_path, model_type, logger)
+    plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, model_id, shap_path, model_type, logger)
 
-    #plot_shap_temporal_heatmap(shap_values, shap_class, feature_names, checkpoint_path, shap_path, model_type, logger)
+    #plot_shap_difference_bar( shap_data['class_0'], shap_data['class_1'], feature_names, model_id, shap_path, model_type, logger)
+    #plot_shap_difference_aggregated( shap_data['class_0'], shap_data['class_1'], feature_names, model_id, shap_path, model_type, logger)
+
+    #plot_shap_temporal_heatmap(shap_values, shap_class, feature_names, model_id, shap_path, model_type, logger)
     sample_idx = 0
-    #plot_shap_waterfall(shap_values, shap_class, input_tensor, feature_names, sample_idx, checkpoint_path, shap_path, model_type, logger)
+    #plot_shap_waterfall(shap_values, shap_class, input_tensor, feature_names, sample_idx, model_id, shap_path, model_type, logger)
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser(description='Compute SHAP values')
@@ -107,8 +110,8 @@ if __name__ == '__main__':
     CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')
     options = [
         CustomArgs(['--cl', '--class'], type=int, target='shap;class'),
-        CustomArgs(['--only_positive', '--op'], type=lambda x: x.lower() in ['true', '1', 'yes'], target='ig;only_positive'),
-        CustomArgs(['--only_negative', '--on'], type=lambda x: x.lower() in ['true', '1', 'yes'], target='ig;only_negative'),
+        CustomArgs(['--only_positive', '--op'], type=lambda x: x.lower() in ['true', '1', 'yes'], target='XAI;only_positive'),
+        CustomArgs(['--only_negative', '--on'], type=lambda x: x.lower() in ['true', '1', 'yes'], target='XAI;only_negative'),
     ]
     config = ConfigParser.from_args(args, options)
     main(config)

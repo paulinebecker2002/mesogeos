@@ -8,9 +8,10 @@
 #SBATCH --gpus=1
 #SBATCH --gres=gpu:1
 #SBATCH --mem=480G
-#SBATCH --time=12:00:00
+#SBATCH --time=23:00:00
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=pauline.becker@student.kit.edu
+
 
 
 cd /hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger

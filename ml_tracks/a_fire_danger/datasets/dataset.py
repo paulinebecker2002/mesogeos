@@ -9,14 +9,14 @@ import warnings
 class FireDataset(Dataset):
     def __init__(self, dataset_root: Path = None, problem_class: str = 'classification', train_val_test: str = 'train',
                  dynamic_features: list = None, static_features: list = None, nan_fill: float = 0,
-                 neg_pos_ratio: int = 2, lag: int = 30, seed: int = 12345, only_last_five: bool = False):
+                 neg_pos_ratio: int = 2, lag: int = 30, seed: int = 12345, last_n_timesteps: int = 30):
         """
         @param access_mode: spatial, temporal or spatiotemporal
         @param problem_class: classification or segmentation
         @param train_val_test:
-                'train' gets samples from [2009-2018].
-                'val' gets samples from 2019.
-                test' get samples from 2020
+                'train' gets samples from [2009-2019].
+                'val' gets samples from 2020.
+                'test' get samples from 2021-2022.
         @param dynamic_features: selects the dynamic features to return
         @param static_features: selects the static features to return
         @param categorical_features: selects the categorical features
@@ -30,7 +30,7 @@ class FireDataset(Dataset):
         self.nan_fill = nan_fill
         self.lag = lag
         self.seed = seed
-        self.only_last_five = only_last_five
+        self.last_n_timesteps = last_n_timesteps
 
         random.seed(self.seed)
 
@@ -57,7 +57,6 @@ class FireDataset(Dataset):
         #years = grouped.apply(get_last_year)
         #repeats = grouped.size().values
         #self.negatives['YEAR'] = np.repeat(years.values, repeats)
-
 
         val_year = ['2020']
         test_year = ['2021', '2022']
@@ -110,10 +109,7 @@ class FireDataset(Dataset):
 
     def __getitem__(self, idx):
         full_dynamic = self.dynamic.iloc[idx * 30:(idx + 1) * 30].values[-self.lag:, :]
-        if self.only_last_five:
-            dynamic = full_dynamic[-5:, :]  # Tage 25–29 + Feuertag
-        else:
-            dynamic = full_dynamic
+        dynamic = full_dynamic[-self.last_n_timesteps:, :]
 
         static = self.static.iloc[idx * 30:(idx + 1) * 30].values[0, :]
         burned_areas_size = np.log(self.burned_areas_size.iloc[idx * 30:(idx + 1) * 30].values[0])

@@ -4,18 +4,19 @@ import os
 import numpy as np
 from parse_config import ConfigParser
 from utils.util import get_feature_names
-from ig_utils import plot_bar, plot_temporal_heatmap, plot_ig_beeswarm
+from ig_utils import plot_bar, plot_temporal_heatmap, plot_ig_beeswarm, plot_ig_beeswarm_only_once_each_feature, plot_ig_beeswarm_by_feature
 
 def main(config):
     logger = config.get_logger('ig')
 
     checkpoint_path = config["shap"]["checkpoint_path"]
     model_type = config["model_type"]
-    only_pos = config["ig"]["only_positive"]
-    only_neg = config["ig"]["only_negative"]
+    only_pos = config["XAI"]["only_positive"]
+    only_neg = config["XAI"]["only_negative"]
     feature_names = get_feature_names(config)
-    ig_path = config["ig"]["ig_path"]
+    ig_path = config["XAI"]["ig_path"]
     model_id = os.path.basename(os.path.dirname(checkpoint_path))
+    all_model_path = '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/all_model_comparison'
 
     ig_file = os.path.join(ig_path, f"ig_values_{model_type}.npy")
     ig_data = np.load(ig_file)
@@ -29,20 +30,61 @@ def main(config):
 
     if only_pos:
         ig_data = ig_data[labels == 1]
+        input_data = input_data[labels == 1]
         model_id += "_positive"
         print("Only positive IG values selected with shape:", ig_data.shape)
     elif only_neg:
         ig_data = ig_data[labels == 0]
+        input_data = input_data[labels == 0]
         model_id += "_negative"
         print("Only negative IG values selected with shape:", ig_data.shape)
     else:
         print("Using all IG values with shape:", ig_data.shape)
 
+    print("input_data shape:", input_data.shape)     # z. B. (4107, 30, 24)
+    print("ig_data shape:", ig_data.shape)           # z. B. (4107, 30, 24)
+    print("len(feature_names):", len(feature_names)) # sollte 30×24 = 720 sein
+
     #plot_bar(ig_data, feature_names, model_id, model_type, ig_path, logger)
     #plot_temporal_heatmap(ig_data, feature_names, model_id, model_type, ig_path, logger, scaled=True)
     #plot_temporal_heatmap(ig_data, feature_names, model_id, model_type, ig_path, logger, scaled=False)
-    plot_ig_beeswarm(ig_data, input_data, feature_names, model_id, model_type, ig_path, logger)
+    #plot_ig_beeswarm(ig_data, input_data, feature_names, model_id, model_type, ig_path, logger)
+    #plot_ig_beeswarm_only_once_each_feature(ig_data, input_data, feature_names, model_id, model_type, ig_path, logger)
 
+    shap_files = [
+        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/cnn/0606_191829/ig_values_cnn.npy',
+        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/mlp/0606_103457/ig_values_mlp.npy',
+        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/gru/0606_191651/ig_values_gru.npy',
+        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/lstm/0606_191651/ig_values_lstm.npy',
+        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/transformer/0606_191656/ig_values_transformer.npy',
+        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/gtn/0606_191708/ig_values_gtn.npy',
+        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/tft/0607_112458/ig_values_tft.npy'
+    ]
+
+    input_files = [
+        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/cnn/0606_191829/ig_input_tensor_cnn.npy',
+        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/mlp/0606_103457/ig_input_tensor_mlp.npy',
+        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/gru/0606_191651/ig_input_tensor_gru.npy',
+        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/lstm/0606_191651/ig_input_tensor_lstm.npy',
+        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/transformer/0606_191656/ig_input_tensor_transformer.npy',
+        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/gtn/0606_191708/ig_input_tensor_gtn.npy',
+        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/tft/0607_112458/ig_input_tensor_tft.npy'
+    ]
+
+    model_names = ['cnn', 'mlp', 'gru', 'lstm', 'transformer', 'gtn', 'tft']
+    plot_ig_beeswarm_by_feature(shap_files, 'lst_day_t-1', feature_names, model_names, input_files, all_model_path)
+    plot_ig_beeswarm_by_feature(shap_files, 'lst_day_t-2', feature_names, model_names, input_files, all_model_path)
+    plot_ig_beeswarm_by_feature(shap_files, 'lst_night_t-1', feature_names, model_names, input_files, all_model_path)
+    plot_ig_beeswarm_by_feature(shap_files, 'ndvi_t-1', feature_names, model_names, input_files, all_model_path)
+    plot_ig_beeswarm_by_feature(shap_files, 'rh_t-1', feature_names, model_names, input_files, all_model_path)
+    plot_ig_beeswarm_by_feature(shap_files, 't2m_t-1', feature_names, model_names, input_files, all_model_path)
+    plot_ig_beeswarm_by_feature(shap_files, 't2m_t-2', feature_names, model_names, input_files, all_model_path)
+    plot_ig_beeswarm_by_feature(shap_files, 'tp_t-1', feature_names, model_names, input_files, all_model_path)
+    plot_ig_beeswarm_by_feature(shap_files, 'wind_speed_t-1', feature_names, model_names, input_files, all_model_path)
+    plot_ig_beeswarm_by_feature(shap_files, 'd2m_t-1', feature_names, model_names, input_files, all_model_path)
+    plot_ig_beeswarm_by_feature(shap_files, 'lai_t-1', feature_names, model_names, input_files, all_model_path)
+    plot_ig_beeswarm_by_feature(shap_files, 'lc_agriculture_t-1', feature_names, model_names, input_files, all_model_path)
+    plot_ig_beeswarm_by_feature(shap_files, 'ssrd_t-1', feature_names, model_names, input_files, all_model_path)
 
 
 if __name__ == '__main__':
@@ -53,8 +95,8 @@ if __name__ == '__main__':
 
     CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')
     options = [
-        CustomArgs(['--only_positive', '--op'], type=lambda x: x.lower() in ['true', '1', 'yes'], target='ig;only_positive'),
-        CustomArgs(['--only_negative', '--on'], type=lambda x: x.lower() in ['true', '1', 'yes'], target='ig;only_negative'),
+        CustomArgs(['--only_positive', '--op'], type=lambda x: x.lower() in ['true', '1', 'yes'], target='XAI;only_positive'),
+        CustomArgs(['--only_negative', '--on'], type=lambda x: x.lower() in ['true', '1', 'yes'], target='XAI;only_negative'),
     ]
     config = ConfigParser.from_args(args, options)
     main(config)

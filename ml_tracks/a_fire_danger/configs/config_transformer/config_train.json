@@ -10,8 +10,8 @@
       "class": "1"
     },
 
-    "ig": {
-      "ig_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/tft/0606_191700",
+    "XAI": {
+      "ig_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/transformer/0606_191656",
         "only_positive": false,
         "only_negative": false
     },
@@ -41,7 +41,7 @@
       "neg_pos_ratio": 2,
       "lag": 30,
       "seed": 12345,
-      "only_last_five": false
+      "last_n_timesteps": 30
     }
   },
   "dataloader": {

@@ -21,7 +21,7 @@
       "neg_pos_ratio": 2,
       "lag": 30,
       "seed": 12345,
-      "only_last_five": false
+      "last_n_timesteps": 30
     }
   },
   "dataloader": {
