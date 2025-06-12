@@ -95,6 +95,7 @@ class FireDataset(Dataset):
 
 
         self.labels = self.all.label.tolist()
+        self.samples = self.all['sample'].tolist()
         self.dynamic = self.all[self.dynamic_features]
         self.static = self.all[self.static_features]
 
@@ -114,6 +115,7 @@ class FireDataset(Dataset):
         static = self.static.iloc[idx * 30:(idx + 1) * 30].values[0, :]
         burned_areas_size = np.log(self.burned_areas_size.iloc[idx * 30:(idx + 1) * 30].values[0])
         labels = self.labels[idx * 30]
+        sample_id = self.samples[idx * 30]
         x = self.all.iloc[idx * 30]['x']
         y = self.all.iloc[idx * 30]['y']
 
@@ -129,4 +131,4 @@ class FireDataset(Dataset):
         dynamic = np.nan_to_num(dynamic, nan=self.nan_fill)
         static = np.nan_to_num(static, nan=self.nan_fill)
 
-        return dynamic, static, burned_areas_size, labels, x, y
+        return dynamic, static, burned_areas_size, labels, x, y, sample_id

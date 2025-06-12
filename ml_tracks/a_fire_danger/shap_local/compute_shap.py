@@ -8,7 +8,7 @@ import os
 import pandas as pd
 import joblib
 from parse_config import ConfigParser
-from utils.util import (set_seed, build_model, get_dataloader, prepare_device, extract_numpy, get_feature_names)
+from utils.util import (set_seed, build_model, get_dataloader, prepare_device, get_feature_names)
 def get_shap_explanation(model, model_type, input_all, device, seq_len, static_features, dynamic_features, logger=None):
     """
     Select the appropriate SHAP explainer for the given model type and compute SHAP values.
@@ -110,7 +110,24 @@ def generate_rf_shap_values(model, dataloader, base_save_path, model_id, feature
     Compute and save SHAP values for a Random Forest model using TreeExplainer.
     """
 
-    X_val, y_val = extract_numpy(dataloader)
+    X_val_list, y_val_list, x_coords, y_coords = [], [], [], []
+
+    for batch in dataloader:
+        dynamic, static, bas_size, labels, x, y, sample_id = batch[:7]
+        static = static.unsqueeze(1).repeat(1, dynamic.shape[1], 1)
+        input_ = torch.cat([dynamic, static], dim=2)
+        input_ = input_.view(input_.shape[0], -1)
+
+        X_val_list.append(input_.cpu().numpy())
+        y_val_list.append(labels.cpu().numpy())
+        x_coords.extend(x.cpu().numpy())
+        y_coords.extend(y.cpu().numpy())
+
+    X_val = np.vstack(X_val_list)
+    y_val = np.concatenate(y_val_list)
+    coords_x = np.array(x_coords)
+    coords_y = np.array(y_coords)
+
     explainer = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(X_val)  # list of arrays: one per class
     timestamp = datetime.now().strftime("%m%d_%H%M%S")
@@ -126,8 +143,6 @@ def generate_rf_shap_values(model, dataloader, base_save_path, model_id, feature
 
     if logger:
         logger.info(f"[RF] SHAP values saved at: {shap_save_path}")
-
-    coords_x, coords_y = X_val[:, -2], X_val[:, -1]  # assuming last two cols = x, y
 
     # Aggregate SHAP by base feature
     base_feature_names = [name.split("_t-")[0] for name in feature_names]
@@ -179,9 +194,9 @@ def main(config):
         model = model.to(device)
         model.eval()
 
-        all_inputs, coords_x, coords_y, all_labels = [], [], [], []
+        all_inputs, coords_x, coords_y, all_labels, all_samples = [], [], [], [], []
         for batch in dataloader:
-            dynamic, static, bas_size, labels, x, y = batch[:6]
+            dynamic, static, bas_size, labels, x, y, sample_id = batch[:7]
             static = static.unsqueeze(1).repeat(1, dynamic.shape[1], 1)
             input_ = torch.cat([dynamic, static], dim=2)
             if config["model_type"] == "mlp":
@@ -190,6 +205,8 @@ def main(config):
             coords_x.extend(x.cpu().numpy())
             coords_y.extend(y.cpu().numpy())
             all_labels.extend(labels.cpu().numpy().astype(int))
+            all_samples.extend(sample_id.cpu().numpy().astype(int))
+
 
         input_all = torch.cat(all_inputs, dim=0).to(device).float()
         print(type(input_all), input_all.shape)
@@ -212,6 +229,7 @@ def main(config):
     pd.DataFrame(shap_values[1], columns=feature_names).to_csv(shap_save_path.replace(".npz", "_class1.csv"), index=False)
     np.save(shap_save_path.replace(".npz", "_input.npy"), input_all.cpu().numpy())
     np.save(shap_save_path.replace(".npz", "_labels.npy"), np.array(all_labels))
+    np.save(shap_save_path.replace(".npz", "_samples.npy"), np.array(all_samples))
 
 
     if logger:
@@ -225,6 +243,7 @@ def main(config):
     df_shap['x'] = coords_x
     df_shap['y'] = coords_y
     df_shap['label'] = all_labels
+    df_shap['sample'] = all_samples
     csv_save_path = os.path.join(base_save_path, timestamp, f"shap_map_{model_type}.csv")
     os.makedirs(os.path.dirname(csv_save_path), exist_ok=True)
     df_shap.to_csv(csv_save_path, index=False)

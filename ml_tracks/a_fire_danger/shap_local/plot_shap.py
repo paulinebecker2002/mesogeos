@@ -92,14 +92,21 @@ def main(config):
 
     print(f"Shape input: {input_tensor.shape}, SHAP: {np.array(shap_values).shape}")
     #plot_grouped_feature_importance(shap_values, shap_class, feature_names, model_id, shap_path, model_type, logger)
-    plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, model_id, shap_path, model_type, logger)
+    #plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, model_id, shap_path, model_type, logger)
 
     #plot_shap_difference_bar( shap_data['class_0'], shap_data['class_1'], feature_names, model_id, shap_path, model_type, logger)
     #plot_shap_difference_aggregated( shap_data['class_0'], shap_data['class_1'], feature_names, model_id, shap_path, model_type, logger)
 
     #plot_shap_temporal_heatmap(shap_values, shap_class, feature_names, model_id, shap_path, model_type, logger)
-    sample_idx = 0
-    #plot_shap_waterfall(shap_values, shap_class, input_tensor, feature_names, sample_idx, model_id, shap_path, model_type, logger)
+
+    sample_idx = [4719]
+
+
+    for idx in sample_idx:
+        print(f"Plotting SHAP waterfall for sample index: {idx}")
+        print(f"\n--- Sample {idx} ---")
+        print(f"Label: {labels[idx]}")
+        plot_shap_waterfall(shap_values, shap_class, input_tensor, feature_names, idx, model_id, shap_path, model_type, logger)
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser(description='Compute SHAP values')

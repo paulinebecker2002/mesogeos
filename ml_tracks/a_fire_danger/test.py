@@ -62,10 +62,10 @@ def main(config):
     test_metrics = MetricTracker('loss', *[m.__name__ for m in metric_ftns], writer=writer)
     test_metrics.reset()
 
-    val_outputs = []
+    all_probs, all_lats, all_lons, all_samples, all_labels, all_bas = [], [], [], [], [], []
     with torch.no_grad():
         for batch_idx, batch in enumerate(dataloader):
-            (dynamic, static, bas_size, labels, x, y) = batch[:6]
+            (dynamic, static, bas_size, labels, x, y, sample_id) = batch[:7]
             if config['model_type'] == 'tft':
                 dynamic = dynamic.to(device, dtype=torch.float32)
                 static = static.to(device, dtype=torch.float32)
@@ -92,7 +92,17 @@ def main(config):
             softmax_probs = outputs[:, 1].detach().cpu().numpy()
             x = x.detach().cpu().numpy()
             y = y.detach().cpu().numpy()
-            val_outputs.append((softmax_probs, x, y))
+            labels_np = labels.detach().cpu().numpy()
+            bas_np = bas_size.detach().cpu().numpy()
+            sample_ids = sample_id.cpu().numpy().astype(int)
+
+            all_probs.extend(softmax_probs)
+            all_lats.extend(x)
+            all_lons.extend(y)
+            all_samples.extend(sample_ids)
+            all_labels.extend(labels_np)
+            all_bas.extend(bas_np)
+
             loss = criterion(torch.log(outputs + e), labels)
             loss = torch.mean(loss * bas_size)
 
@@ -110,15 +120,21 @@ def main(config):
 
     log = test_metrics.result()
     logger.info(log)
-    all_probs, all_lats, all_lons = zip(*val_outputs)
     df = pd.DataFrame({
-        'prob': np.concatenate(all_probs),
-        'lat': np.concatenate(all_lats),
-        'lon': np.concatenate(all_lons)
+        'prob': all_probs,
+        'lat': all_lats,
+        'lon': all_lons,
+        'sample_id': all_samples,
+        'label': all_labels,
+        'log_burned_area': all_bas
     })
     output_path = Path(config.save_dir) / f"test_softmax_outputs.csv"
     df.to_csv(output_path, index=False)
     logger.info(f"Saved test softmax predictions with coordinates to: {output_path}")
+    samples_path = Path(config.save_dir) / f"samples.npy"
+    np.save(samples_path, np.array(all_samples, dtype=np.int32))
+    logger.info(f"Saved test sample IDs to: {samples_path}")
+
 
 
 if __name__ == '__main__':
