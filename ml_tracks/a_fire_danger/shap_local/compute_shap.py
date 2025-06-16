@@ -107,10 +107,10 @@ def get_shap_explanation(model, model_type, input_all, device, seq_len, static_f
 
 def generate_rf_shap_values(model, dataloader, base_save_path, model_id, feature_names, logger=None):
     """
-    Compute and save SHAP values for a Random Forest model using TreeExplainer.
+    Compute and save SHAP values for a Random Forest model using TreeExplainer,
+    and output the same files as for deep learning models.
     """
-
-    X_val_list, y_val_list, x_coords, y_coords = [], [], [], []
+    X_val_list, y_val_list, x_coords, y_coords, sample_ids = [], [], [], [], []
 
     for batch in dataloader:
         dynamic, static, bas_size, labels, x, y, sample_id = batch[:7]
@@ -122,43 +122,76 @@ def generate_rf_shap_values(model, dataloader, base_save_path, model_id, feature
         y_val_list.append(labels.cpu().numpy())
         x_coords.extend(x.cpu().numpy())
         y_coords.extend(y.cpu().numpy())
+        sample_ids.extend(sample_id.cpu().numpy().astype(int))
 
     X_val = np.vstack(X_val_list)
     y_val = np.concatenate(y_val_list)
     coords_x = np.array(x_coords)
     coords_y = np.array(y_coords)
+    sample_ids = np.array(sample_ids)
 
+    # SHAP Werte berechnen
     explainer = shap.TreeExplainer(model)
-    shap_values = explainer.shap_values(X_val)  # list of arrays: one per class
+    shap_values = explainer.shap_values(X_val)  # [class_0, class_1]
+
     timestamp = datetime.now().strftime("%m%d_%H%M%S")
-    shap_save_path = os.path.join(base_save_path, timestamp, f"shap_values_{model_id}_rf.npz")
-    os.makedirs(os.path.dirname(shap_save_path), exist_ok=True)
+    shap_dir = os.path.join(base_save_path, timestamp)
+    os.makedirs(shap_dir, exist_ok=True)
 
-    # Save as .npz and .csv
+    # Save .npz (class only)
+    shap_save_path = os.path.join(shap_dir, f"shap_values_{model_id}_rf.npz")
     np.savez(shap_save_path, class_0=shap_values[0], class_1=shap_values[1])
-    pd.DataFrame(shap_values[0], columns=feature_names).to_csv(shap_save_path.replace(".npz", "_class0.csv"), index=False)
-    pd.DataFrame(shap_values[1], columns=feature_names).to_csv(shap_save_path.replace(".npz", "_class1.csv"), index=False)
-    np.save(shap_save_path.replace(".npz", "_input.npy"), X_val)
-    np.save(shap_save_path.replace(".npz", "_labels.npy"), y_val)
-
     if logger:
         logger.info(f"[RF] SHAP values saved at: {shap_save_path}")
 
-    # Aggregate SHAP by base feature
-    base_feature_names = [name.split("_t-")[0] for name in feature_names]
-    shap_df = pd.DataFrame(shap_values[1], columns=feature_names)
-    shap_df.columns = base_feature_names
-    shap_agg = shap_df.groupby(axis=1, level=0).mean()  # (n_samples, n_base_features)
-
-    df_shap = shap_agg.copy()
-    df_shap["x"] = coords_x
-    df_shap["y"] = coords_y
-    df_shap["label"] = y_val
-    csv_save_path = os.path.join(base_save_path, timestamp, f"shap_map_rf.csv")
-    df_shap.to_csv(csv_save_path, index=False)
-
+    # Save combined .npz
+    combined_npz_path = shap_save_path.replace(".npz", "_combined.npz")
+    np.savez(
+        combined_npz_path,
+        class_0=shap_values[0],
+        class_1=shap_values[1],
+        sample_id=sample_ids,
+        label=y_val,
+        feature_names=np.array(feature_names)
+    )
     if logger:
-        logger.info(f"[RF] SHAP value + coordinate map CSV saved to: {csv_save_path}")
+        logger.info(f"[RF] Combined SHAP NPZ saved at: {combined_npz_path}")
+
+    # Save combined CSV (only class 1)
+    df_combined = pd.DataFrame({
+        'sample_id': sample_ids,
+        'label': y_val,
+        'x': coords_x,
+        'y': coords_y
+    })
+    shap_class1_df = pd.DataFrame(shap_values[1], columns=feature_names)
+    shap_class1_df = shap_class1_df.add_prefix("shap_")
+    df_combined = pd.concat([df_combined, shap_class1_df], axis=1)
+
+    combined_csv_path = shap_save_path.replace(".npz", "_combined.csv")
+    df_combined.to_csv(combined_csv_path, index=False)
+    if logger:
+        logger.info(f"[RF] Combined SHAP CSV saved at: {combined_csv_path}")
+
+    # Aggregierte SHAP Map
+    base_feature_names = [name.split("_t-")[0] for name in feature_names]
+    shap_agg_df = shap_class1_df.copy()
+    shap_agg_df.columns = base_feature_names
+    shap_agg = shap_agg_df.groupby(axis=1, level=0).mean()
+
+    df_map = pd.DataFrame({
+        'sample': sample_ids,
+        'label': y_val,
+        'x': coords_x,
+        'y': coords_y
+    })
+    df_map = pd.concat([df_map, shap_agg], axis=1)
+
+    map_csv_path = os.path.join(shap_dir, f"shap_map_rf.csv")
+    df_map.to_csv(map_csv_path, index=False)
+    if logger:
+        logger.info(f"[RF] Aggregated SHAP map CSV saved at: {map_csv_path}")
+
 
 def main(config):
     SEED = config['seed']
@@ -225,15 +258,33 @@ def main(config):
         class_1=shap_values[1]
     )
 
-    pd.DataFrame(shap_values[0], columns=feature_names).to_csv(shap_save_path.replace(".npz", "_class0.csv"), index=False)
-    pd.DataFrame(shap_values[1], columns=feature_names).to_csv(shap_save_path.replace(".npz", "_class1.csv"), index=False)
-    np.save(shap_save_path.replace(".npz", "_input.npy"), input_all.cpu().numpy())
-    np.save(shap_save_path.replace(".npz", "_labels.npy"), np.array(all_labels))
-    np.save(shap_save_path.replace(".npz", "_samples.npy"), np.array(all_samples))
 
+    combined_npz_path = shap_save_path.replace(".npz", "_combined.npz")
+    np.savez(
+        combined_npz_path,
+        class_0=shap_values[0],
+        class_1=shap_values[1],
+        sample_id=np.array(all_samples),
+        label=np.array(all_labels),
+        feature_names=np.array(feature_names)
+    )
+    logger.info(f"Saved combined SHAP NPZ to: {combined_npz_path}")
 
-    if logger:
-        logger.info(f"SHAP values saved at: {shap_save_path}")
+    df_combined = pd.DataFrame({
+        'sample_id': all_samples,
+        'label': all_labels,
+        'x': coords_x,
+        'y': coords_y
+    })
+
+    for i, class_name in enumerate(['class_0', 'class_1']):
+        class_df = pd.DataFrame(shap_values[i], columns=feature_names)
+        class_df = class_df.add_prefix(f'shap_{class_name}_')
+        df_combined = pd.concat([df_combined, class_df], axis=1)
+
+    combined_csv_path = shap_save_path.replace(".npz", "_combined.csv")
+    df_combined.to_csv(combined_csv_path, index=False)
+    logger.info(f"Saved combined SHAP CSV to: {combined_csv_path}")
 
     base_feature_names = [name.split("_t-")[0] for name in feature_names]
     shap_df = pd.DataFrame(shap_values[1], columns=feature_names)

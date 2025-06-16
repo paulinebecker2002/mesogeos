@@ -8,7 +8,7 @@
 #SBATCH --gpus=1
 #SBATCH --gres=gpu:1
 #SBATCH --mem=480G
-#SBATCH --time=06:00:00
+#SBATCH --time=08:00:00
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=pauline.becker@student.kit.edu
 

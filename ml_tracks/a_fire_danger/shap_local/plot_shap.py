@@ -33,6 +33,8 @@ def main(config):
     input_tensor_path = os.path.join(shap_path, f"shap_values_{model_id}_{model_type}_input.npy")
     input_tensor_np = np.load(input_tensor_path)
     input_tensor = torch.tensor(input_tensor_np)
+    print("input_tensor shape:", input_tensor.shape)
+    print(f"labels shape: {labels.shape}, labels: {np.unique(labels)}")
 
     if shap_class == 0:
         shap_values = shap_data['class_0']
@@ -99,14 +101,14 @@ def main(config):
 
     #plot_shap_temporal_heatmap(shap_values, shap_class, feature_names, model_id, shap_path, model_type, logger)
 
-    sample_idx = [4719]
+    sample_idx = [479, 3984, 3505, 4091, 3594]
 
 
     for idx in sample_idx:
         print(f"Plotting SHAP waterfall for sample index: {idx}")
         print(f"\n--- Sample {idx} ---")
         print(f"Label: {labels[idx]}")
-        plot_shap_waterfall(shap_values, shap_class, input_tensor, feature_names, idx, model_id, shap_path, model_type, logger)
+        #plot_shap_waterfall(shap_values, shap_class, input_tensor, feature_names, idx, model_id, shap_path, model_type, logger)
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser(description='Compute SHAP values')

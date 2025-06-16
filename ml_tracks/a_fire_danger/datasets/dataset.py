@@ -33,6 +33,7 @@ class FireDataset(Dataset):
         self.last_n_timesteps = last_n_timesteps
 
         random.seed(self.seed)
+        np.random.seed(self.seed)
 
         assert problem_class in ['classification', 'segmentation']
 
