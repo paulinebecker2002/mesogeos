@@ -46,7 +46,7 @@ class Trainer(BaseTrainer):
         self.train_metrics.reset()
 
         for batch_idx, batch in enumerate(self.data_loader):
-            (dynamic, static, bas_size, labels) = batch[:4]
+            (dynamic, static, bas_size, labels, x, y, sample_id) = batch[:7]
             if self.config['model_type'] == 'tft':
                 dynamic = dynamic.to(self.device, dtype=torch.float32)
                 static = static.to(self.device, dtype=torch.float32)
@@ -118,7 +118,8 @@ class Trainer(BaseTrainer):
         self.val_outputs = []
 
         with torch.no_grad():
-            for batch_idx, (dynamic, static, bas_size, labels, x, y) in enumerate(self.valid_data_loader):
+            for batch_idx, batch in enumerate(self.valid_data_loader):
+                (dynamic, static, bas_size, labels, x, y, sample_id) = batch[:7]
                 if self.config['model_type'] == 'tft':
                     dynamic = dynamic.to(self.device, dtype=torch.float32)
                     static = static.to(self.device, dtype=torch.float32)

@@ -1,4 +1,4 @@
-{   "model_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/models/mlp/0611_111856/model_best.pth",
+{   "model_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/models/mlp/0517_175347/model_best.pth",
   "model_type": "mlp",
   "name": "mlp",
   "n_gpu": 1,

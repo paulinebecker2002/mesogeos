@@ -5,17 +5,28 @@ import numpy as np
 import torch
 from parse_config import ConfigParser
 from utils.util import get_feature_names
-from shap_utils import (plot_beeswarm,
+from shap_utils import (plot_beeswarm, plot_beeswarm_grouped,
                         plot_grouped_feature_importance, plot_shap_temporal_heatmap, plot_shap_difference_bar,
                         plot_shap_difference_aggregated, plot_shap_waterfall, plot_shap_comparison_by_feature,
-                        plot_beeswarm_by_feature)
+                        plot_beeswarm_by_feature, map_sample_ids_to_indices)
 
+def load_shap_inputs_from_combined_npz(shap_path, model_id, model_type):
+    combined_npz_path = os.path.join(shap_path, f"shap_values_{model_id}_{model_type}_combined.npz")
+    data = np.load(combined_npz_path, allow_pickle=True)
+
+    shap_values = {
+        "class_0": data["class_0"],
+        "class_1": data["class_1"]
+    }
+    labels = data["label"]
+    sample_ids = data["sample_id"]
+
+    return shap_values, labels, sample_ids
 
 def main(config):
     logger = config.get_logger('shap')
 
     checkpoint_path = config["shap"]["checkpoint_path"]
-    shap_class = config["shap"]["class"]
     model_type = config["model_type"]
     only_pos = config["XAI"]["only_positive"]
     only_neg = config["XAI"]["only_negative"]
@@ -24,35 +35,35 @@ def main(config):
     model_id = os.path.basename(os.path.dirname(checkpoint_path))
     feature_names = get_feature_names(config)
 
-    shap_file = os.path.join(shap_path, f"shap_values_{model_id}_{model_type}.npz")
-    shap_data = np.load(shap_file)
-    labels_file = os.path.join(shap_path, f"shap_values_{model_id}_{model_type}_labels.npy")
-    labels = np.load(labels_file)
+    shap_data, labels, sample_ids = load_shap_inputs_from_combined_npz(shap_path, model_id, model_type)
 
+    # convert SHAP class to correct shap values
+    shap_class = config["shap"]["class"]
+    shap_values = shap_data[f"class_{shap_class}"]
+    print(f"SHAP shape: {shap_values.shape}, Labels shape: {labels.shape}, Unique labels: {np.unique(labels)}")
 
     input_tensor_path = os.path.join(shap_path, f"shap_values_{model_id}_{model_type}_input.npy")
     input_tensor_np = np.load(input_tensor_path)
     input_tensor = torch.tensor(input_tensor_np)
-    print("input_tensor shape:", input_tensor.shape)
-    print(f"labels shape: {labels.shape}, labels: {np.unique(labels)}")
-
-    if shap_class == 0:
-        shap_values = shap_data['class_0']
-    else:
-        shap_values = shap_data['class_1']
 
     if only_pos:
-        shap_values = shap_values[labels == 1]
-        input_tensor = input_tensor[labels == 1]
+        mask = labels == 1
+        shap_values = shap_values[mask]
+        input_tensor = input_tensor[mask]
+        sample_ids = sample_ids[mask]
+        labels = labels[mask]
         model_id += "_positive"
-        print("Only positive IG values selected with shape:", shap_values.shape)
+        print("Only positive SHAP values selected:", shap_values.shape)
     elif only_neg:
-        shap_values = shap_values[labels == 0]
-        input_tensor = input_tensor[labels == 0]
+        mask = labels == 0
+        shap_values = shap_values[mask]
+        input_tensor = input_tensor[mask]
+        sample_ids = sample_ids[mask]
+        labels = labels[mask]
         model_id += "_negative"
-        print("Only negative IG values selected with shape:", shap_values.shape)
+        print("Only negative SHAP values selected:", shap_values.shape)
     else:
-        print("Using all IG values with shape:", shap_values.shape)
+        print("Using all SHAP values:", shap_values.shape)
 
 
     shap_files = [
@@ -77,38 +88,27 @@ def main(config):
         '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/tft/0607_040620/shap_values_0529_193434_tft_input.npy'
     ]
 
+
     model_names = ['cnn', 'mlp', 'gru', 'lstm', 'transformer', 'gtn', 'rf', 'tft']
-    #plot_shap_comparison_by_feature(shap_files, 'd2m_t-1', feature_names, model_names, shap_path, logger)
-    #plot_beeswarm_by_feature(shap_files, 'lst_day_t-1', feature_names, model_names, input_files, all_model_path)
-    #plot_beeswarm_by_feature(shap_files, 'lst_day_t-2', feature_names, model_names, input_files, all_model_path)
-    #plot_beeswarm_by_feature(shap_files, 'rh_t-1', feature_names, model_names, input_files, all_model_path)
-    #plot_beeswarm_by_feature(shap_files, 't2m_t-1', feature_names, model_names, input_files, all_model_path)
-    #plot_beeswarm_by_feature(shap_files, 'd2m_t-1', feature_names, model_names, input_files, all_model_path)
-    #plot_beeswarm_by_feature(shap_files, 'lst_night_t-1', feature_names, model_names, input_files, all_model_path)
-    #plot_beeswarm_by_feature(shap_files, 'ndvi_t-1', feature_names, model_names, input_files, all_model_path)
-    #plot_beeswarm_by_feature(shap_files, 't2m_t-2', feature_names, model_names, input_files, all_model_path)
-    #plot_beeswarm_by_feature(shap_files, 'tp_t-1', feature_names, model_names, input_files, all_model_path)
-    #plot_beeswarm_by_feature(shap_files, 'wind_speed_t-1', feature_names, model_names, input_files, all_model_path)
-    #plot_beeswarm_by_feature(shap_files, 'lai_t-1', feature_names, model_names, input_files, all_model_path)
-    #plot_beeswarm_by_feature(shap_files, 'lst_day_t-5', feature_names, model_names, input_files, all_model_path)
+    features = ['lst_day_t-1', 'lst_day_t-2', 'rh_t-1', 't2m_t-1', 'd2m_t-1', 'lst_night_t-1', 'ndvi_t-1', 't2m_t-2', 'tp_t-1', 'wind_speed_t-1', 'lai_t-1', 'lst_day_t-5']
+    for feature in features:
+        plot_beeswarm_by_feature(shap_files, feature, feature_names, model_names, input_files, all_model_path)
 
     print(f"Shape input: {input_tensor.shape}, SHAP: {np.array(shap_values).shape}")
     #plot_grouped_feature_importance(shap_values, shap_class, feature_names, model_id, shap_path, model_type, logger)
     #plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, model_id, shap_path, model_type, logger)
+    #plot_beeswarm_grouped(shap_values, shap_class, input_tensor,feature_names, model_id, shap_path, model_type, logger)
 
-    #plot_shap_difference_bar( shap_data['class_0'], shap_data['class_1'], feature_names, model_id, shap_path, model_type, logger)
-    #plot_shap_difference_aggregated( shap_data['class_0'], shap_data['class_1'], feature_names, model_id, shap_path, model_type, logger)
+    #plot_shap_difference_bar(shap_data['class_0'], shap_data['class_1'], feature_names, model_id, shap_path, model_type, logger)
+    #plot_shap_difference_aggregated(shap_data['class_0'], shap_data['class_1'], feature_names, model_id, shap_path, model_type, logger)
 
     #plot_shap_temporal_heatmap(shap_values, shap_class, feature_names, model_id, shap_path, model_type, logger)
 
-    sample_idx = [479, 3984, 3505, 4091, 3594]
-
+    sample_idx = [4792, 679, 8418, 1645, 1676]
 
     for idx in sample_idx:
-        print(f"Plotting SHAP waterfall for sample index: {idx}")
-        print(f"\n--- Sample {idx} ---")
-        print(f"Label: {labels[idx]}")
-        #plot_shap_waterfall(shap_values, shap_class, input_tensor, feature_names, idx, model_id, shap_path, model_type, logger)
+        print(f"Plotting SHAP waterfall for Sample: {idx}")
+        #plot_shap_waterfall(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, shap_path, model_type, logger)
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser(description='Compute SHAP values')

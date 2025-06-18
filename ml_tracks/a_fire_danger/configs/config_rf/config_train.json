@@ -6,7 +6,7 @@
 
   "shap": {
     "checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/horeka_scripts/saved/log/rf/0612_082906/random_forest_model_0612_082906.pkl",
-    "shap_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/rf/0607_124719",
+    "shap_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/rf/0616_091841",
     "class": "1"
   },
     "XAI": {

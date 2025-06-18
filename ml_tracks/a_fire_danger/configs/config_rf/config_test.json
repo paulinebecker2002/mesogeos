@@ -1,4 +1,4 @@
-{   "model_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/log/rf/0515_122703/random_forest_model_0515_122703.pkl",
+{   "model_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/horeka_scripts/saved/log/rf/0612_082906/random_forest_model_0612_082906.pkl",
   "model_type": "rf",
   "name": "rf",
   "n_gpu": 1,

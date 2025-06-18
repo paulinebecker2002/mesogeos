@@ -299,6 +299,8 @@ def main(config):
     os.makedirs(os.path.dirname(csv_save_path), exist_ok=True)
     df_shap.to_csv(csv_save_path, index=False)
 
+    np.save(shap_save_path.replace(".npz", "_input.npy"), input_all.cpu().numpy())
+
     logger.info(f"Saved SHAP value + coordinate map CSV to: {csv_save_path}")
 
 

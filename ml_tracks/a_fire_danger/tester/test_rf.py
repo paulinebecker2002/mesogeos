@@ -10,9 +10,13 @@ import datasets.dataset as module_data
 import dataloaders.dataloader as module_dataloader
 from logger import TensorboardWriter
 from utils.util import extract_numpy, calculate_metrics
+import PIL
+from PIL import Image
 
 
 def test_rf(config):
+    if not hasattr(Image, 'ANTIALIAS'):
+        Image.ANTIALIAS = Image.Resampling.LANCZOS
     logger = config.get_logger('test_rf')
     writer = TensorboardWriter(config.log_dir, logger, config['trainer']['tensorboard'])
     writer.set_step(0, mode='test')

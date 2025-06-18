@@ -128,7 +128,7 @@ def main(config):
         'label': all_labels,
         'log_burned_area': all_bas
     })
-    output_path = Path(config.save_dir) / f"test_softmax_outputs.csv"
+    output_path = Path(config.save_dir) / f"test_softmax_outputs_{config['model_type']}.csv"
     df.to_csv(output_path, index=False)
     logger.info(f"Saved test softmax predictions with coordinates to: {output_path}")
     samples_path = Path(config.save_dir) / f"samples.npy"

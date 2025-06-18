@@ -36,6 +36,11 @@ def objective(trial, base_config):
     # Data setup
     dynamic_features = config["features"]["dynamic"]
     static_features = config["features"]["static"]
+    time_lag = config['dataset']['args']['last_n_timesteps']
+
+    if time_lag != 30:
+        print(f"Using only the last {time_lag} timesteps for training.")
+
 
     dataset = {}
     dataloader = {}
@@ -134,15 +139,15 @@ def objective(trial, base_config):
     # Report val_aucpr to Optuna (maximize it)
     #val_aucpr = log.get('val_aucpr', 0.0)
     #val_f1 = log.get('val_f1_score', 0.0)
-    #val_f1 = trainer.best_val_f1
-    val_aucpr = trainer.best_val_aucpr
+    val_f1 = trainer.best_val_f1
+    #val_aucpr = trainer.best_val_aucpr
 
     # Pruning support
-    trial.report(val_aucpr, step=trainer.epochs)
+    trial.report(val_f1, step=trainer.epochs)
     if trial.should_prune():
         raise optuna.exceptions.TrialPruned()
 
-    return val_aucpr
+    return val_f1
 
 
 
@@ -164,6 +169,7 @@ if __name__ == "__main__":
         CustomArgs(['--dr', '--dropout'], type=float, target='model_args;dropout'),
         CustomArgs(['--hd', '--hidden-dims'], type=lambda s: [int(x) for x in s.split(',')], target='model_args;hidden_dims'),
         CustomArgs(['--ft', '--finetune'], type=str, target='finetune;sklearn_tune'),
+        CustomArgs(['--tlag', '--last_n_timesteps'], type=int, target='dataset;args;last_n_timesteps'),
     ]
 
     config = ConfigParser.from_args(args, options)
