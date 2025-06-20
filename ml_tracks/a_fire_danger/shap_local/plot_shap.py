@@ -8,7 +8,8 @@ from utils.util import get_feature_names
 from shap_utils import (plot_beeswarm, plot_beeswarm_grouped,
                         plot_grouped_feature_importance, plot_shap_temporal_heatmap, plot_shap_difference_bar,
                         plot_shap_difference_aggregated, plot_shap_waterfall, plot_shap_comparison_by_feature,
-                        plot_beeswarm_by_feature, map_sample_ids_to_indices)
+                        plot_beeswarm_by_feature, map_sample_ids_to_indices,
+                        compute_physical_consistency_score, compute_grouped_physical_consistency_score)
 
 def load_shap_inputs_from_combined_npz(shap_path, model_id, model_type):
     combined_npz_path = os.path.join(shap_path, f"shap_values_{model_id}_{model_type}_combined.npz")
@@ -91,13 +92,13 @@ def main(config):
 
     model_names = ['cnn', 'mlp', 'gru', 'lstm', 'transformer', 'gtn', 'rf', 'tft']
     features = ['lst_day_t-1', 'lst_day_t-2', 'rh_t-1', 't2m_t-1', 'd2m_t-1', 'lst_night_t-1', 'ndvi_t-1', 't2m_t-2', 'tp_t-1', 'wind_speed_t-1', 'lai_t-1', 'lst_day_t-5']
-    for feature in features:
-        plot_beeswarm_by_feature(shap_files, feature, feature_names, model_names, input_files, all_model_path)
+    #for feature in features:
+        #plot_beeswarm_by_feature(shap_files, feature, feature_names, model_names, input_files, all_model_path)
 
     print(f"Shape input: {input_tensor.shape}, SHAP: {np.array(shap_values).shape}")
     #plot_grouped_feature_importance(shap_values, shap_class, feature_names, model_id, shap_path, model_type, logger)
     #plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, model_id, shap_path, model_type, logger)
-    #plot_beeswarm_grouped(shap_values, shap_class, input_tensor,feature_names, model_id, shap_path, model_type, logger)
+    #plot_beeswarm_grouped(shap_values, shap_class, input_tensor, feature_names, model_id, shap_path, model_type, logger)
 
     #plot_shap_difference_bar(shap_data['class_0'], shap_data['class_1'], feature_names, model_id, shap_path, model_type, logger)
     #plot_shap_difference_aggregated(shap_data['class_0'], shap_data['class_1'], feature_names, model_id, shap_path, model_type, logger)
@@ -109,6 +110,23 @@ def main(config):
     for idx in sample_idx:
         print(f"Plotting SHAP waterfall for Sample: {idx}")
         #plot_shap_waterfall(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, shap_path, model_type, logger)
+
+    physical_knowledge = {
+        "t2m": "+", "d2m": "-", "lc_agriculture": "+", "lc_forest": "+", "lc_grassland": "+",
+        "lc_settlement": "-", "lc_shrubland": "+", "lc_sparse_vegetation": "+", "lc_water_bodies": "-",
+        "lc_wetland": "-", "lst_day": "+", "lst_night": "+", "rh": "-", "roads_distance": "+", "slope": "+",
+        "smi": "-", "ssrd": "+", "tp": "-", "wind_speed": "+"
+    }
+
+
+    compute_grouped_physical_consistency_score(
+        shap_values=shap_values,
+        input_tensor=input_tensor,
+        feature_names=feature_names,
+        physical_signs=physical_knowledge,
+        save_path=shap_path,
+        model_type=model_type
+    )
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser(description='Compute SHAP values')

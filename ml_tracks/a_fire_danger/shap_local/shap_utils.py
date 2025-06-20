@@ -6,6 +6,7 @@ import seaborn as sns
 import shap
 import matplotlib.colors as mcolors
 import matplotlib.cm as cm
+import torch
 
 
 def plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, model_id, base_path, model_type, logger=None):
@@ -43,7 +44,13 @@ def plot_beeswarm_grouped(shap_values, shap_class, input_tensor, feature_names, 
 
     grouped_shap_df, grouped_features = compute_grouped_shap_over_time(shap_values, feature_names)
     grouped_input_np, base_feature_names = compute_grouped_input_over_time(input_tensor, feature_names)
-    grouped_input_np = normalize_input_per_feature(grouped_input_np)
+    print(f"Grouped feature names: {grouped_features}")
+    print(f"Base feature names: {base_feature_names}")
+    col_idx = [base_feature_names.index(f) for f in grouped_features]
+    grouped_input_np = grouped_input_np[:, col_idx]
+    print(f"Coloum index of grouped features: {col_idx}")
+    reordered_input_features = [base_feature_names[i] for i in col_idx]
+    print("Reordered input features (matching SHAP):", reordered_input_features)
 
     assert grouped_shap_df.shape == grouped_input_np.shape, "Mismatch zwischen SHAP und Input"
 
@@ -449,7 +456,7 @@ def map_sample_ids_to_indices(sample_ids, selected_ids):
 
 def compute_grouped_shap_over_time(shap_values, feature_names):
     """
-    Grouped SHAP-Werte over time for base features
+    Grouped SHAP-Values over time for base features
     Returns:
         grouped_df: pd.DataFrame with (n_samples, n_base_features)
         base_features: List with base feature names
@@ -482,20 +489,213 @@ def compute_grouped_input_over_time(input_tensor, feature_names):
     input_np = input_tensor.cpu().numpy()  # (B, T, F)
     B, T, F = input_np.shape
     input_agg = input_np.transpose(0, 2, 1).mean(axis=2)
-    base_feature_names = sorted(set([name.split("_t-")[0] for name in feature_names]))
+    base_feature_names = []
+    seen = set()
+    for name in feature_names:
+        base = name.split("_t-")[0]
+        if base not in seen:
+            base_feature_names.append(base)
+            seen.add(base)
+    print(f"Aggregated Input shape: {input_agg.shape}, Base Features: {base_feature_names}")
 
     return input_agg, base_feature_names
 
-def normalize_input_per_feature(input_np):
-    input_norm = np.zeros_like(input_np)
-    for i in range(input_np.shape[1]):
-        col = input_np[:, i]
-        min_val = np.min(col)
-        max_val = np.max(col)
-        if max_val > min_val:
-            input_norm[:, i] = (col - min_val) / (max_val - min_val)
+
+def compute_physical_consistency_score(
+        shap_values: np.ndarray,
+        input_tensor: torch.Tensor,
+        feature_names: list,
+        physical_signs: dict,
+        save_path: str,
+        model_type: str,
+        threshold: float = 0.5,
+):
+    if isinstance(input_tensor, torch.Tensor):
+        input_tensor = input_tensor.detach().cpu().numpy()
+
+    if model_type in ["lstm", "gru", "tft", "transformer", "gtn", "cnn"]:
+        if len(input_tensor.shape) == 3:
+            input_tensor = input_tensor.reshape(input_tensor.shape[0], -1)
+
+    assert input_tensor.shape == shap_values.shape, "Shape mismatch between input and SHAP values."
+    assert input_tensor.shape[1] == len(feature_names), f"Feature name count {len(feature_names)} does not match input shape {input_tensor.shape[1]}"
+
+    df_input = pd.DataFrame(input_tensor, columns=feature_names)
+    df_shap = pd.DataFrame(shap_values, columns=feature_names)
+
+    results = []
+    ignored = 0
+
+    for feat in feature_names:
+        base_feat = feat.split("_t-")[0]
+        print(f"base features names: {base_feat}")
+        if base_feat not in physical_signs:
+            ignored += 1
+            continue
+
+        sign = physical_signs[base_feat]
+        shap_vals = df_shap[feat]
+        inputs = df_input[feat]
+
+        mask_high_input = inputs > threshold
+        mask_low_input = inputs < -threshold
+
+        if sign == "+":
+            mask_consistent = (mask_high_input & (shap_vals > 0)) | (mask_low_input & (shap_vals < 0))
+        elif sign == "-":
+            mask_consistent = (mask_high_input & (shap_vals < 0)) | (mask_low_input & (shap_vals > 0))
         else:
-            input_norm[:, i] = 0.0
-    return input_norm
+            continue
+
+        n_consistent = mask_consistent.sum()
+        n_considered = (mask_high_input | mask_low_input).sum()
+        score = n_consistent / n_considered if n_considered > 0 else np.nan
+
+        results.append({
+            "feature_time": feat,
+            "base_feature": base_feat,
+            "physical_sign": sign,
+            "n_considered": n_considered,
+            "n_consistent": n_consistent,
+            "consistency_score": score
+        })
+
+    df_results = pd.DataFrame(results)
+    save_file = os.path.join(save_path, f"{model_type}_physical_consistency_detailed.csv")
+    df_results.to_csv(save_file, index=False)
+    print(f"Physical consistency scores saved to: {save_file}")
+    print(f"features names: {feature_names}")
+    print(f" {ignored} features skipped due to missing physical_signs entry")
 
 
+def compute_grouped_physical_consistency_score1(
+        shap_values: np.ndarray,
+        input_tensor: torch.Tensor,
+        feature_names: list,
+        physical_signs: dict,
+        save_path: str,
+        model_type: str,
+        threshold: float = 0.1
+):
+    import pandas as pd
+    import os
+    import numpy as np
+
+    # Step 1: Gruppieren über Zeit
+    grouped_shap_df, grouped_features = compute_grouped_shap_over_time(shap_values, feature_names)
+    grouped_input_np, base_feature_names = compute_grouped_input_over_time(input_tensor, feature_names)
+
+    # Step 2: Feature-Namen synchronisieren (SHAP & Input)
+    col_idx = [base_feature_names.index(f) for f in grouped_features]
+    grouped_input_np = grouped_input_np[:, col_idx]
+    assert grouped_shap_df.shape == grouped_input_np.shape, "Mismatch zwischen gruppierten SHAP und Input"
+
+    df_shap = pd.DataFrame(grouped_shap_df.values, columns=grouped_features)
+    df_input = pd.DataFrame(grouped_input_np, columns=grouped_features)
+
+    # Step 3: Konsistenzberechnung wie in compute_physical_consistency_score
+    results = []
+    for feat in grouped_features:
+        base_feat = feat
+        print(f"base features names: {base_feat}")
+        if base_feat not in physical_signs:
+            continue
+
+        sign = physical_signs[base_feat]
+        shap_vals = df_shap[feat]
+        inputs = df_input[feat]
+
+        mask_high_input = inputs > threshold
+        mask_low_input = inputs < -threshold
+
+        if sign == "+":
+            mask_consistent = (mask_high_input & (shap_vals > 0)) | (mask_low_input & (shap_vals < 0))
+        elif sign == "-":
+            mask_consistent = (mask_high_input & (shap_vals < 0)) | (mask_low_input & (shap_vals > 0))
+        else:
+            continue
+
+        n_consistent = mask_consistent.sum()
+        n_considered = (mask_high_input | mask_low_input).sum()
+        score = n_consistent / n_considered if n_considered > 0 else np.nan
+
+        results.append({
+            "feature": feat,
+            "physical_sign": sign,
+            "n_considered": n_considered,
+            "n_consistent": n_consistent,
+            "consistency_score": score
+        })
+
+    df_results = pd.DataFrame(results)
+    save_file = os.path.join(save_path, f"{model_type}_grouped_physical_consistency_0.1.csv")
+    df_results.to_csv(save_file, index=False)
+    print(f"feature names: {grouped_features}")
+    print(f"feature names: {feature_names}")
+    print(f"Grouped Physical consistency scores saved to: {save_file}")
+
+def compute_grouped_physical_consistency_score(
+        shap_values: np.ndarray,
+        input_tensor: torch.Tensor,
+        feature_names: list,
+        physical_signs: dict,
+        save_path: str,
+        model_type: str,
+        threshold: float = 0.1
+):
+
+    # Step 1: Gruppieren über Zeit
+    grouped_shap_df, grouped_features = compute_grouped_shap_over_time(shap_values, feature_names)
+    grouped_input_np, base_feature_names = compute_grouped_input_over_time(input_tensor, feature_names)
+
+    # Step 2: Feature-Namen synchronisieren
+    col_idx = [base_feature_names.index(f) for f in grouped_features]
+    grouped_input_np = grouped_input_np[:, col_idx]
+    assert grouped_shap_df.shape == grouped_input_np.shape, "Mismatch zwischen gruppierten SHAP und Input"
+
+    df_shap = pd.DataFrame(grouped_shap_df.values, columns=grouped_features)
+    df_input = pd.DataFrame(grouped_input_np, columns=grouped_features)
+
+    # Step 3: Konsistenzberechnung mit Quantilsgrenzen
+    results = []
+    for feat in grouped_features:
+        base_feat = feat
+        if base_feat not in physical_signs:
+            continue
+
+        sign = physical_signs[base_feat]
+        shap_vals = df_shap[feat]
+        inputs = df_input[feat]
+
+        lower_q = np.nanpercentile(inputs, 33)
+        upper_q = np.nanpercentile(inputs, 66)
+
+        mask_low_input = inputs < lower_q
+        mask_high_input = inputs > upper_q
+
+        if sign == "+":
+            mask_consistent = (mask_high_input & (shap_vals > 0)) | (mask_low_input & (shap_vals < 0))
+        elif sign == "-":
+            mask_consistent = (mask_high_input & (shap_vals < 0)) | (mask_low_input & (shap_vals > 0))
+        else:
+            continue
+
+        n_consistent = mask_consistent.sum()
+        n_considered = (mask_high_input | mask_low_input).sum()
+        score = n_consistent / n_considered if n_considered > 0 else np.nan
+
+        results.append({
+            "feature": feat,
+            "physical_sign": sign,
+            "lower_q": round(lower_q, 3),
+            "upper_q": round(upper_q, 3),
+            "n_considered": n_considered,
+            "n_consistent": n_consistent,
+            "consistency_score": score
+        })
+
+    df_results = pd.DataFrame(results)
+    save_file = os.path.join(save_path, f"{model_type}_grouped_physical_consistency_quantiles.csv")
+    df_results.to_csv(save_file, index=False)
+    print(f"✅ Grouped Physical consistency (quantile-based) saved to: {save_file}")
+    return df_results, save_file
