@@ -9,7 +9,7 @@ from ig_utils import plot_bar, plot_temporal_heatmap, plot_ig_beeswarm, plot_ig_
 def main(config):
     logger = config.get_logger('ig')
 
-    checkpoint_path = config["shap"]["checkpoint_path"]
+    checkpoint_path = config["XAI"]["checkpoint_path"]
     model_type = config["model_type"]
     only_pos = config["XAI"]["only_positive"]
     only_neg = config["XAI"]["only_negative"]
@@ -93,10 +93,10 @@ if __name__ == '__main__':
     args.add_argument('-r', '--resume', default=None, type=str, help='Path to trained checkpoint')
     args.add_argument('-d', '--device', default=None, type=str, help='indices of GPUs to enable (default: all)')
 
-    CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')
+    CustomArgs = collections.namedtuple('CustomArgs', 'flags type target nargs')
     options = [
-        CustomArgs(['--only_positive', '--op'], type=lambda x: x.lower() in ['true', '1', 'yes'], target='XAI;only_positive'),
-        CustomArgs(['--only_negative', '--on'], type=lambda x: x.lower() in ['true', '1', 'yes'], target='XAI;only_negative'),
+        CustomArgs(['--only_positive', '--op'], type=lambda x: x.lower() in ['true', '1', 'yes'], target='XAI;only_positive', nargs=None),
+        CustomArgs(['--only_negative', '--on'], type=lambda x: x.lower() in ['true', '1', 'yes'], target='XAI;only_negative', nargs=None),
     ]
     config = ConfigParser.from_args(args, options)
     main(config)

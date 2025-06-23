@@ -147,10 +147,13 @@ if __name__ == '__main__':
                       help='indices of GPUs to enable (default: all)')
 
     # custom cli options to modify configuration from default values given in json file.
-    CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')
+    CustomArgs = collections.namedtuple('CustomArgs', 'flags type target nargs')
     options = [
-        CustomArgs(['--model_path', '--mp'], type=str, target='model_path'),
-        CustomArgs(['--tlag', '--last_n_timesteps'], type=int, target='dataset;args;last_n_timesteps')
+        CustomArgs(['--model_path', '--mp'], type=str, target='model_path', nargs=None),
+        CustomArgs(['--tlag', '--last_n_timesteps'], type=int, target='dataset;args;last_n_timesteps', nargs=None),
+        CustomArgs(['--train_year'], type=str, nargs='+', target='dataset;args;train_year'),
+        CustomArgs(['--val_year'], type=str, nargs='+', target='dataset;args;val_year'),
+        CustomArgs(['--test_year'], type=str, nargs='+', target='dataset;args;test_year'),
     ]
     config = ConfigParser.from_args(args, options)
     main(config)

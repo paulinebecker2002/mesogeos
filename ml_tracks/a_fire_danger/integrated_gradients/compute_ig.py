@@ -59,7 +59,7 @@ def main(config):
     set_seed(SEED)
     logger = config.get_logger('ig')
 
-    checkpoint_path = config["shap"]["checkpoint_path"]
+    checkpoint_path = config["XAI"]["checkpoint_path"]
     model_type = config["model_type"]
     dynamic_features = config["features"]["dynamic"]
     static_features = config["features"]["static"]
@@ -152,7 +152,7 @@ if __name__ == "__main__":
     args.add_argument('-r', '--resume', default=None, type=str, help='Path to trained checkpoint')
     args.add_argument('-d', '--device', default=None, type=str, help='indices of GPUs to enable (default: all)')
 
-    CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')
+    CustomArgs = collections.namedtuple('CustomArgs', 'flags type target nargs')
     options = []
     config = ConfigParser.from_args(args, options)
     main(config)

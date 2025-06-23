@@ -48,12 +48,15 @@ class ConfigParser:
         }
 
     @classmethod
-    def from_args(cls, args, options=''):
+    def from_args(cls, args, options=[]):
         """
         Initialize this class from some cli arguments. Used in train, test.
         """
         for opt in options:
-            args.add_argument(*opt.flags, default=None, type=opt.type)
+            kwargs = {"default": None, "type": opt.type}
+            if opt.nargs:
+                kwargs["nargs"] = opt.nargs
+            args.add_argument(*opt.flags, **kwargs)
         if not isinstance(args, tuple):
             args = args.parse_args()
 

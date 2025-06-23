@@ -221,214 +221,144 @@ def plot_shap_waterfall(shap_values, shap_class, input_tensor, feature_names, sa
         logger.info(f"SHAP Waterfall Plot saved at: {save_file}")
 
 
-def plot_shap_comparison_by_feature(shap_files, feature_name, feature_names, model_names, base_path, logger=None):
+def plot_beeswarm_by_grouped_feature(
+        shap_files, input_files, feature_names, feature_to_plot,
+        model_names, base_path
+):
     """
-    old version of comparison plot, self-build but not really appealing
-    """
-    shap_values_all_models = []
-    num_samples = None
+    Compares a grouped feature (e.g., 'lst_day') across multiple models.
 
-    for shap_file, model_name in zip(shap_files, model_names):
-        shap_data = np.load(shap_file)
-
-        feature_index = [i for i, name in enumerate(feature_names) if name == feature_name]
-        if not feature_index:
-            raise ValueError(f"Feature {feature_name} not found in SHAP data for model {model_name}.")
-
-        shap_values = shap_data['class_1'][:, feature_index[0]]
-        shap_values_all_models.append(shap_values)
-
-        if num_samples is None:
-            num_samples = len(shap_values)
-        elif len(shap_values) != num_samples:
-            raise ValueError(f"Mismatch in number of samples between models. Expected {num_samples}, but got {len(shap_values)} for model {model_name}.")
-
-    shap_values_all_models = np.array(shap_values_all_models).T
-
-    # Define the custom red_blue color map
-    red_blue = mcolors.LinearSegmentedColormap.from_list(
-        "red_blue", ["blue", "white", "red"], N=256
-    )
-
-    norm = plt.Normalize(vmin=np.min(shap_values_all_models), vmax=np.max(shap_values_all_models))
-
-    plt.figure(figsize=(12, 8))
-    ax = plt.gca()
-
-    for i, model_name in enumerate(model_names):
-        shap_values_model = shap_values_all_models[:, i]
-        colors = red_blue(norm(shap_values_model))
-
-        ax.scatter(shap_values_model, [i + 0.1 * i] * len(shap_values_model), label=model_name, alpha=0.7, s=20, c=colors)
-
-    ax.set_xlabel("SHAP Values")
-    ax.set_ylabel("Models")
-    ax.set_yticks(range(len(model_names)))
-    ax.set_yticklabels(model_names)
-    ax.set_title(f"SHAP Value Comparison for Feature: {feature_name}")
-
-    cbar = plt.colorbar(cm.ScalarMappable(norm=norm, cmap=red_blue), ax=ax)
-    cbar.set_label('SHAP Value (Blue: Low, Red: High)')
-
-    save_file = os.path.join(base_path, f"shap_comparison_by_feature_{feature_name}.png")
-    os.makedirs(os.path.dirname(save_file), exist_ok=True)
-    plt.tight_layout()
-    plt.savefig(save_file, dpi=300)
-    plt.close()
-
-    if logger:
-        logger.info(f"SHAP Comparison Plot for Feature {feature_name} saved at: {save_file}")
-
-
-def plot_beeswarm_by_feature(shap_files, feature_name, feature_names, model_names, input_files, base_path):
-    """
-    comparison of all models for one specific feature - new version with SHAP Beeswarn plot
-    """
-    shap_values_all_models = []
-    input_data_all_models = []
-    num_samples = None
-
-    # Loop through the models
-    for shap_file, model_name, input_file in zip(shap_files, model_names, input_files):
-        shap_data = np.load(shap_file)
-
-        # Find the index of the specified feature in the feature names
-        feature_index = [i for i, name in enumerate(feature_names) if name == feature_name]
-        if not feature_index:
-            raise ValueError(f"Feature {feature_name} not found in SHAP data for model {model_name}.")
-
-        # Extract SHAP values for the specified feature
-        shap_values = shap_data['class_1'][:, feature_index[0]]
-        shap_values_all_models.append(shap_values)
-
-        # Load input data for the current model
-        input_data = np.load(input_file)
-
-        if model_name in ["lstm", "gru", "tft", "transformer", "gtn", "cnn"]:
-            # If it's a 3D tensor, flatten it into 2D
-            if input_data.ndim == 3:
-                input_data_flat = input_data.reshape(input_data.shape[0], -1)
-            else:
-                input_data_flat = input_data
-        else:
-            input_data_flat = input_data  # No reshaping needed for other models
-
-        feature_data = input_data_flat[:, feature_index[0]]  # Extract only the specified feature
-        feature_data = feature_data.reshape(-1, 1)
-
-        input_data_all_models.append(feature_data)
-
-        #print(f"Shape of input data for {model_name}: {input_data.shape}")
-        #print(f"Shape of extracted feature data for {model_name}: {feature_data.shape}")
-        #print(f"Shape of SHAP values for {model_name}: {shap_values.shape}")
-
-
-        if num_samples is None:
-            num_samples = len(shap_values)
-        elif len(shap_values) != num_samples:
-            raise ValueError(f"Mismatch in number of samples between models. Expected {num_samples}, but got {len(shap_values)} for model {model_name}.")
-
-    input_data_all_models = np.concatenate(input_data_all_models, axis=-1)
-    shap_values_all_models = np.array(shap_values_all_models).T
-
-    expl = shap.Explanation(values=shap_values_all_models, data=input_data_all_models, feature_names=model_names)
-
-    save_file = os.path.join(base_path, f"beeswarm_by_feature_{feature_name}.png")
-    os.makedirs(os.path.dirname(save_file), exist_ok=True)
-
-    plt.figure(figsize=(8, 5))
-    shap.plots.beeswarm(expl, max_display=8, show=False, order=np.argsort(model_names))
-
-
-    plt.title(f"SHAP Value Comparison for Feature: {feature_name}")
-    plt.tight_layout()
-    plt.savefig(save_file, dpi=300)
-    plt.close()
-
-    print(f"SHAP Comparison Plot for Feature {feature_name} saved at: {save_file}")
-
-def plot_beeswarm_by_feature1(shap_files, feature_name, feature_names, model_names, input_files, base_path):
-    """
-    Vergleicht SHAP-Werte eines bestimmten Features über mehrere Modelle hinweg mithilfe eines Beeswarm-Plots.
+    Plots the SHAP values of this feature for each model in a vertically stacked beeswarm plot.
 
     Args:
-        shap_files (list): Liste von .npz-Dateien mit SHAP-Werten für jedes Modell
-        feature_name (str): Name des zu analysierenden Features (z. B. "lst_day_t-1")
-        feature_names (list): Liste aller Feature-Namen (inkl. Zeit)
-        model_names (list): Liste der Modellnamen
-        input_files (list): Liste der .npy-Dateien mit Input-Daten
-        base_path (str): Speicherort für den Plot
+        shap_files (List[str]): List of .npy or .npz SHAP file paths (one per model).
+        input_files (List[str]): List of input file paths (e.g., .npy files, one per model).
+        feature_names (List[str]): Original time-dependent feature names such as 'lst_day_t-0', 'lst_day_t-1', etc.
+        feature_to_plot (str): Feature to group and plot, e.g., 'lst_day'.
+        model_names (List[str]): Model names, in the same order as the file lists.
+        base_path (str): Path where the plot will be saved.
     """
-    shap_values_all_models = []
-    input_data_all_models = []
-    num_samples = None
 
-    # extrahiere Basis-Feature und Zeitstempel
-    if "_t-" not in feature_name:
-        raise ValueError(f"Feature {feature_name} enthält keinen Zeitindex (_t-).")
+    all_shap = []
+    all_input = []
 
-    base_feature = feature_name.split("_t-")[0]
-    timestep = int(feature_name.split("_t-")[1])
-
-    # Finde alle Basisfeatures (einmalig)
-    base_feature_names = sorted(set([name.split("_t-")[0] for name in feature_names]))
-    if base_feature not in base_feature_names:
-        raise ValueError(f"Base Feature {base_feature} nicht in Featureliste gefunden.")
-
-    base_index = base_feature_names.index(base_feature)
-
-    for shap_file, model_name, input_file in zip(shap_files, model_names, input_files):
+    for shap_file, input_file, model_name in zip(shap_files, input_files, model_names):
+        # SHAP laden und gruppieren
         shap_data = np.load(shap_file)
-        feature_index = [i for i, name in enumerate(feature_names) if name == feature_name]
-        if not feature_index:
-            raise ValueError(f"Feature {feature_name} nicht in SHAP-Daten von {model_name} gefunden.")
-        feature_index = feature_index[0]
+        shap_values = shap_data['class_1']
+        print(f"  SHAP shape: {shap_values.shape}, Feature names: {len(feature_names)}, Model: {model_name}")
+        grouped_shap_df, grouped_features = compute_grouped_shap_over_time(shap_values, feature_names)
 
-        shap_values = shap_data['class_1'][:, feature_index]
-        shap_values_all_models.append(shap_values)
+        if feature_to_plot not in grouped_features:
+            raise ValueError(f"Feature '{feature_to_plot}' not found in SHAP for model {model_name}")
 
-        input_data = np.load(input_file)
+        shap_vals_feat = grouped_shap_df[feature_to_plot].values
+        all_shap.append(shap_vals_feat)
 
-        if input_data.ndim == 3:
-            B, T, F = input_data.shape
-            if timestep >= T or base_index >= F:
-                raise IndexError(f"Zeitindex {timestep} oder Featureindex {base_index} zu groß für {model_name}")
-            feature_data = input_data[:, timestep, base_index].reshape(-1, 1)
-        elif input_data.ndim == 2:
-            feature_data = input_data[:, feature_index].reshape(-1, 1)
-        else:
-            raise ValueError(f"Unerwartete Input-Shape: {input_data.shape}")
+        # Input laden und gruppieren
+        input_tensor = torch.tensor(np.load(input_file))
+        grouped_input_np, base_feature_names = compute_grouped_input_over_time(input_tensor, feature_names)
 
-        input_data_all_models.append(feature_data)
+        # Featureindex holen und Input-Feature extrahieren
+        if feature_to_plot not in base_feature_names:
+            raise ValueError(f"Feature '{feature_to_plot}' not found in Input for model {model_name}")
 
-        if num_samples is None:
-            num_samples = len(shap_values)
-        elif len(shap_values) != num_samples:
-            raise ValueError(f"Mismatch in der Anzahl der Samples für {model_name}")
+        feat_idx = base_feature_names.index(feature_to_plot)
+        feat_input_vals = grouped_input_np[:, feat_idx].reshape(-1, 1)
+        all_input.append(feat_input_vals)
+        print(f"[{model_name}] → Samples used: {feat_input_vals.shape[0]}")
 
-    # Combine across models
-    shap_values_all_models = np.array(shap_values_all_models).T  # Shape: (n_samples, n_models)
-    input_data_all_models = np.concatenate(input_data_all_models, axis=1)  # Shape: (n_samples, n_models)
+    # SHAP- und Input-Werte zu Arrays kombinieren
+    all_shap = np.array(all_shap).T  # (n_samples, n_models)
+    all_input = np.concatenate(all_input, axis=1)  # (n_samples, n_models)
 
-    # SHAP expects feature_names to match columns (axis=1)
+    # SHAP-Explainer mit den Modellnamen als 'Features'
     expl = shap.Explanation(
-        values=shap_values_all_models,
-        data=input_data_all_models,
+        values=all_shap,
+        data=all_input,
         feature_names=model_names
     )
 
-    save_file = os.path.join(base_path, f"beeswarm_by_feature_{feature_name}.png")
+    # Plot speichern
+    save_file = os.path.join(base_path, f"shap_by_grouped_feature_{feature_to_plot}.png")
     os.makedirs(os.path.dirname(save_file), exist_ok=True)
 
-    plt.figure(figsize=(8, 5))
+    plt.figure(figsize=(10, 6))
     shap.plots.beeswarm(expl, max_display=len(model_names), show=False)
 
-    plt.title(f"SHAP Value Comparison for Feature: {feature_name}")
+    plt.title(f"SHAP Value Comparison for Feature: {feature_to_plot}")
     plt.tight_layout()
     plt.savefig(save_file, dpi=300)
     plt.close()
 
-    print(f"✅ SHAP Beeswarm Plot gespeichert unter: {save_file}")
+    print(f"[✓] SHAP Comparison Plot for Feature '{feature_to_plot}' saved at:\n{save_file}")
+
+def plot_beeswarm_by_single_feature_across_models(
+        shap_files, input_files, feature_names, full_feature_name,
+        model_names, base_path
+):
+    """
+    Compares a specific (non-grouped) feature like 'lst_day_t-1' across multiple models.
+
+    Plots the SHAP values for this feature for each model side by side in a beeswarm plot.
+
+    Args:
+        shap_files (List[str]): Paths to SHAP value files (.npz, one per model).
+        input_files (List[str]): Paths to input data files (.npy, one per model).
+        feature_names (List[str]): List of all time-dependent feature names, e.g. 'lst_day_t-1', 't2m_t-2', etc.
+        full_feature_name (str): The exact name of the feature to be plotted, e.g. 'lst_day_t-1'.
+        model_names (List[str]): Names of the models, in the same order as the files.
+        base_path (str): Directory path where the plot should be saved.
+    """
+
+    all_shap = []
+    all_input = []
+
+    for shap_file, input_file, model_name in zip(shap_files, input_files, model_names):
+        shap_data = np.load(shap_file)
+        shap_values = shap_data["class_1"]  # Shape: (B, num_features)
+
+        if full_feature_name not in feature_names:
+            raise ValueError(f"Feature '{full_feature_name}' not in feature_names.")
+
+        feature_idx = feature_names.index(full_feature_name)
+        shap_vals_feat = shap_values[:, feature_idx]
+        all_shap.append(shap_vals_feat)
+
+        input_data = np.load(input_file)
+        input_tensor = torch.tensor(input_data)
+
+        if input_tensor.dim() == 3:  # Shape: (B, T, F)
+            B, T, F = input_tensor.shape
+            input_tensor = input_tensor.view(B, -1)  # -> (B, T*F)
+
+        if input_tensor.shape[1] != len(feature_names):
+            raise ValueError(f"[{model_name}] Input shape {input_tensor.shape} does not match feature_names length {len(feature_names)}")
+
+        input_vals_feat = input_tensor[:, feature_idx].cpu().numpy()
+        all_input.append(input_vals_feat.reshape(-1, 1))  # shape (B, 1)
+
+    all_shap = np.array(all_shap).T  # shape (B, n_models)
+    all_input = np.concatenate(all_input, axis=1)  # shape (B, n_models)
+
+    expl = shap.Explanation(
+        values=all_shap,
+        data=all_input,
+        feature_names=model_names
+    )
+
+    save_file = os.path.join(base_path, f"shap_by_raw_feature_{full_feature_name}.png")
+    os.makedirs(os.path.dirname(save_file), exist_ok=True)
+
+    plt.figure(figsize=(10, 6))
+    shap.plots.beeswarm(expl, max_display=len(model_names), show=False)
+    plt.title(f"SHAP Comparison for Raw Feature: {full_feature_name}", fontsize=14)
+    plt.tight_layout()
+    plt.savefig(save_file, dpi=300)
+    plt.close()
+
+    print(f"[✓] Raw SHAP Comparison Plot for '{full_feature_name}' saved at:\n{save_file}")
+
 
 def map_sample_ids_to_indices(sample_ids, selected_ids):
     """

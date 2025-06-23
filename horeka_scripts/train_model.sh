@@ -17,4 +17,4 @@
 cd /hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger
 
 
-~/miniconda3/envs/mesogeos_py38/bin/python train.py --config configs/config_lstm/config_train.json --olf true
+~/miniconda3/envs/mesogeos_py38/bin/python train.py --config configs/config_lstm/config_train.json

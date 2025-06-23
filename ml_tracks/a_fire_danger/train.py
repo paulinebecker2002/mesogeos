@@ -30,6 +30,9 @@ def main(config):
     logger.info(f"Batch size:          {config['dataloader']['args'].get('batch_size')}")
     logger.info(f"Hidden dims:         {config['model_args'].get('hidden_dims')}")
     logger.info(f"Epochs:              {config['trainer'].get('epochs')}")
+    logger.info(f"Training years:      {config['dataset']['args'].get('train_year')}")
+    logger.info(f"Validation years:    {config['dataset']['args'].get('val_year')}")
+    logger.info(f"Testing years:       {config['dataset']['args'].get('test_year')}")
 
     dynamic_features = config["features"]["dynamic"]
     static_features = config["features"]["static"]
@@ -98,17 +101,21 @@ if __name__ == '__main__':
                       help='indices of GPUs to enable (default: all)')
 
     # custom cli options to modify configuration from default values given in json file.
-    CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')
+    CustomArgs = collections.namedtuple('CustomArgs', 'flags type target nargs')
     options = [
-        CustomArgs(['--lr', '--learning_rate'], type=float, target='optimizer;args;lr'),
-        CustomArgs(['--bs', '--batch_size'], type=int, target='dataloader;args;batch_size'),
-        CustomArgs(['--ep', '--epochs'], type=int, target='trainer;epochs'),
-        CustomArgs(['--dr', '--dropout'], type=float, target='model_args;dropout'),
-        CustomArgs(['--hd', '--hidden-dims'], type=lambda s: [int(x) for x in s.split(',')], target='model_args;hidden_dims'),
-        CustomArgs(['--gamma'], type=float, target='lr_scheduler;args;gamma'),
-        CustomArgs(['--wd', '--weight_decay'], type=float, target='optimizer;args;weight_decay'),
-        CustomArgs(['--ft', '--finetune'], type=str, target='finetune;sklearn_tune'),
-        CustomArgs(['--tlag', '--last_n_timesteps'], type=int, target='dataset;args;last_n_timesteps')
+        CustomArgs(['--lr', '--learning_rate'], type=float, target='optimizer;args;lr', nargs=None),
+        CustomArgs(['--bs', '--batch_size'], type=int, target='dataloader;args;batch_size', nargs=None),
+        CustomArgs(['--ep', '--epochs'], type=int, target='trainer;epochs', nargs=None),
+        CustomArgs(['--dr', '--dropout'], type=float, target='model_args;dropout', nargs=None),
+        CustomArgs(['--hd', '--hidden-dims'], type=lambda s: [int(x) for x in s.split(',')], target='model_args;hidden_dims', nargs=None),
+        CustomArgs(['--gamma'], type=float, target='lr_scheduler;args;gamma', nargs=None),
+        CustomArgs(['--wd', '--weight_decay'], type=float, target='optimizer;args;weight_decay', nargs=None),
+        CustomArgs(['--ft', '--finetune'], type=str, target='finetune;sklearn_tune', nargs=None),
+        CustomArgs(['--tlag', '--last_n_timesteps'], type=int, target='dataset;args;last_n_timesteps', nargs=None),
+        CustomArgs(['--train_year'], type=str, nargs='+', target='dataset;args;train_year'),
+        CustomArgs(['--val_year'], type=str, nargs='+', target='dataset;args;val_year'),
+        CustomArgs(['--test_year'], type=str, nargs='+', target='dataset;args;test_year'),
+
     ]
     config = ConfigParser.from_args(args, options)
     main(config)

@@ -5,13 +5,13 @@
     "gpu_id": 0,
 
   "shap": {
-    "checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/models/gtn/0520_203840/model_best.pth",
     "shap_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/gtn/0615_053539",
     "class": "1"
   },
     "XAI": {
         "ig_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/gtn/0606_191708",
-        "only_positive": false,
+      "checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/models/gtn/0520_203840/model_best.pth",
+      "only_positive": false,
         "only_negative": false
     },
 
@@ -35,7 +35,10 @@
       "neg_pos_ratio": 2,
       "lag": 30,
       "seed": 12345,
-      "last_n_timesteps": 30
+      "last_n_timesteps": 30,
+      "train_year": ["2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019"],
+      "val_year": ["2020"],
+      "test_year": ["2021", "2022"]
     }
   },
   "dataloader": {

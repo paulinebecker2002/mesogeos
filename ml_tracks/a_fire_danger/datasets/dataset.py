@@ -9,7 +9,9 @@ import warnings
 class FireDataset(Dataset):
     def __init__(self, dataset_root: Path = None, problem_class: str = 'classification', train_val_test: str = 'train',
                  dynamic_features: list = None, static_features: list = None, nan_fill: float = 0,
-                 neg_pos_ratio: int = 2, lag: int = 30, seed: int = 12345, last_n_timesteps: int = 30):
+                 neg_pos_ratio: int = 2, lag: int = 30, seed: int = 12345, last_n_timesteps: int = 30,
+                 train_year: list = ['2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019'],
+                 val_year: list = ['2020'], test_year: list = ['2021', '2022']):
         """
         @param access_mode: spatial, temporal or spatiotemporal
         @param problem_class: classification or segmentation
@@ -31,6 +33,9 @@ class FireDataset(Dataset):
         self.lag = lag
         self.seed = seed
         self.last_n_timesteps = last_n_timesteps
+        self.train_year = train_year
+        self.val_year = val_year
+        self.test_year = test_year
 
         random.seed(self.seed)
         np.random.seed(self.seed)
@@ -59,26 +64,40 @@ class FireDataset(Dataset):
         #repeats = grouped.size().values
         #self.negatives['YEAR'] = np.repeat(years.values, repeats)
 
-        val_year = ['2020']
-        test_year = ['2021', '2022']
+        #val_year = ['2020']
+        #test_year = ['2021', '2022']
 
-        self.train_positives = self.positives[~self.positives['YEAR'].isin(val_year + test_year)]
-        self.val_positives = self.positives[self.positives['YEAR'].isin(val_year)]
-        self.test_positives = self.positives[self.positives['YEAR'].isin(test_year)]
+        #self.train_positives = self.positives[~self.positives['YEAR'].isin(val_year + test_year)]
+        #self.val_positives = self.positives[self.positives['YEAR'].isin(val_year)]
+        #self.test_positives = self.positives[self.positives['YEAR'].isin(test_year)]
+
+        self.train_positives = self.positives[self.positives['YEAR'].isin(self.train_year)]
+        self.val_positives = self.positives[self.positives['YEAR'].isin(self.val_year)]
+        self.test_positives = self.positives[self.positives['YEAR'].isin(self.test_year)]
+        print(f"Training in years: {self.train_year}")
+        print(f"Validation in years: {self.val_year}")
+        print(f"Testing in years: {self.test_year}")
 
         bas_median = self.train_positives['burned_area_has'].median()
 
+        #def random_(negatives, positives, neg_pos_ratio):
+         #   ids_selected = np.random.choice(negatives['sample'].unique(), (len(positives) // 30) * neg_pos_ratio,
+          #                                  replace=False)
+           # negatives = negatives[negatives['sample'].isin(ids_selected)]
+            #return negatives
         def random_(negatives, positives, neg_pos_ratio):
-            ids_selected = np.random.choice(negatives['sample'].unique(), (len(positives) // 30) * neg_pos_ratio,
-                                            replace=False)
-            negatives = negatives[negatives['sample'].isin(ids_selected)]
-            return negatives
+            n_pos_samples = len(positives) // 30
+            n_neg_required = n_pos_samples * neg_pos_ratio
+            unique_samples = negatives['sample'].unique()
+            replace = len(unique_samples) < n_neg_required
+            ids_selected = np.random.choice(unique_samples, n_neg_required, replace=replace)
+            return negatives[negatives['sample'].isin(ids_selected)]
 
-        self.train_negatives = random_(self.negatives[~self.negatives['YEAR'].isin(val_year + test_year)],
+        self.train_negatives = random_(self.negatives[self.negatives['YEAR'].isin(self.train_year)],
                                        self.train_positives, neg_pos_ratio)
-        self.val_negatives = random_(self.negatives[self.negatives['YEAR'].isin(val_year)], self.val_positives,
+        self.val_negatives = random_(self.negatives[self.negatives['YEAR'].isin(self.val_year)], self.val_positives,
                                      neg_pos_ratio)
-        self.test_negatives = random_(self.negatives[self.negatives['YEAR'].isin(test_year)], self.test_positives,
+        self.test_negatives = random_(self.negatives[self.negatives['YEAR'].isin(self.test_year)], self.test_positives,
                                       neg_pos_ratio)
 
         if train_val_test == 'train':
