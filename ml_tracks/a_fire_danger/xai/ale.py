@@ -29,19 +29,24 @@ class ALEModelWrapper:
 
         if self.model_type == 'mlp':
             input_ = X_tensor.view(X_tensor.shape[0], -1)
-        elif self.model_type in ['transformer', 'gtn', 'gru', 'lstm', 'cnn']:
+            outputs = self.model(input_)
+
+        elif self.model_type in ['gru', 'lstm', 'cnn']:
             input_ = X_tensor.view(-1, self.seq_len, num_dyn + num_stat)
-            input_ = input_.transpose(0, 1)
+            outputs = self.model(input_)
+
+        elif self.model_type in ['gtn', 'transformer']:
+             input_ = X_tensor.view(-1, self.seq_len, num_dyn + num_stat)
+             input_ = input_.transpose(0, 1)
+             outputs = self.model(input_)
+
         elif self.model_type == 'tft':
             input_ = X_tensor.view(-1, self.seq_len, num_dyn + num_stat)
             dyn = input_[:, :, :num_dyn]
             stat = input_[:, 0, num_dyn:]
             outputs = self.model(dyn, stat)
         else:
-            input_ = X_tensor.view(-1, self.seq_len, num_dyn + num_stat)
-
-        if self.model_type != 'tft':
-            outputs = self.model(input_)
+            raise ValueError(f"Unknown model type: {self.model_type}")
 
         probs = torch.softmax(outputs, dim=1)[:, 1]
         return probs.detach().cpu().numpy()
@@ -134,9 +139,15 @@ def main(config):
         seq_len=seq_len
     )
 
+    #features_to_plot = ["ndvi_t-1", "lai_t-1", "population_t-1", "sp_t-1", "dem_t-1"]
+
     features_to_plot = [
-        "ndvi_t-1", "lai_t-1", "population_t-1", "sp_t-1", "dem_t-1"
-    ]
+        "d2m_t-1", "lai_t-1",  "lst_day_t-1", "lst_night_t-1", "ndvi_t-1", "rh_t-1", "smi_t-1", "sp_t-1", "ssrd_t-1",
+        "t2m_t-1", "tp_t-1",  "wind_speed_t-1",
+        "dem_t-1",  "population_t-1",  "roads_distance_t-1", "slope_t-1", "lc_agriculture_t-1", "lc_forest_t-1",
+        "lc_grassland_t-1", "lc_settlement_t-1",  "lc_shrubland_t-1",  "lc_sparse_vegetation_t-1",
+        "lc_water_bodies_t-1", "lc_wetland_t-1"]
+
 
     plot_feature_histograms(
         X_df=X_df,
@@ -144,20 +155,14 @@ def main(config):
         save_dir=os.path.join(base_save_path, "feature_distributions")
     )
 
-    plot_second_order_interactions(
-        X_df=X_df, model_wrapper=model_wrapper, feature1='ndvi_t-1', feature2='lai_t-1',
-        base_save_path=base_save_path, model_type=model_type, logger=logger)
+    plot_second_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature1='ndvi_t-1', feature2='tp_t-1', base_save_path=base_save_path, model_type=model_type, logger=logger)
+    plot_second_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature1='wind_speed_t-1', feature2='slope_t-1', base_save_path=base_save_path, model_type=model_type, logger=logger)
+    plot_second_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature1='t2m_t-1', feature2='rh_t-1', base_save_path=base_save_path, model_type=model_type, logger=logger)
+    plot_second_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature1='smi_t-1', feature2='lc_forest_t-1', base_save_path=base_save_path, model_type=model_type, logger=logger)
+    plot_second_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature1='lst_day_t-1', feature2='dem_t-1', base_save_path=base_save_path, model_type=model_type, logger=logger)
 
-    plot_second_order_interactions(
-        X_df=X_df, model_wrapper=model_wrapper, feature1='population_t-1', feature2='roads_distance_t-1',
-        base_save_path=base_save_path, model_type=model_type, logger=logger)
-
-    plot_second_order_interactions(
-        X_df=X_df, model_wrapper=model_wrapper, feature1='lai_t-1', feature2='tp_t-1',
-        base_save_path=base_save_path, model_type=model_type, logger=logger)
-
-    for feature in features_to_plot:
-        plot_first_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature=feature, base_save_path=base_save_path, model_type=model_type, logger=logger)
+    #for feature in features_to_plot:
+        #plot_first_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature=feature, base_save_path=base_save_path, model_type=model_type, logger=logger)
 
 
 if __name__ == '__main__':

@@ -362,7 +362,8 @@ def plot_beeswarm_by_single_feature_across_models(
 
 def map_sample_ids_to_indices(sample_ids, selected_ids):
     """
-    Map a list of selected sample IDs to their corresponding indices in the data array.
+    Map a list of selected sample IDs from the original positives and negativs csv files
+    to their corresponding indices in the data array after the whole dataset is created.
 
     Args:
         sample_ids (array-like): Full list of sample IDs in SHAP data (e.g. from npz).

@@ -152,6 +152,39 @@ def plot_ig_beeswarm(ig_values, input_tensor, feature_names, model_id, model_typ
     if logger:
         logger.info(f"IG Beeswarm Plot saved at: {save_file}")
 
+
+def plot_ig_beeswarm_grouped(ig_values, input_tensor, feature_names, model_id, model_type, base_path):
+    save_file = os.path.join(base_path, f"ig_beeswarm_grouped_{model_id}_{model_type}.png")
+    os.makedirs(os.path.dirname(save_file), exist_ok=True)
+
+    grouped_ig_df, grouped_features = compute_grouped_ig_over_time(ig_values, feature_names)
+    grouped_input_np, base_feature_names = compute_grouped_input_over_time(input_tensor, feature_names)
+
+    col_idx = [base_feature_names.index(f) for f in grouped_features]
+    grouped_input_np = grouped_input_np[:, col_idx]
+    reordered_input_features = [base_feature_names[i] for i in col_idx]
+
+    print("Grouped IG shape:", grouped_ig_df.shape)
+    print("Grouped Input shape:", grouped_input_np.shape)
+    print("Reordered input features (matching IG):", reordered_input_features)
+
+    assert grouped_ig_df.shape == grouped_input_np.shape, "Mismatch between IG values and input tensor"
+
+    expl = shap.Explanation(
+        values=grouped_ig_df.values,
+        data=grouped_input_np,
+        feature_names=grouped_features
+    )
+
+    shap.plots.beeswarm(expl, max_display=len(grouped_features), show=False)
+    plt.title(f"Grouped IG Beeswarm (Aggregated over Time)", fontsize=14)
+    plt.tight_layout()
+    plt.savefig(save_file, dpi=300)
+    plt.close()
+
+    print(f"[✓] Grouped IG Beeswarm Plot saved at: {save_file}")
+
+
 def plot_ig_beeswarm_only_once_each_feature(ig_values, input_tensor, feature_names, model_id, model_type, base_path, logger=None):
     save_file = os.path.join(base_path, f"ig_beeswarm_plot_only_once_each_feature_{model_id}_{model_type}.png")
     os.makedirs(os.path.dirname(save_file), exist_ok=True)
@@ -242,3 +275,48 @@ def plot_ig_beeswarm_by_feature(ig_files, feature_name, feature_names, model_nam
     plt.close()
 
     print(f"IG Comparison Beeswarm Plot for Feature '{feature_name}' saved at: {save_file}")
+
+def compute_grouped_ig_over_time(ig_values, feature_names):
+    """
+    Grouped IG-Values over time for base features.
+    """
+    if ig_values.ndim == 3:
+        ig_values = ig_values.reshape(ig_values.shape[0], -1)  # (N, T*F)
+
+    ig_df = pd.DataFrame(ig_values, columns=feature_names)
+    base_names = [name.split("_t-")[0] for name in feature_names]
+    ig_df.columns = base_names
+    grouped_df = ig_df.groupby(axis=1, level=0).mean()
+    return grouped_df, grouped_df.columns.tolist()
+
+
+def compute_grouped_input_over_time(input_tensor, feature_names):
+    """
+    Aggregates Input-Tensor over time, to match grouped IG values.
+
+    Args:
+        input_tensor (np.ndarray): Input data, typically shape (B, seq_len, F) or (B, T*F)
+        feature_names (List[str]): e.g. ["t2m_t-1", "t2m_t-2", ..., "rh_t-1"]
+
+    Returns:
+        np.ndarray: Aggregated Input (B, n_base_features)
+        List[str]: Base-Feature-Names
+    """
+
+    if input_tensor.ndim == 2 and "_t-" in feature_names[0]:
+        seq_len = len(set(name.split("_t-")[1] for name in feature_names))
+        n_features = len(feature_names) // seq_len
+        input_tensor = input_tensor.reshape(-1, seq_len, n_features)
+
+    B, T, F = input_tensor.shape
+    input_agg = input_tensor.transpose(0, 2, 1).mean(axis=2)
+
+    base_feature_names = []
+    seen = set()
+    for name in feature_names:
+        base = name.split("_t-")[0]
+        if base not in seen:
+            base_feature_names.append(base)
+            seen.add(base)
+
+    return input_agg, base_feature_names

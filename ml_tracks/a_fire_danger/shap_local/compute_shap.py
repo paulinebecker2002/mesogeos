@@ -244,6 +244,10 @@ def main(config):
         input_all = torch.cat(all_inputs, dim=0).to(device).float()
         print(type(input_all), input_all.shape)
         logger.info(f"Computing SHAP values on {input_all.shape[0]} samples...")
+        print("input_all shape:", input_all.shape)  # z. B. (4107, 720)
+    print("n_features from feature_names:", len(feature_names))  # z. B. 810?
+    print("expected flat shape:", input_all.shape[0], "×", input_all.shape[1])  # Kontrolle
+
 
     shap_values = get_shap_explanation(model, model_type, input_all, device, seq_len, static_features, dynamic_features, logger)
 

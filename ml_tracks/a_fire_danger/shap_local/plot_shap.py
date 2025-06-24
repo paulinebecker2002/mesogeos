@@ -74,7 +74,7 @@ def main(config):
         '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/gru/0616_141854/shap_values_0514_140125_gru.npz',
         '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/lstm/0615_020730/shap_values_0513_230004_lstm.npz',
         '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/transformer/0615_025441/shap_values_0519_125059_transformer.npz',
-        #'/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/gtn/0607_081506/shap_values_0520_203840_gtn.npz',
+        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/gtn/0624_142112/shap_values_0623_205004_gtn.npz',
         '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/rf/0616_091841/shap_values_0612_082906_rf.npz',
         '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/tft/0616_133748/shap_values_0612_083316_tft.npz'
     ]
@@ -85,39 +85,25 @@ def main(config):
         '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/gru/0616_141854/shap_values_0514_140125_gru_input.npy',
         '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/lstm/0615_020730/shap_values_0513_230004_lstm_input.npy',
         '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/transformer/0615_025441/shap_values_0519_125059_transformer_input.npy',
-        #'/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/gtn/0615_053539/shap_values_0520_203840_gtn_input.npy',
+        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/gtn/0624_142112/shap_values_0623_205004_gtn_input.npy',
         '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/rf/0616_091841/shap_values_0612_082906_rf_input.npy',
         '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/tft/0616_133748/shap_values_0612_083316_tft_input.npy'
     ]
 
 
-    model_names = ['cnn', 'mlp', 'gru', 'lstm', 'transformer', 'rf', 'tft']
+    model_names = ['cnn', 'mlp', 'gru', 'lstm', 'transformer', 'gtn', 'rf', 'tft']
     features = ['lst_day_t-1', 'lst_day_t-2', 'rh_t-1', 't2m_t-1', 'd2m_t-1', 'lst_night_t-1', 'ndvi_t-1', 't2m_t-2', 'tp_t-1', 'wind_speed_t-1', 'lai_t-1', 'lst_day_t-5']
     grouped_features = [
         "d2m", "lai", "lst_day", "lst_night", "ndvi", "rh", "smi", "sp", "ssrd",
-        "t2m", "tp", "wind_speed",  # <- dynamic
+        "t2m", "tp", "wind_speed",
         "dem", "roads_distance", "slope", "lc_agriculture", "lc_forest", "lc_grassland",
         "lc_settlement", "lc_shrubland", "lc_sparse_vegetation", "lc_water_bodies",
-        "lc_wetland", "population"  # <- static
+        "lc_wetland", "population"
     ]
 
-    plot_beeswarm_by_grouped_feature(
-        shap_files=shap_files,
-        input_files=input_files,
-        feature_names=feature_names,        # z. B. 'lst_day_t-0', ...
-        feature_to_plot="lst_day",            # z. B. 'lst_day'
-        model_names=model_names,
-        base_path=all_model_path            # Speicherpfad z. B. 'all_model_comparison'
-    )
+    plot_beeswarm_by_grouped_feature( shap_files=shap_files, input_files=input_files, feature_names=feature_names, feature_to_plot="lst_day", model_names=model_names, base_path=all_model_path)
 
-    plot_beeswarm_by_single_feature_across_models(
-        shap_files=shap_files,
-        input_files=input_files,
-        feature_names=feature_names,
-        full_feature_name="lst_day_t-1",  # <- ACHTUNG: exakter Name muss existieren!
-        model_names=model_names,
-        base_path=all_model_path
-    )
+    plot_beeswarm_by_single_feature_across_models(shap_files=shap_files, input_files=input_files, feature_names=feature_names, full_feature_name="lst_day_t-1", model_names=model_names, base_path=all_model_path)
 
     #for feature in features:
         #plot_beeswarm_by_feature(shap_files, feature, feature_names, model_names, input_files, all_model_path)

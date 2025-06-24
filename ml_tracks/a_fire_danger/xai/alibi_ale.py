@@ -8,6 +8,7 @@ from alibi.explainers import ALE, plot_ale
 
 from parse_config import ConfigParser
 from utils.util import extract_numpy, get_feature_names, build_model, get_dataloader
+#python setup not finalised, so not possible to use it right now...
 
 
 class ALEModelWrapper:
@@ -101,8 +102,8 @@ def main(config):
         save_dir=os.path.join(base_save_path, "feature_distributions")
     )
 
-    ale_explainer = ALE(predict_fn=wrapped_model, feature_names=feature_names)
-    explanation = ale_explainer.explain(X_df, features=[feature_names.index(f) for f in features_to_plot])
+    ale_explainer = ALE(predictor=wrapped_model, feature_names=feature_names)
+    explanation = ale_explainer.explain(X_df.values, features=[feature_names.index(f) for f in features_to_plot])
 
     for i, feature in enumerate(features_to_plot):
         plt.figure()

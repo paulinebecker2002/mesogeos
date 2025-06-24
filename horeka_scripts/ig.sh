@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=ig_cnn
+#SBATCH --job-name=ig_gtn
 #SBATCH --partition=accelerated
 #SBATCH --account=hk-project-p0024498
 #SBATCH --nodes=1
@@ -15,4 +15,4 @@
 cd /hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger
 
 
-~/miniconda3/envs/mesogeos_py38/bin/python integrated_gradients/compute_ig.py --config configs/config_cnn/config_train.json
+~/miniconda3/envs/mesogeos_py38/bin/python integrated_gradients/compute_ig.py --config configs/config_gtn/config_train.json
