@@ -1,4 +1,4 @@
-{   "model_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/models/gtn/0520_203840/model_best.pth",
+{   "model_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/models/gtn/0623_205004/model_best.pth",
     "model_type": "gtn",
     "name": "gtn",
     "n_gpu": 1,

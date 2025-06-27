@@ -142,6 +142,7 @@ class Trainer(BaseTrainer):
                 else:
                     outputs = self.model(input_)
                 m = nn.Softmax(dim=1)
+                #outputs is tensor with softmax probabilities for both classes
                 outputs = m(outputs)
 
                 softmax_probs = outputs[:, 1].detach().cpu().numpy()
@@ -151,6 +152,7 @@ class Trainer(BaseTrainer):
                 loss = self.criterion(torch.log(outputs + self.e), labels)
                 loss = torch.mean(loss * bas_size)
 
+                # chooses the class with the highest probability as prediction
                 output = torch.argmax(outputs, dim=1)
                 truths = labels.detach().cpu().numpy()
                 preds = output.detach().cpu().numpy()

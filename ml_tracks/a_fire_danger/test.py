@@ -62,7 +62,7 @@ def main(config):
     test_metrics = MetricTracker('loss', *[m.__name__ for m in metric_ftns], writer=writer)
     test_metrics.reset()
 
-    all_probs, all_lats, all_lons, all_samples, all_labels, all_bas = [], [], [], [], [], []
+    all_probs, all_lats, all_lons, all_samples, all_labels, all_bas, all_preds = [], [], [], [], [], [], []
     with torch.no_grad():
         for batch_idx, batch in enumerate(dataloader):
             (dynamic, static, bas_size, labels, x, y, sample_id) = batch[:7]
@@ -96,6 +96,10 @@ def main(config):
             bas_np = bas_size.detach().cpu().numpy()
             sample_ids = sample_id.cpu().numpy().astype(int)
 
+            output = torch.argmax(outputs, dim=1)
+            predictions_np = output.detach().cpu().numpy()
+
+            all_preds.extend(predictions_np)
             all_probs.extend(softmax_probs)
             all_lats.extend(x)
             all_lons.extend(y)
@@ -106,7 +110,7 @@ def main(config):
             loss = criterion(torch.log(outputs + e), labels)
             loss = torch.mean(loss * bas_size)
 
-            output = torch.argmax(outputs, dim=1)
+
 
             writer.set_step(batch_idx)
             test_metrics.update('loss', loss.item() * dynamic.size(0), dynamic.size(0))
@@ -126,7 +130,8 @@ def main(config):
         'lon': all_lons,
         'sample_id': all_samples,
         'label': all_labels,
-        'log_burned_area': all_bas
+        'pred_label': all_preds,
+        'log_burned_area': all_bas,
     })
     output_path = Path(config.save_dir) / f"test_softmax_outputs_{config['model_type']}.csv"
     df.to_csv(output_path, index=False)

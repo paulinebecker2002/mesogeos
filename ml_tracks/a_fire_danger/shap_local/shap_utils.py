@@ -31,7 +31,7 @@ def plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, model_id
     shap.plots.beeswarm(expl, max_display=25, show=False)
 
     class_label = f"Fire Danger (Class {shap_class})"
-    plt.title(f"SHAP Summary Plot – {class_label}", fontsize=14)
+    plt.title(f"{model_type} - SHAP Beeswarm Plot", fontsize=14)
     plt.tight_layout()
     plt.savefig(save_file, dpi=300)
     plt.close()
@@ -61,7 +61,7 @@ def plot_beeswarm_grouped(shap_values, shap_class, input_tensor, feature_names, 
     )
 
     shap.plots.beeswarm(expl, max_display=len(grouped_features), show=False)
-    plt.title(f"Grouped SHAP Beeswarm (Aggregated over Time) Class {shap_class}", fontsize=14)
+    plt.title(f"{model_type} - SHAP Beeswarm Plot Aggregated over Time", fontsize=14)
     plt.tight_layout()
     plt.savefig(save_file, dpi=300)
     plt.close()
@@ -223,7 +223,7 @@ def plot_shap_waterfall(shap_values, shap_class, input_tensor, feature_names, sa
 
 def plot_beeswarm_by_grouped_feature(
         shap_files, input_files, feature_names, feature_to_plot,
-        model_names, base_path
+        model_names, base_path, only_pos=False, only_neg=False
 ):
     """
     Compares a grouped feature (e.g., 'lst_day') across multiple models.
@@ -237,7 +237,15 @@ def plot_beeswarm_by_grouped_feature(
         feature_to_plot (str): Feature to group and plot, e.g., 'lst_day'.
         model_names (List[str]): Model names, in the same order as the file lists.
         base_path (str): Path where the plot will be saved.
+        only_neg (bool): If True, only plot negative samples.
+        only_pos (bool): If True, only plot positive samples.
     """
+    if only_pos:
+        samples = "positive"
+    elif only_neg:
+        samples = "negative"
+    else:
+        samples = "all"
 
     all_shap = []
     all_input = []
@@ -246,7 +254,6 @@ def plot_beeswarm_by_grouped_feature(
         # SHAP laden und gruppieren
         shap_data = np.load(shap_file)
         shap_values = shap_data['class_1']
-        print(f"  SHAP shape: {shap_values.shape}, Feature names: {len(feature_names)}, Model: {model_name}")
         grouped_shap_df, grouped_features = compute_grouped_shap_over_time(shap_values, feature_names)
 
         if feature_to_plot not in grouped_features:
@@ -258,6 +265,8 @@ def plot_beeswarm_by_grouped_feature(
         # Input laden und gruppieren
         input_tensor = torch.tensor(np.load(input_file))
         grouped_input_np, base_feature_names = compute_grouped_input_over_time(input_tensor, feature_names)
+        #print(f"  Grouped Features SHAP shape: {shap_values.shape}, Feature names: {len(feature_names)}, Model: {model_name}, input shape: {grouped_input_np.shape}")
+
 
         # Featureindex holen und Input-Feature extrahieren
         if feature_to_plot not in base_feature_names:
@@ -280,7 +289,7 @@ def plot_beeswarm_by_grouped_feature(
     )
 
     # Plot speichern
-    save_file = os.path.join(base_path, f"shap_by_grouped_feature_{feature_to_plot}.png")
+    save_file = os.path.join(base_path, samples, f"shap_by_grouped_feature_{feature_to_plot}.png")
     os.makedirs(os.path.dirname(save_file), exist_ok=True)
 
     plt.figure(figsize=(10, 6))
@@ -293,9 +302,9 @@ def plot_beeswarm_by_grouped_feature(
 
     print(f"[✓] SHAP Comparison Plot for Feature '{feature_to_plot}' saved at:\n{save_file}")
 
-def plot_beeswarm_by_single_feature_across_models(
+def plot_beeswarm_by_feature(
         shap_files, input_files, feature_names, full_feature_name,
-        model_names, base_path
+        model_names, base_path, only_pos=False, only_neg=False
 ):
     """
     Compares a specific (non-grouped) feature like 'lst_day_t-1' across multiple models.
@@ -311,10 +320,18 @@ def plot_beeswarm_by_single_feature_across_models(
         base_path (str): Directory path where the plot should be saved.
     """
 
+    if only_pos:
+        samples = "positive"
+    elif only_neg:
+        samples = "negative"
+    else:
+        samples = "all"
+
     all_shap = []
     all_input = []
 
     for shap_file, input_file, model_name in zip(shap_files, input_files, model_names):
+
         shap_data = np.load(shap_file)
         shap_values = shap_data["class_1"]  # Shape: (B, num_features)
 
@@ -334,6 +351,7 @@ def plot_beeswarm_by_single_feature_across_models(
 
         if input_tensor.shape[1] != len(feature_names):
             raise ValueError(f"[{model_name}] Input shape {input_tensor.shape} does not match feature_names length {len(feature_names)}")
+        #print(f"  SIngle Feature SHAP shape: {shap_values.shape}, Feature names: {len(feature_names)}, Model: {model_name}, sample size: {input_tensor.shape[0]}")
 
         input_vals_feat = input_tensor[:, feature_idx].cpu().numpy()
         all_input.append(input_vals_feat.reshape(-1, 1))  # shape (B, 1)
@@ -347,7 +365,7 @@ def plot_beeswarm_by_single_feature_across_models(
         feature_names=model_names
     )
 
-    save_file = os.path.join(base_path, f"shap_by_raw_feature_{full_feature_name}.png")
+    save_file = os.path.join(base_path, "lai", f"shap_by_raw_feature_{full_feature_name}.png")
     os.makedirs(os.path.dirname(save_file), exist_ok=True)
 
     plt.figure(figsize=(10, 6))

@@ -10,7 +10,7 @@ from shap_utils import (plot_beeswarm, plot_beeswarm_grouped,
                         plot_shap_difference_aggregated, plot_shap_waterfall,
                         map_sample_ids_to_indices,
                         compute_physical_consistency_score, compute_grouped_physical_consistency_score,
-                        plot_beeswarm_by_grouped_feature, plot_beeswarm_by_single_feature_across_models)
+                        plot_beeswarm_by_grouped_feature, plot_beeswarm_by_feature)
 
 def load_shap_inputs_from_combined_npz(shap_path, model_id, model_type):
     combined_npz_path = os.path.join(shap_path, f"shap_values_{model_id}_{model_type}_combined.npz")
@@ -101,12 +101,26 @@ def main(config):
         "lc_wetland", "population"
     ]
 
-    plot_beeswarm_by_grouped_feature( shap_files=shap_files, input_files=input_files, feature_names=feature_names, feature_to_plot="lst_day", model_names=model_names, base_path=all_model_path)
+    features_to_plot = [
+        "d2m_t-1", "lai_t-1",  "lst_day_t-1", "lst_night_t-1", "ndvi_t-1", "rh_t-1", "smi_t-1", "sp_t-1", "ssrd_t-1",
+        "t2m_t-1", "tp_t-1",  "wind_speed_t-1",
+        "dem_t-1",  "population_t-1",  "roads_distance_t-1", "slope_t-1", "lc_agriculture_t-1", "lc_forest_t-1",
+        "lc_grassland_t-1", "lc_settlement_t-1",  "lc_shrubland_t-1",  "lc_sparse_vegetation_t-1",
+        "lc_water_bodies_t-1", "lc_wetland_t-1"]
 
-    plot_beeswarm_by_single_feature_across_models(shap_files=shap_files, input_files=input_files, feature_names=feature_names, full_feature_name="lst_day_t-1", model_names=model_names, base_path=all_model_path)
-
+    #for feature in grouped_features:
+      #  plot_beeswarm_by_grouped_feature(shap_files=shap_files, input_files=input_files, feature_names=feature_names, feature_to_plot=feature, model_names=model_names, base_path=all_model_path, only_pos=only_pos, only_neg=only_neg)
     #for feature in features:
-        #plot_beeswarm_by_feature(shap_files, feature, feature_names, model_names, input_files, all_model_path)
+     #   plot_beeswarm_by_single_feature_across_models(shap_files=shap_files, input_files=input_files, feature_names=feature_names, full_feature_name=feature, model_names=model_names, base_path=all_model_path, only_pos=only_pos, only_neg=only_neg)
+
+    #for feature in grouped_features:
+     #   plot_beeswarm_by_feature(shap_files=shap_files, input_files=input_files, feature_names=feature_names, full_feature_name=f"{feature}_t-30", model_names=model_names, base_path=all_model_path, only_pos=only_pos, only_neg=only_neg)
+
+
+    for idx in range(1, 30):
+        plot_beeswarm_by_feature(shap_files=shap_files, input_files=input_files, feature_names=feature_names, full_feature_name=f"lai_t-{idx}", model_names=model_names, base_path=all_model_path, only_pos=only_pos, only_neg=only_neg)
+
+    #plot_beeswarm_by_grouped_feature(shap_files=shap_files, input_files=input_files, feature_names=feature_names, feature_to_plot="d2m", model_names=model_names, base_path=all_model_path, only_pos=only_pos, only_neg=only_neg)
 
     print(f"Shape input: {input_tensor.shape}, SHAP: {np.array(shap_values).shape}")
     #plot_grouped_feature_importance(shap_values, shap_class, feature_names, model_id, shap_path, model_type, logger)

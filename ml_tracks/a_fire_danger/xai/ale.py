@@ -5,6 +5,7 @@ import pandas as pd
 import torch
 import matplotlib.pyplot as plt
 from PyALE import ale
+from itertools import combinations
 
 from parse_config import ConfigParser
 from utils.util import extract_numpy, get_feature_names, build_model, get_dataloader
@@ -149,20 +150,27 @@ def main(config):
         "lc_water_bodies_t-1", "lc_wetland_t-1"]
 
 
-    plot_feature_histograms(
-        X_df=X_df,
-        features_to_plot=features_to_plot,
-        save_dir=os.path.join(base_save_path, "feature_distributions")
-    )
+    #plot_feature_histograms(X_df=X_df, features_to_plot=features_to_plot, save_dir=os.path.join(base_save_path, "feature_distributions"))
 
-    plot_second_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature1='ndvi_t-1', feature2='tp_t-1', base_save_path=base_save_path, model_type=model_type, logger=logger)
-    plot_second_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature1='wind_speed_t-1', feature2='slope_t-1', base_save_path=base_save_path, model_type=model_type, logger=logger)
-    plot_second_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature1='t2m_t-1', feature2='rh_t-1', base_save_path=base_save_path, model_type=model_type, logger=logger)
-    plot_second_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature1='smi_t-1', feature2='lc_forest_t-1', base_save_path=base_save_path, model_type=model_type, logger=logger)
-    plot_second_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature1='lst_day_t-1', feature2='dem_t-1', base_save_path=base_save_path, model_type=model_type, logger=logger)
+    #plot_second_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature1='ndvi_t-1', feature2='tp_t-1', base_save_path=base_save_path, model_type=model_type, logger=logger)
+    #plot_second_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature1='wind_speed_t-1', feature2='slope_t-1', base_save_path=base_save_path, model_type=model_type, logger=logger)
+    #plot_second_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature1='t2m_t-1', feature2='rh_t-1', base_save_path=base_save_path, model_type=model_type, logger=logger)
+    #plot_second_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature1='smi_t-1', feature2='lc_forest_t-1', base_save_path=base_save_path, model_type=model_type, logger=logger)
+    #plot_second_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature1='lst_day_t-1', feature2='dem_t-1', base_save_path=base_save_path, model_type=model_type, logger=logger)
+
+    for feature1, feature2 in combinations(features_to_plot, 2):
+        plot_second_order_interactions(
+            X_df=X_df,
+            model_wrapper=model_wrapper,
+            feature1=feature1,
+            feature2=feature2,
+            base_save_path=base_save_path,
+            model_type=model_type,
+            logger=logger
+        )
 
     #for feature in features_to_plot:
-        #plot_first_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature=feature, base_save_path=base_save_path, model_type=model_type, logger=logger)
+     #   plot_first_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature=feature, base_save_path=base_save_path, model_type=model_type, logger=logger)
 
 
 if __name__ == '__main__':
