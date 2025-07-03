@@ -43,6 +43,7 @@ def main(config):
     metric_ftns = [getattr(module_metric, met) for met in config['metrics']]
 
     logger.info('Loading checkpoint: {} ...'.format(config["model_path"]))
+    logger.info(f"Seed:          {config['dataset']['args'].get('seed')}")
     checkpoint = torch.load(config["model_path"], map_location=device)
 
     state_dict = checkpoint['state_dict']
@@ -159,6 +160,7 @@ if __name__ == '__main__':
         CustomArgs(['--train_year'], type=str, nargs='+', target='dataset;args;train_year'),
         CustomArgs(['--val_year'], type=str, nargs='+', target='dataset;args;val_year'),
         CustomArgs(['--test_year'], type=str, nargs='+', target='dataset;args;test_year'),
+        CustomArgs(['--seed'], type=int, target='dataset;args;seed', nargs=None),
     ]
     config = ConfigParser.from_args(args, options)
     main(config)

@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 
 # 🔧 Modellnamen (z. B. "mlp", "cnn", "tft") anpassen
-MODEL_NAME = "transformer"
+MODEL_NAME = "tft"
 
 # 📁 Pfade definieren
 BASE_DIR = Path("/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger")
@@ -17,8 +17,8 @@ SAVE_DIR = BASE_DIR / "saved/crossValidation"
 
 # 🔍 Reguläre Ausdrücke
 patterns = {
-    "train_f1_score": re.compile(r"f1_score\s+:\s+([0-9.]+)"),
-    "train_aucpr": re.compile(r"aucpr\s+:\s+([0-9.]+)"),
+    "train_f1_score": re.compile(r"^\s*.*INFO\s+-\s+f1_score\s+:\s+([0-9.]+)"),
+    "train_aucpr": re.compile(r"^\s*.*INFO\s+-\s+aucpr\s+:\s+([0-9.]+)"),
     "val_f1_score": re.compile(r"val_f1_score\s+:\s+([0-9.]+)"),
     "val_aucpr": re.compile(r"val_aucpr\s+:\s+([0-9.]+)"),
     "test_dict": re.compile(r"INFO\s+-\s+\{.*?'f1_score':\s*([0-9.]+).*?'aucpr':\s*([0-9.]+).*?\}")

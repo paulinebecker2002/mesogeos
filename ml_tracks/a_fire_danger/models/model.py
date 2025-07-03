@@ -293,6 +293,11 @@ class TFTNet(nn.Module):
         )
 
     def forward(self, dynamic, static):
+        #dyn = self.dynamic_proj(dynamic)             # [B, T, D]
+        #dyn = self.dynamic_grn(dyn)                  # GRN über jede Zeitstufe
+
+        #stat = self.static_proj(static)              # [B, D]
+        #stat = self.static_grn(stat)
         dyn = self.dynamic_proj(dynamic)                       # [B, T, D]
         stat = self.static_proj(static).unsqueeze(1)           # [B, 1, D]
         stat = stat.expand(-1, self.seq_len, -1)               # [B, T, D]

@@ -25,6 +25,8 @@ def main(config):
 
     logger = config.get_logger('train')
     logger.info(f"Save directory: {config.save_dir}")
+    logger.info(f"Seed:          {config['dataset']['args'].get('seed')}")
+    logger.info(f"Last n timesteps: {config['dataset']['args'].get('last_n_timesteps')}")
     logger.info(f"Learning rate:       {config['optimizer']['args'].get('lr')}")
     logger.info(f"Dropout:             {config['model_args'].get('dropout')}")
     logger.info(f"Batch size:          {config['dataloader']['args'].get('batch_size')}")
@@ -115,6 +117,8 @@ if __name__ == '__main__':
         CustomArgs(['--train_year'], type=str, nargs='+', target='dataset;args;train_year'),
         CustomArgs(['--val_year'], type=str, nargs='+', target='dataset;args;val_year'),
         CustomArgs(['--test_year'], type=str, nargs='+', target='dataset;args;test_year'),
+        CustomArgs(['--seed'], type=int, target='dataset;args;seed', nargs=None),
+
 
     ]
     config = ConfigParser.from_args(args, options)

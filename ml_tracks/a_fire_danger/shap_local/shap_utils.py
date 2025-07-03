@@ -39,10 +39,10 @@ def plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, model_id
         logger.info(f"SHAP Beeswarm Plot stored at: {save_file}")
 
 def plot_beeswarm_grouped(shap_values, shap_class, input_tensor, feature_names, model_id, base_path, model_type, logger=None):
-    save_file = os.path.join(base_path, f"shap_beeswarm_grouped_{model_id}_{model_type}_{shap_class}.png")
+    save_file = os.path.join(base_path, f"shap_beeswarm_grouped_{model_id}_{model_type}_{shap_class}_sum.png")
     os.makedirs(os.path.dirname(save_file), exist_ok=True)
 
-    grouped_shap_df, grouped_features = compute_grouped_shap_over_time(shap_values, feature_names)
+    grouped_shap_df, grouped_features = compute_grouped_shap_over_time(shap_values, feature_names, sum=True)
     grouped_input_np, base_feature_names = compute_grouped_input_over_time(input_tensor, feature_names)
     print(f"Grouped feature names: {grouped_features}")
     print(f"Base feature names: {base_feature_names}")
@@ -184,12 +184,11 @@ def plot_shap_difference_aggregated(shap_class0, shap_class1, feature_names, mod
     if logger:
         logger.info(f"Aggregated SHAP Difference Plot saved at: {save_file}")
 
-def plot_shap_waterfall(shap_values, shap_class, input_tensor, feature_names, sample_ids, sample_idx,
-                        model_id, base_path, model_type, logger=None):
+def plot_shap_waterfall(shap_values, shap_class, input_tensor, feature_names, sample_ids, sample_idx,model_id, base_path, model_type, logger=None):
     """
     Plot SHAP waterfall plot for a single instance (sample_idx) and save to file.
     """
-    save_file = os.path.join(base_path, f"shap_waterfall_plot_{model_id}_{model_type}_class{shap_class}_sample{sample_idx}.png")
+    save_file = os.path.join(base_path, f"shap_waterfall_plot_{model_type}_sample{sample_idx}.png")
     os.makedirs(os.path.dirname(save_file), exist_ok=True)
 
     indices = map_sample_ids_to_indices(sample_ids, sample_idx)
@@ -210,15 +209,58 @@ def plot_shap_waterfall(shap_values, shap_class, input_tensor, feature_names, sa
         base_values=base_value,
         feature_names=feature_names
     )
+    model_type = get_model_name(model_type)
 
     shap.plots.waterfall(expl, max_display=25, show=False)
-    plt.title(f"SHAP Waterfall – Sample {sample_idx} (Class {shap_class})", fontsize=14)
+    plt.title(f"SHAP Waterfall – {model_type} {sample_idx})", fontsize=14)
     plt.tight_layout()
     plt.savefig(save_file, dpi=300)
     plt.close()
 
     if logger:
         logger.info(f"SHAP Waterfall Plot saved at: {save_file}")
+
+
+def plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, sample_idx, model_id, base_path, model_type, logger=None):
+    """
+    Grouped SHAP waterfall plot for a single instance (sample_idx), aggregating over time-lags per feature.
+    """
+    save_file = os.path.join(base_path, f"shap_waterfall_grouped_{model_type}_sample{sample_idx}.png")
+    os.makedirs(os.path.dirname(save_file), exist_ok=True)
+
+    # Map sample_idx to index in SHAP/input
+    indices = map_sample_ids_to_indices(sample_ids, sample_idx)
+    index = indices[0]
+
+    # Compute grouped SHAP values and grouped input (aggregated over time)
+    grouped_shap_df, grouped_features = compute_grouped_shap_over_time(shap_values, feature_names, sum=True)
+    grouped_input_np, base_feature_names = compute_grouped_input_over_time(input_tensor, feature_names)
+
+    # Filter grouped input to match grouped SHAP column order
+    col_idx = [base_feature_names.index(f) for f in grouped_features]
+    grouped_input_np = grouped_input_np[:, col_idx]
+    sample_input = grouped_input_np[index]
+    sample_shap = grouped_shap_df.iloc[index].values
+    base_value = grouped_shap_df.mean().sum()
+
+    expl = shap.Explanation(
+        values=sample_shap,
+        data=sample_input,
+        base_values=base_value,
+        feature_names=grouped_features
+    )
+
+    model_type = get_model_name(model_type)
+
+    shap.plots.waterfall(expl, max_display=25, show=False)
+    plt.title(f"Grouped SHAP Waterfall – {model_type} {sample_idx}", fontsize=14)
+    plt.tight_layout()
+    plt.savefig(save_file, dpi=300)
+    plt.close()
+
+    if logger:
+        logger.info(f"Grouped SHAP Waterfall Plot saved at: {save_file}")
+
 
 
 def plot_beeswarm_by_grouped_feature(
@@ -254,7 +296,7 @@ def plot_beeswarm_by_grouped_feature(
         # SHAP laden und gruppieren
         shap_data = np.load(shap_file)
         shap_values = shap_data['class_1']
-        grouped_shap_df, grouped_features = compute_grouped_shap_over_time(shap_values, feature_names)
+        grouped_shap_df, grouped_features = compute_grouped_shap_over_time(shap_values, feature_names, sum=True)
 
         if feature_to_plot not in grouped_features:
             raise ValueError(f"Feature '{feature_to_plot}' not found in SHAP for model {model_name}")
@@ -289,13 +331,13 @@ def plot_beeswarm_by_grouped_feature(
     )
 
     # Plot speichern
-    save_file = os.path.join(base_path, samples, f"shap_by_grouped_feature_{feature_to_plot}.png")
+    save_file = os.path.join(base_path, "grouped", f"shap_by_grouped_feature_{feature_to_plot}.png")
     os.makedirs(os.path.dirname(save_file), exist_ok=True)
 
     plt.figure(figsize=(10, 6))
     shap.plots.beeswarm(expl, max_display=len(model_names), show=False)
 
-    plt.title(f"SHAP Value Comparison for Feature: {feature_to_plot}")
+    plt.title(f"SHAP Value Comparison for Grouped Feature: {feature_to_plot}")
     plt.tight_layout()
     plt.savefig(save_file, dpi=300)
     plt.close()
@@ -365,12 +407,12 @@ def plot_beeswarm_by_feature(
         feature_names=model_names
     )
 
-    save_file = os.path.join(base_path, "lai", f"shap_by_raw_feature_{full_feature_name}.png")
+    save_file = os.path.join(base_path, "t-1", f"shap_by_raw_feature_{full_feature_name}.png")
     os.makedirs(os.path.dirname(save_file), exist_ok=True)
 
     plt.figure(figsize=(10, 6))
     shap.plots.beeswarm(expl, max_display=len(model_names), show=False)
-    plt.title(f"SHAP Comparison for Raw Feature: {full_feature_name}", fontsize=14)
+    plt.title(f"SHAP Comparison for Feature: {full_feature_name}", fontsize=14)
     plt.tight_layout()
     plt.savefig(save_file, dpi=300)
     plt.close()
@@ -403,17 +445,21 @@ def map_sample_ids_to_indices(sample_ids, selected_ids):
             raise ValueError(f"Sample ID {sid} not found in sample_ids.")
     return indices
 
-def compute_grouped_shap_over_time(shap_values, feature_names):
+def compute_grouped_shap_over_time(shap_values, feature_names, sum=False):
     """
     Grouped SHAP-Values over time for base features
     Returns:
         grouped_df: pd.DataFrame with (n_samples, n_base_features)
         base_features: List with base feature names
+        sum: bool, if True, sums the SHAP values over time instead of averaging
     """
     shap_df = pd.DataFrame(shap_values, columns=feature_names)
     base_names = [name.split("_t-")[0] for name in feature_names]
     shap_df.columns = base_names
-    grouped_df = shap_df.groupby(axis=1, level=0).mean()
+    if sum:
+        grouped_df = shap_df.groupby(axis=1, level=0).sum()
+    else:
+        grouped_df = shap_df.groupby(axis=1, level=0).mean()
     return grouped_df, grouped_df.columns.tolist()
 
 
@@ -648,3 +694,10 @@ def compute_grouped_physical_consistency_score(
     df_results.to_csv(save_file, index=False)
     print(f"✅ Grouped Physical consistency (quantile-based) saved to: {save_file}")
     return df_results, save_file
+
+def get_model_name(model_type):
+    if model_type != "transformer":
+        model_type = model_type.upper()
+    else:
+        model_type = "Transformer"
+    return model_type

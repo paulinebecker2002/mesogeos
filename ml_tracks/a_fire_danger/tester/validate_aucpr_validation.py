@@ -7,9 +7,10 @@ MODEL_NAME = "tft"  # Change this to the model name you want to analyze
 BASE_DIR = Path(f"/pfs/work9/workspace/scratch/ka_hr7238-mesogeos/code/ml_tracks/a_fire_danger/saved/log/{MODEL_NAME}")
 
 best_model = None
-best_f1 = -1
+best_aucpr = -1
 
-
+DESIRED_TIMESTEPS = 5
+timesteps_pattern = re.compile(r"Last n timesteps:\s+(\d+)")
 f1_pattern = re.compile(r"val_f1_score\s+:\s+([0-9.]+)")
 aucpr_pattern = re.compile(r"val_aucpr\s+:\s+([0-9.]+)")
 precision_pattern = re.compile(r"val_precision\s+:\s+([0-9.]+)")
@@ -23,6 +24,18 @@ for log_file in BASE_DIR.glob("*/info.log"):
         lines = f.readlines()
         if not lines:
             continue
+
+        timestep_found = False
+        for line in lines:
+            if (m := timesteps_pattern.search(line)):
+                timestep_value = int(m.group(1))
+                if timestep_value == DESIRED_TIMESTEPS:
+                    timestep_found = True
+                break
+
+        if not timestep_found:
+            continue
+
         for i in range(len(lines)-1, -1, -1):
             if model_best_pattern.search(lines[i]):
                 f1_score = None
@@ -43,9 +56,9 @@ for log_file in BASE_DIR.glob("*/info.log"):
                     if f1_score is not None and auprc is not None and precision is not None and recall is not None:
                         break
 
-                if f1_score is not None:
-                    if f1_score > best_f1:
-                        best_f1 = f1_score
+                if auprc is not None:
+                    if auprc > best_aucpr:
+                        best_aucpr = auprc
                         best_model = log_file
                         best_metrics = {
                             "f1_score": f1_score,

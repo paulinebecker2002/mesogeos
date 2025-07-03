@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=cval_tft
+#SBATCH --job-name=cval_gtn
 #SBATCH --partition=accelerated
 #SBATCH --account=hk-project-p0024498
 #SBATCH --nodes=1
@@ -15,7 +15,7 @@
 cd /hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger
 
 PYTHON=~/miniconda3/envs/mesogeos_py38/bin/python
-CONFIG=configs/config_tft/config_train.json
+CONFIG=configs/config_gtn/config_train.json
 
 declare -a VAL_SETS=(
   "2006" "2007" "2008" "2009" "2010"

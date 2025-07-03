@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=train_gtn
+#SBATCH --job-name=train_transformer
 #SBATCH --partition=accelerated
 #SBATCH --account=hk-project-p0024498
 #SBATCH --nodes=1
@@ -12,9 +12,10 @@
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=pauline.becker@student.kit.edu
 
-
+# Conda aktivieren
+source ~/miniconda3/etc/profile.d/conda.sh
+conda activate mesogeos_py38
 
 cd /hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger
 
-
-~/miniconda3/envs/mesogeos_py38/bin/python train.py --config configs/config_gtn/config_train.json
+python trainer/timelag_seed_training.py

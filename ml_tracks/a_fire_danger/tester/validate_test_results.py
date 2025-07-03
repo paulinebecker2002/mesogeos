@@ -8,6 +8,8 @@ BASE_DIR = Path("/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code
 best_model = None
 best_f1 = -1
 
+DESIRED_TIMESTEPS = 5
+timesteps_pattern = re.compile(r"Last n timesteps:\s+(\d+)")
 f1_pattern = re.compile(r"'f1_score': ([0-9.]+)")
 model_path_pattern = re.compile(r"Loading checkpoint:\s*(.*model_best\.pth)")
 

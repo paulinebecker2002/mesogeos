@@ -7,7 +7,7 @@ from parse_config import ConfigParser
 from utils.util import get_feature_names
 from shap_utils import (plot_beeswarm, plot_beeswarm_grouped,
                         plot_grouped_feature_importance, plot_shap_temporal_heatmap, plot_shap_difference_bar,
-                        plot_shap_difference_aggregated, plot_shap_waterfall,
+                        plot_shap_difference_aggregated, plot_shap_waterfall, plot_shap_waterfall_grouped,
                         map_sample_ids_to_indices,
                         compute_physical_consistency_score, compute_grouped_physical_consistency_score,
                         plot_beeswarm_by_grouped_feature, plot_beeswarm_by_feature)
@@ -109,18 +109,12 @@ def main(config):
         "lc_water_bodies_t-1", "lc_wetland_t-1"]
 
     #for feature in grouped_features:
-      #  plot_beeswarm_by_grouped_feature(shap_files=shap_files, input_files=input_files, feature_names=feature_names, feature_to_plot=feature, model_names=model_names, base_path=all_model_path, only_pos=only_pos, only_neg=only_neg)
-    #for feature in features:
-     #   plot_beeswarm_by_single_feature_across_models(shap_files=shap_files, input_files=input_files, feature_names=feature_names, full_feature_name=feature, model_names=model_names, base_path=all_model_path, only_pos=only_pos, only_neg=only_neg)
+        #plot_beeswarm_by_grouped_feature(shap_files=shap_files, input_files=input_files, feature_names=feature_names, feature_to_plot=feature, model_names=model_names, base_path=all_model_path, only_pos=only_pos, only_neg=only_neg)
+       # plot_beeswarm_by_feature(shap_files=shap_files, input_files=input_files, feature_names=feature_names, full_feature_name=f"{feature}_t-1", model_names=model_names, base_path=all_model_path, only_pos=only_pos, only_neg=only_neg)
 
-    #for feature in grouped_features:
-     #   plot_beeswarm_by_feature(shap_files=shap_files, input_files=input_files, feature_names=feature_names, full_feature_name=f"{feature}_t-30", model_names=model_names, base_path=all_model_path, only_pos=only_pos, only_neg=only_neg)
+    #for idx in range(1, 30):
+     #   plot_beeswarm_by_feature(shap_files=shap_files, input_files=input_files, feature_names=feature_names, full_feature_name=f"lai_t-{idx}", model_names=model_names, base_path=all_model_path, only_pos=only_pos, only_neg=only_neg)
 
-
-    for idx in range(1, 30):
-        plot_beeswarm_by_feature(shap_files=shap_files, input_files=input_files, feature_names=feature_names, full_feature_name=f"lai_t-{idx}", model_names=model_names, base_path=all_model_path, only_pos=only_pos, only_neg=only_neg)
-
-    #plot_beeswarm_by_grouped_feature(shap_files=shap_files, input_files=input_files, feature_names=feature_names, feature_to_plot="d2m", model_names=model_names, base_path=all_model_path, only_pos=only_pos, only_neg=only_neg)
 
     print(f"Shape input: {input_tensor.shape}, SHAP: {np.array(shap_values).shape}")
     #plot_grouped_feature_importance(shap_values, shap_class, feature_names, model_id, shap_path, model_type, logger)
@@ -133,10 +127,34 @@ def main(config):
     #plot_shap_temporal_heatmap(shap_values, shap_class, feature_names, model_id, shap_path, model_type, logger)
 
     sample_idx = [4792, 679, 8418, 1645, 1676]
+    false_positive_sample_ids = [
+        15330, 15494, 16849, 15341, 17076, 16985, 16861, 15569, 16701, 16838,
+        16896, 15759, 15687, 15391, 15593, 16919, 17079, 15647, 14748, 15306,
+        14825, 17031, 16696, 16781, 16917, 16829, 16787, 15639, 15767, 17000,
+        15624, 17028, 15499, 15559, 15621, 16823, 15812, 15459
+    ]
+    true_negative_ids = [
+        16608, 17285, 16028, 15754, 16217, 15344, 16648, 16618, 16099, 16241, 15160, 16087, 15028, 16201, 15865,
+        15765, 15904, 16305, 17216, 14981, 16314, 16268, 16279, 16182, 15789, 14905, 15588, 14908, 16172, 14751,
+        16353, 14821, 15796, 16549, 16877, 16370, 15438, 15888, 16527, 16137, 16599, 15187, 15004, 15186, 15488,
+        14865, 16256, 15596, 16164, 15029, 15987, 16134, 16301, 16976, 16967, 15473, 17301, 14630, 14661, 16254,
+        15629, 14940, 15299, 16360, 16073, 15157, 16051, 14965, 16436, 16402, 15689, 15684, 15923, 16517, 15001,
+        14947, 15152, 17128, 14754, 16723, 15840, 16126, 17254, 14857, 16694, 16068, 16385, 15594, 15897, 16364,
+        15755, 15084, 15925, 14814, 15154, 14848, 16281, 15202, 14985, 15704
+    ]
 
     for idx in sample_idx:
         print(f"Plotting SHAP waterfall for Sample: {idx}")
-        #plot_shap_waterfall(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, shap_path, model_type, logger)
+        plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, f"{shap_path}/big_fire_waterfall", model_type, logger)
+
+    for idx in false_positive_sample_ids:
+        print(f"Plotting SHAP waterfall for Sample: {idx}")
+        #plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, f"{shap_path}/false_positive_waterfall_grouped", model_type, logger)
+
+    for idx in true_negative_ids:
+        print(f"Plotting SHAP waterfall for Sample: {idx}")
+        #plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, f"{shap_path}/true_negative_waterfall_grouped", model_type, logger)
+
 
     physical_knowledge = {
         "t2m": "+", "d2m": "-", "lc_agriculture": "+", "lc_forest": "+", "lc_grassland": "+",
