@@ -4,7 +4,7 @@ import os
 import numpy as np
 from parse_config import ConfigParser
 from utils.util import get_feature_names
-from ig_utils import plot_bar, plot_temporal_heatmap, plot_ig_beeswarm, plot_ig_beeswarm_only_once_each_feature, plot_ig_beeswarm_by_feature, plot_ig_beeswarm_grouped
+from ig_utils import plot_bar, plot_temporal_heatmap, plot_ig_beeswarm, plot_ig_beeswarm_only_once_each_feature, plot_ig_beeswarm_by_feature, plot_ig_beeswarm_grouped, plot_ig_beeswarm_by_feature_grouped, plot_ig_waterfall_grouped, plot_ig_waterfall
 
 def main(config):
     logger = config.get_logger('ig')
@@ -50,14 +50,7 @@ def main(config):
     #plot_temporal_heatmap(ig_data, feature_names, model_id, model_type, ig_path, logger, scaled=False)
     #plot_ig_beeswarm(ig_data, input_data, feature_names, model_id, model_type, ig_path, logger)
     #plot_ig_beeswarm_only_once_each_feature(ig_data, input_data, feature_names, model_id, model_type, ig_path, logger)
-    plot_ig_beeswarm_grouped(
-        ig_values=ig_data,
-        input_tensor=input_data,
-        feature_names=feature_names,
-        model_id=model_id,
-        model_type=model_type,
-        base_path=ig_path,
-    )
+    plot_ig_beeswarm_grouped(ig_values=ig_data, input_tensor=input_data, feature_names=feature_names, model_id=model_id, model_type=model_type, base_path=ig_path)
 
     shap_files = [
         '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/cnn/0606_191829/ig_values_cnn.npy',
@@ -80,19 +73,12 @@ def main(config):
     ]
 
     model_names = ['cnn', 'mlp', 'gru', 'lstm', 'transformer', 'gtn', 'tft']
-    plot_ig_beeswarm_by_feature(shap_files, 'lst_day_t-1', feature_names, model_names, input_files, all_model_path)
-    plot_ig_beeswarm_by_feature(shap_files, 'lst_day_t-2', feature_names, model_names, input_files, all_model_path)
-    plot_ig_beeswarm_by_feature(shap_files, 'lst_night_t-1', feature_names, model_names, input_files, all_model_path)
-    plot_ig_beeswarm_by_feature(shap_files, 'ndvi_t-1', feature_names, model_names, input_files, all_model_path)
-    plot_ig_beeswarm_by_feature(shap_files, 'rh_t-1', feature_names, model_names, input_files, all_model_path)
-    plot_ig_beeswarm_by_feature(shap_files, 't2m_t-1', feature_names, model_names, input_files, all_model_path)
-    plot_ig_beeswarm_by_feature(shap_files, 't2m_t-2', feature_names, model_names, input_files, all_model_path)
-    plot_ig_beeswarm_by_feature(shap_files, 'tp_t-1', feature_names, model_names, input_files, all_model_path)
-    plot_ig_beeswarm_by_feature(shap_files, 'wind_speed_t-1', feature_names, model_names, input_files, all_model_path)
-    plot_ig_beeswarm_by_feature(shap_files, 'd2m_t-1', feature_names, model_names, input_files, all_model_path)
-    plot_ig_beeswarm_by_feature(shap_files, 'lai_t-1', feature_names, model_names, input_files, all_model_path)
-    plot_ig_beeswarm_by_feature(shap_files, 'lc_agriculture_t-1', feature_names, model_names, input_files, all_model_path)
-    plot_ig_beeswarm_by_feature(shap_files, 'ssrd_t-1', feature_names, model_names, input_files, all_model_path)
+    #features = ["lst_day_t-1", "lst_day_t-30", "rh_t-1", "rh_t-30", "smi_t-1", "smi_t-30", "lc_forest_t-1", "lc_forest_t-30", "wind_speed_t-1", "wind_speed_t-30"]
+    features = ["lst_day", "rh", "smi", "lc_forest", "wind_speed"]
+    for feature in features:
+        plot_ig_beeswarm_by_feature_grouped(shap_files, feature, feature_names, model_names, input_files, all_model_path)
+
+
 
 
 if __name__ == '__main__':

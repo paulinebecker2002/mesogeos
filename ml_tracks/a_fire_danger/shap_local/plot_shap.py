@@ -117,9 +117,9 @@ def main(config):
 
 
     print(f"Shape input: {input_tensor.shape}, SHAP: {np.array(shap_values).shape}")
-    #plot_grouped_feature_importance(shap_values, shap_class, feature_names, model_id, shap_path, model_type, logger)
+    #plot_grouped_feature_importance(shap_values, feature_names, shap_path, model_type)
     #plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, model_id, shap_path, model_type, logger)
-    #plot_beeswarm_grouped(shap_values, shap_class, input_tensor, feature_names, model_id, shap_path, model_type, logger)
+    plot_beeswarm_grouped(shap_values, shap_class, input_tensor, feature_names, model_id, shap_path, model_type, logger)
 
     #plot_shap_difference_bar(shap_data['class_0'], shap_data['class_1'], feature_names, model_id, shap_path, model_type, logger)
     #plot_shap_difference_aggregated(shap_data['class_0'], shap_data['class_1'], feature_names, model_id, shap_path, model_type, logger)
@@ -143,16 +143,16 @@ def main(config):
         15755, 15084, 15925, 14814, 15154, 14848, 16281, 15202, 14985, 15704
     ]
 
-    for idx in sample_idx:
-        print(f"Plotting SHAP waterfall for Sample: {idx}")
-        plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, f"{shap_path}/big_fire_waterfall", model_type, logger)
+    #for idx in sample_idx:
+     #   print(f"Plotting SHAP waterfall for Sample: {idx}")
+        #plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, f"{shap_path}/big_fire_waterfall", model_type, logger)
 
-    for idx in false_positive_sample_ids:
-        print(f"Plotting SHAP waterfall for Sample: {idx}")
+    #for idx in false_positive_sample_ids:
+     #   print(f"Plotting SHAP waterfall for Sample: {idx}")
         #plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, f"{shap_path}/false_positive_waterfall_grouped", model_type, logger)
 
-    for idx in true_negative_ids:
-        print(f"Plotting SHAP waterfall for Sample: {idx}")
+    #for idx in true_negative_ids:
+    #    print(f"Plotting SHAP waterfall for Sample: {idx}")
         #plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, f"{shap_path}/true_negative_waterfall_grouped", model_type, logger)
 
 

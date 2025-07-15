@@ -161,6 +161,13 @@ def get_feature_names(config):
 
     return feature_names
 
+def get_model_name(model_type):
+    if model_type != "transformer":
+        model_type = model_type.upper()
+    else:
+        model_type = "Transformer"
+    return model_type
+
 
 
 class MetricTracker:

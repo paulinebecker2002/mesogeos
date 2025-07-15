@@ -3,10 +3,9 @@ import subprocess
 from pathlib import Path
 import pandas as pd
 
-# 🔧 Modellnamen (z. B. "mlp", "cnn", "tft") anpassen
-MODEL_NAME = "tft"
 
-# 📁 Pfade definieren
+MODEL_NAME = "gtn"
+
 BASE_DIR = Path("/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger")
 LOG_DIR = BASE_DIR / "saved/log" / MODEL_NAME
 MODEL_DIR = BASE_DIR / "saved/models" / MODEL_NAME
@@ -15,7 +14,6 @@ CONFIG_TEST = BASE_DIR / f"configs/config_{MODEL_NAME}/config_test.json"
 TEST_LOG_BASE = BASE_DIR / "tester/saved/log" / MODEL_NAME
 SAVE_DIR = BASE_DIR / "saved/crossValidation"
 
-# 🔍 Reguläre Ausdrücke
 patterns = {
     "train_f1_score": re.compile(r"^\s*.*INFO\s+-\s+f1_score\s+:\s+([0-9.]+)"),
     "train_aucpr": re.compile(r"^\s*.*INFO\s+-\s+aucpr\s+:\s+([0-9.]+)"),
@@ -67,7 +65,7 @@ for idx, log_file in enumerate(log_paths):
     with log_file.open("r") as f:
         lines = f.readlines()
 
-    # 🔍 Train/Val-Metriken aus dem "model_best" Block
+
     for i in range(len(lines) - 1, -1, -1):
         if model_best_pattern.search(lines[i]):
             for j in range(i-1, -1, -1):
@@ -78,7 +76,7 @@ for idx, log_file in enumerate(log_paths):
                     break
             break
 
-    # 🔁 test.py ausführen
+    # test.py
     model_path = MODEL_DIR / run_id / "model_best.pth"
     if model_path.exists():
         try:
@@ -95,19 +93,18 @@ for idx, log_file in enumerate(log_paths):
             ], check=True)
 
         except subprocess.CalledProcessError as e:
-            print(f"⚠️ Fehler bei test.py für {run_id}: {e}")
+            print(f"Error for test.py at {run_id}: {e}")
             continue
 
-        # 🧪 Test-Ergebnisse aus test_info.log im neuesten Unterordner lesen
+        # read test results
         test_subdirs  = sorted(
             TEST_LOG_BASE.glob("*/info.log"),
             key=lambda p: p.stat().st_mtime,
             reverse=True
         )
-        print(f"⚠️paths: {test_subdirs}")
         if test_subdirs:
             test_log = test_subdirs[0]
-            print(f"🔍 Neuestes info.log gefunden: {test_log}")
+            print(f" info.log found at: {test_log}")
             with test_log.open() as f:
                 for line in reversed(f.readlines()):
                     if (m := patterns["test_dict"].search(line)):
@@ -115,14 +112,13 @@ for idx, log_file in enumerate(log_paths):
                         test_aucpr = float(m.group(2))
                         result["test_f1_score"] = test_f1_score
                         result["test_aucpr"] = test_aucpr
-                        print(f"✅ Test-Metriken: f1_score={test_f1_score}, aucpr={test_aucpr}")
+                        print(f"Test-Scores: f1_score={test_f1_score}, aucpr={test_aucpr}")
                         break
         else:
-            print("❌ Kein info.log im Test-Log-Verzeichnis gefunden.")
+            print("no info.log found.")
 
     results.append(result)
 
-# 💾 CSV speichern
 df = pd.DataFrame(results)
 csv_path = SAVE_DIR / f"{MODEL_NAME}_cv_results.csv"
 df.to_csv(csv_path, index=False)

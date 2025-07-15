@@ -8,11 +8,10 @@
 #SBATCH --gpus=1
 #SBATCH --gres=gpu:1
 #SBATCH --mem=480G
-#SBATCH --time=07:00:00
+#SBATCH --time=23:00:00
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=pauline.becker@student.kit.edu
 
-# Conda aktivieren
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate mesogeos_py38
 

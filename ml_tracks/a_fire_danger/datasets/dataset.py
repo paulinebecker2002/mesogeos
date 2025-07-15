@@ -119,6 +119,7 @@ class FireDataset(Dataset):
         self.dynamic = self.all[self.dynamic_features]
         self.static = self.all[self.static_features]
 
+        # Normalize the dynamic and static features
         self.dynamic = (self.dynamic - self.dynamic.mean()) / self.dynamic.std()
         self.static = (self.static - self.static.mean()) / self.static.std()
 

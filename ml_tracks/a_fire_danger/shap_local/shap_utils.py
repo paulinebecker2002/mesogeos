@@ -6,6 +6,7 @@ import seaborn as sns
 import shap
 import matplotlib.colors as mcolors
 import matplotlib.cm as cm
+from utils.util import get_model_name
 import torch
 
 
@@ -70,25 +71,33 @@ def plot_beeswarm_grouped(shap_values, shap_class, input_tensor, feature_names, 
         logger.info(f"Grouped SHAP Beeswarm Plot saved at: {save_file}")
 
 
-def plot_grouped_feature_importance(shap_values, shap_class, feature_names, model_id, base_path, model_type, logger=None):
-    save_file = os.path.join(base_path, f"grouped_shap_plot_{model_id}_{model_type}_{shap_class}.png")
+def plot_grouped_feature_importance(shap_values, feature_names, base_path, model_type):
+    save_file = os.path.join(base_path, f"grouped_absolute_feature_importance_{model_type}.png")
     os.makedirs(os.path.dirname(save_file), exist_ok=True)
 
     if model_type in ["lstm", "gru", "tft", "transformer"]:
         shap_values = shap_values.reshape(shap_values.shape[0], -1)
 
-    grouped_df, grouped_features = compute_grouped_shap_over_time(shap_values, feature_names)
-    mean_effect = grouped_df.abs().mean(axis=0).sort_values(ascending=False)
+    grouped_df, grouped_features = compute_grouped_shap_over_time(shap_values, feature_names, sum=True)
+    total_effect = grouped_df.abs().sum(axis=0).sort_values(ascending=False)
+    print(f"Features sorted by total importance: {model_type}")
+    print(total_effect.tolist())
+
+    #mean_effect = grouped_df.abs().mean(axis=0).sort_values(ascending=False)
+
+    if model_type == "transformer":
+        model_type = "Transformer"
+    else:
+        model_type = model_type.upper()
 
     plt.figure(figsize=(10, 6))
-    mean_effect.plot(kind="bar")
-    plt.ylabel("Mean |SHAP value|")
-    plt.title("Total influence per feature (aggregated over time)")
+    total_effect.plot(kind="bar")
+    plt.ylabel("Summed |SHAP| over Time")
+    plt.title(f"Total influence per feature (aggregated over time) - {model_type}")
     plt.tight_layout()
     plt.savefig(save_file, dpi=300)
     plt.close()
-    if logger:
-        logger.info(f"SHAP Grouped Plot stored at: {save_file}")
+    print(f"SHAP Grouped Plot stored at: {save_file}")
 
 
 def plot_shap_temporal_heatmap(shap_values, shap_class, feature_names, model_id, base_path, model_type, logger=None):
@@ -260,6 +269,15 @@ def plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_n
 
     if logger:
         logger.info(f"Grouped SHAP Waterfall Plot saved at: {save_file}")
+
+    df_export = pd.DataFrame({
+        "feature": grouped_features,
+        "input_value": sample_input,
+        "shap_value": sample_shap
+    })
+    csv_path = os.path.join(base_path, f"shap_waterfall_grouped_{model_type}_sample{sample_idx}.csv")
+    df_export.to_csv(csv_path, index=False)
+
 
 
 
@@ -695,9 +713,3 @@ def compute_grouped_physical_consistency_score(
     print(f"✅ Grouped Physical consistency (quantile-based) saved to: {save_file}")
     return df_results, save_file
 
-def get_model_name(model_type):
-    if model_type != "transformer":
-        model_type = model_type.upper()
-    else:
-        model_type = "Transformer"
-    return model_type

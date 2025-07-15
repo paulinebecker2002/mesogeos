@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import shap
 from collections import defaultdict
+from utils.util import get_model_name
+from shap_local.shap_utils import map_sample_ids_to_indices
 
 
 def plot_bar(ig_values, feature_names, model_id, model_type, base_path, logger=None):
@@ -89,6 +91,7 @@ def plot_temporal_heatmap(ig_values, feature_names, model_id, model_type, base_p
 
 
 def plot_ig_beeswarm(ig_values, input_tensor, feature_names, model_id, model_type, base_path, logger=None):
+    model_type = get_model_name(model_type)
     save_file = os.path.join(base_path, f"ig_beeswarm_plot_{model_id}_{model_type}.png")
     os.makedirs(os.path.dirname(save_file), exist_ok=True)
 
@@ -154,6 +157,7 @@ def plot_ig_beeswarm(ig_values, input_tensor, feature_names, model_id, model_typ
 
 
 def plot_ig_beeswarm_grouped(ig_values, input_tensor, feature_names, model_id, model_type, base_path):
+    model_type = get_model_name(model_type)
     save_file = os.path.join(base_path, f"ig_beeswarm_grouped_{model_id}_{model_type}.png")
     os.makedirs(os.path.dirname(save_file), exist_ok=True)
 
@@ -177,7 +181,7 @@ def plot_ig_beeswarm_grouped(ig_values, input_tensor, feature_names, model_id, m
     )
 
     shap.plots.beeswarm(expl, max_display=len(grouped_features), show=False)
-    plt.title(f"Grouped IG Beeswarm (Aggregated over Time)", fontsize=14)
+    plt.title(None)
     plt.tight_layout()
     plt.savefig(save_file, dpi=300)
     plt.close()
@@ -276,7 +280,146 @@ def plot_ig_beeswarm_by_feature(ig_files, feature_name, feature_names, model_nam
 
     print(f"IG Comparison Beeswarm Plot for Feature '{feature_name}' saved at: {save_file}")
 
-def compute_grouped_ig_over_time(ig_values, feature_names):
+def plot_ig_beeswarm_by_feature_grouped(ig_files, feature_name, feature_names, model_names, input_files, base_path):
+    """
+    Vergleich von IG-Werten für ein gruppiertes Basis-Feature (z. B. 'lst_day') über mehrere Modelle hinweg.
+    IG-Werte und Inputs werden dabei über die Zeit aggregiert (mean) pro Feature.
+
+    Args:
+        ig_files (List[str]): Pfade zu .npy-Dateien mit IG-Werten
+        feature_name (str): Basisname des Features (z. B. 'lst_day')
+        feature_names (List[str]): Liste aller Feature-Namen (z. B. ['lst_day_t-1', 'lst_day_t-2', ...])
+        model_names (List[str]): Namen der Modelle (z. B. ['transformer', 'cnn', ...])
+        input_files (List[str]): Pfade zu .npy-Dateien mit Input-Tensoren
+        base_path (str): Speicherpfad für den Plot
+    """
+    ig_values_all_models = []
+    input_data_all_models = []
+    num_samples = None
+
+    for ig_file, model_name, input_file in zip(ig_files, model_names, input_files):
+        ig_data = np.load(ig_file)  # shape: (N, T, F) or (N, T*F)
+        input_data = np.load(input_file)
+
+        grouped_ig_df, base_names_ig = compute_grouped_ig_over_time(ig_data, feature_names, sum=True)
+        grouped_input_np, base_names_input = compute_grouped_input_over_time(input_data, feature_names)
+
+        if feature_name not in base_names_ig:
+            raise ValueError(f"Feature '{feature_name}' not found in IG values for model {model_name}.")
+        if feature_name not in base_names_input:
+            raise ValueError(f"Feature '{feature_name}' not found in input data for model {model_name}.")
+
+        ig_values_all_models.append(grouped_ig_df[feature_name].values)
+        feature_idx = base_names_input.index(feature_name)
+        input_data_all_models.append(grouped_input_np[:, feature_idx].reshape(-1, 1))
+
+        if num_samples is None:
+            num_samples = grouped_ig_df.shape[0]
+        elif grouped_ig_df.shape[0] != num_samples:
+            raise ValueError(f"Sample mismatch for model {model_name}")
+
+    ig_values_all_models = np.stack(ig_values_all_models, axis=1)
+    input_data_all_models = np.concatenate(input_data_all_models, axis=1)
+
+    expl = shap.Explanation(
+        values=ig_values_all_models,
+        data=input_data_all_models,
+        feature_names=model_names
+    )
+
+    save_file = os.path.join(base_path, f"ig_beeswarm_by_feature_grouped_{feature_name}.png")
+    os.makedirs(os.path.dirname(save_file), exist_ok=True)
+
+    plt.figure(figsize=(8, 5))
+    shap.plots.beeswarm(expl, max_display=len(model_names), show=False)
+    plt.title(f"Integrated Gradients Comparison – Feature: {feature_name}")
+    plt.tight_layout()
+    plt.savefig(save_file, dpi=300)
+    plt.close()
+
+    print(f"[✓] Grouped IG Beeswarm Plot for Feature '{feature_name}' saved at: {save_file}")
+
+def plot_ig_waterfall(ig_values, input_tensor, feature_names, sample_ids, sample_idx, base_path, model_type):
+    """
+    Plot IG waterfall plot for a single instance (sample_idx) and save to file.
+    """
+    save_file = os.path.join(base_path, f"ig_waterfall_plot_{model_type}_sample{sample_idx}.png")
+    os.makedirs(os.path.dirname(save_file), exist_ok=True)
+
+    indices = map_sample_ids_to_indices(sample_ids, sample_idx)
+    index = indices[0]
+
+    if ig_values.ndim == 3:
+        ig_values = ig_values.reshape(ig_values.shape[0], -1)
+    if input_tensor.ndim == 3:
+        input_tensor = input_tensor.reshape(input_tensor.shape[0], -1)
+
+    sample_input = input_tensor[index]
+    sample_ig = ig_values[index]
+    base_value = ig_values.mean(0).sum()
+
+    expl = shap.Explanation(
+        values=sample_ig,
+        data=sample_input,
+        base_values=base_value,
+        feature_names=feature_names
+    )
+
+    model_type = get_model_name(model_type)
+    shap.plots.waterfall(expl, max_display=25, show=False)
+    plt.title(f"IG Waterfall – {model_type} {sample_idx}", fontsize=14)
+    plt.tight_layout()
+    plt.savefig(save_file, dpi=300)
+    plt.close()
+
+    print(f"IG Waterfall Plot saved at: {save_file}")
+
+
+def plot_ig_waterfall_grouped(ig_values, input_tensor, feature_names, sample_ids, sample_idx, base_path, model_type):
+    """
+    Grouped IG waterfall plot for a single instance (sample_idx), aggregating over time-lags per feature.
+    """
+    save_file = os.path.join(base_path, f"ig_waterfall_grouped_{model_type}_sample{sample_idx}.png")
+    os.makedirs(os.path.dirname(save_file), exist_ok=True)
+
+    indices = map_sample_ids_to_indices(sample_ids, sample_idx)
+    index = indices[0]
+
+    grouped_ig_df, grouped_features = compute_grouped_ig_over_time(ig_values, feature_names, sum=True)
+    grouped_input_np, base_feature_names = compute_grouped_input_over_time(input_tensor, feature_names)
+
+    col_idx = [base_feature_names.index(f) for f in grouped_features]
+    grouped_input_np = grouped_input_np[:, col_idx]
+    sample_input = grouped_input_np[index]
+    sample_ig = grouped_ig_df.iloc[index].values
+    base_value = grouped_ig_df.mean().sum()
+
+    expl = shap.Explanation(
+        values=sample_ig,
+        data=sample_input,
+        base_values=base_value,
+        feature_names=grouped_features
+    )
+
+    model_type = get_model_name(model_type)
+    shap.plots.waterfall(expl, max_display=25, show=False)
+    plt.title(f"Grouped IG Waterfall – {model_type} {sample_idx}", fontsize=14)
+    plt.tight_layout()
+    plt.savefig(save_file, dpi=300)
+    plt.close()
+
+    print(f"Grouped IG Waterfall Plot saved at: {save_file}")
+
+    df_export = pd.DataFrame({
+        "feature": grouped_features,
+        "input_value": sample_input,
+        "ig_value": sample_ig
+    })
+    csv_path = os.path.join(base_path, f"ig_waterfall_grouped_{model_type}_sample{sample_idx}.csv")
+    df_export.to_csv(csv_path, index=False)
+
+
+def compute_grouped_ig_over_time(ig_values, feature_names, sum=False):
     """
     Grouped IG-Values over time for base features.
     """
@@ -286,7 +429,10 @@ def compute_grouped_ig_over_time(ig_values, feature_names):
     ig_df = pd.DataFrame(ig_values, columns=feature_names)
     base_names = [name.split("_t-")[0] for name in feature_names]
     ig_df.columns = base_names
-    grouped_df = ig_df.groupby(axis=1, level=0).mean()
+    if sum:
+        grouped_df = ig_df.groupby(axis=1, level=0).sum()
+    else:
+        grouped_df = ig_df.groupby(axis=1, level=0).mean()
     return grouped_df, grouped_df.columns.tolist()
 
 

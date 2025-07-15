@@ -21,7 +21,7 @@ seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12345]
 
 for lag in time_lags:
     for seed in seeds:
-        print(f"⏳ Training mit Lag: {lag}, Seed: {seed}")
+        print(f" Training with Lag: {lag}, Seed: {seed}")
 
         train_cmd = [
             "python", str(TRAIN_SCRIPT),
@@ -34,15 +34,12 @@ for lag in time_lags:
 
         subdirs = sorted(MODEL_DIR.glob("*"), key=lambda p: p.stat().st_mtime)
         if not subdirs:
-            raise RuntimeError(f"❌ Kein Modellordner in {MODEL_DIR} gefunden.")
+            raise RuntimeError(f"No modelpath {MODEL_DIR} found.")
         last_model_dir = subdirs[-1]
         run_id = last_model_dir.name
 
-
-
-
         model_path = os.path.join(MODEL_DIR, run_id, "model_best.pth")
-        print(f"✅ Verwende Modell: {model_path}")
+        print(f"Use Modell: {model_path}")
 
         test_cmd = [
             "python", str(TEST_SCRIPT),

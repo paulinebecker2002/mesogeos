@@ -4,7 +4,7 @@ import subprocess
 from pathlib import Path
 
 MODEL_NAME = "tft"  # Change this to the model name you want to analyze
-BASE_DIR = Path(f"/pfs/work9/workspace/scratch/ka_hr7238-mesogeos/code/ml_tracks/a_fire_danger/saved/log/{MODEL_NAME}")
+BASE_DIR = Path(f"/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/log/{MODEL_NAME}")
 
 best_model = None
 best_aucpr = -1
@@ -31,7 +31,8 @@ for log_file in BASE_DIR.glob("*/info.log"):
                 timestep_value = int(m.group(1))
                 if timestep_value == DESIRED_TIMESTEPS:
                     timestep_found = True
-                break
+                    print(f"Found desired timestep {DESIRED_TIMESTEPS} in {log_file}")
+            break
 
         if not timestep_found:
             continue
