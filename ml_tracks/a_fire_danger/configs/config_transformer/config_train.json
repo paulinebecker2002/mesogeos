@@ -93,6 +93,7 @@
     "features": {
         "dynamic": ["d2m",
                        "lai",
+                        "lst_day",
                        "lst_night",
                        "ndvi",
                        "rh",

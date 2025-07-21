@@ -1,4 +1,4 @@
-{   "model_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/models/lala/0509_100415/model_best.pth",
+{   "model_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/models/transformer/0519_125059/model_best.pth",
     "model_type": "transformer",
     "name": "transformer",
     "n_gpu": 1,
@@ -70,6 +70,7 @@
     "features": {
         "dynamic": ["d2m",
                        "lai",
+                      "lst_day",
                        "lst_night",
                        "ndvi",
                        "rh",

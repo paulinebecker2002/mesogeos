@@ -92,7 +92,7 @@ def plot_second_order_interactions(X_df, model_wrapper, feature1, feature2, base
 
 def plot_first_order_interactions(X_df, model_wrapper, feature, base_save_path, model_type, logger):
     logger.info(f"Generating ALE plot for: {feature}")
-    plot_path = os.path.join(base_save_path, "first_order", f"ale_{feature}_{model_type}.png")
+    plot_path = os.path.join(base_save_path, "first_order_0.15_y", f"ale_{feature}_{model_type}_0.15.png")
     os.makedirs(os.path.dirname(plot_path), exist_ok=True)
 
     ale(
@@ -105,6 +105,13 @@ def plot_first_order_interactions(X_df, model_wrapper, feature, base_save_path, 
         plot=True,
     )
 
+    # Anpassungen am Plot
+    plt.title("")
+    plt.ylabel("")
+    plt.xlabel(feature, fontsize=14)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.ylim(-0.15, 0.15)
     plt.savefig(plot_path, bbox_inches='tight')
     plt.close()
 
@@ -158,19 +165,11 @@ def main(config):
     #plot_second_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature1='smi_t-1', feature2='lc_forest_t-1', base_save_path=base_save_path, model_type=model_type, logger=logger)
     #plot_second_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature1='lst_day_t-1', feature2='dem_t-1', base_save_path=base_save_path, model_type=model_type, logger=logger)
 
-    for feature1, feature2 in combinations(features_to_plot, 2):
-        plot_second_order_interactions(
-            X_df=X_df,
-            model_wrapper=model_wrapper,
-            feature1=feature1,
-            feature2=feature2,
-            base_save_path=base_save_path,
-            model_type=model_type,
-            logger=logger
-        )
+    #for feature1, feature2 in combinations(features_to_plot, 2):
+        #plot_second_order_interactions( X_df=X_df, model_wrapper=model_wrapper, feature1=feature1, feature2=feature2, base_save_path=base_save_path, model_type=model_type, logger=logger)
 
-    #for feature in features_to_plot:
-     #   plot_first_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature=feature, base_save_path=base_save_path, model_type=model_type, logger=logger)
+    for feature in features_to_plot:
+        plot_first_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature=feature, base_save_path=base_save_path, model_type=model_type, logger=logger)
 
 
 if __name__ == '__main__':

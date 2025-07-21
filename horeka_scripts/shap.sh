@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=shap_gtn
+#SBATCH --job-name=shap_transformer
 #SBATCH --partition=accelerated
 #SBATCH --account=hk-project-p0024498
 #SBATCH --nodes=1
@@ -16,4 +16,4 @@
 cd /hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger
 
 
-~/miniconda3/envs/mesogeos_py38/bin/python shap_local/compute_shap.py --config configs/config_gtn/config_train.json
+~/miniconda3/envs/mesogeos_py38/bin/python shap_local/compute_shap.py --config configs/config_transformer/config_train.json

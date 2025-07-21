@@ -119,20 +119,39 @@ def main(config):
     print(f"Shape input: {input_tensor.shape}, SHAP: {np.array(shap_values).shape}")
     #plot_grouped_feature_importance(shap_values, feature_names, shap_path, model_type)
     #plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, model_id, shap_path, model_type, logger)
-    plot_beeswarm_grouped(shap_values, shap_class, input_tensor, feature_names, model_id, shap_path, model_type, logger)
+    #plot_beeswarm_grouped(shap_values, shap_class, input_tensor, feature_names, model_id, shap_path, model_type, logger)
 
     #plot_shap_difference_bar(shap_data['class_0'], shap_data['class_1'], feature_names, model_id, shap_path, model_type, logger)
     #plot_shap_difference_aggregated(shap_data['class_0'], shap_data['class_1'], feature_names, model_id, shap_path, model_type, logger)
 
     #plot_shap_temporal_heatmap(shap_values, shap_class, feature_names, model_id, shap_path, model_type, logger)
 
-    sample_idx = [4792, 679, 8418, 1645, 1676]
+    bigFire_sample_idx = [4792, 679, 8418, 1645, 1676]
+
+    #Lists created in compare_models.ipynb
     false_positive_sample_ids = [
-        15330, 15494, 16849, 15341, 17076, 16985, 16861, 15569, 16701, 16838,
-        16896, 15759, 15687, 15391, 15593, 16919, 17079, 15647, 14748, 15306,
-        14825, 17031, 16696, 16781, 16917, 16829, 16787, 15639, 15767, 17000,
-        15624, 17028, 15499, 15559, 15621, 16823, 15812, 15459
+        16233, 15538, 15330, 15494, 16849, 15341, 17076, 16985, 16861, 15569,
+        16701, 16838, 16896, 15759, 15687, 15391, 15593, 16919, 17079, 15647,
+        14748, 15306, 14825, 17031, 16696, 16781, 16917, 16829, 16787, 15639,
+        15767, 17000, 15624, 17028, 15499, 15559, 15621, 16823, 15812, 15459,
+        15390, 15406, 17050, 16735, 15659, 15334, 15600, 15603, 16736, 15557,
+        15452, 16789, 15356, 16996, 15382, 17226, 15397, 17038, 15758, 16688,
+        17179, 17024, 15577, 17040, 17191, 15318, 15420, 15656, 15376, 15617,
+        16949, 17139, 17001, 16886, 16687, 15503, 15466, 16713, 17007, 15398,
+        16577, 15508, 15380, 15229, 16802, 15530, 16856, 15502, 15319, 16983,
+        16940, 16938, 16810, 15324, 17059, 17215, 16754, 15400, 16897, 15572
     ]
+
+    false_negative_sample_ids = [
+        8449, 3713, 625, 4152, 4892, 6519, 8453, 8523, 6692, 6079, 3126, 671, 8448, 3131, 2952, 4801,
+        4835, 4894, 4433, 4428, 5977, 6040, 3908, 702, 4800, 4832, 3920, 670, 3901, 4798, 3933, 6682,
+        719, 8374, 1608, 661, 3080, 630, 3651, 3932, 6201, 3730, 3904, 2970, 701, 622, 1619, 1656, 6699,
+        4422, 4836, 1639, 643, 3650, 4888, 6582, 8475, 5971, 2957, 8344, 6200, 6694, 1645, 665, 4893,
+        3711, 6701, 5978, 2959, 4839, 6210, 5962, 632, 6121, 6067, 707, 3708, 3190, 3738, 6090, 4459,
+        658, 3911, 1634, 5956, 3224, 2976, 3917, 623, 6522, 1642, 4927, 3912, 4806, 2962, 640, 1610,
+        631, 8561, 8562
+    ]
+
     true_negative_ids = [
         16608, 17285, 16028, 15754, 16217, 15344, 16648, 16618, 16099, 16241, 15160, 16087, 15028, 16201, 15865,
         15765, 15904, 16305, 17216, 14981, 16314, 16268, 16279, 16182, 15789, 14905, 15588, 14908, 16172, 14751,
@@ -143,13 +162,18 @@ def main(config):
         15755, 15084, 15925, 14814, 15154, 14848, 16281, 15202, 14985, 15704
     ]
 
-    #for idx in sample_idx:
-     #   print(f"Plotting SHAP waterfall for Sample: {idx}")
+    for idx in bigFire_sample_idx:
+        print(f"Plotting SHAP waterfall for Sample: {idx}")
         #plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, f"{shap_path}/big_fire_waterfall", model_type, logger)
 
-    #for idx in false_positive_sample_ids:
-     #   print(f"Plotting SHAP waterfall for Sample: {idx}")
+    for idx in false_positive_sample_ids:
+        print(f"Plotting SHAP waterfall for False Positive Sample: {idx}")
         #plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, f"{shap_path}/false_positive_waterfall_grouped", model_type, logger)
+
+    for idx in false_negative_sample_ids:
+        print(f"Plotting SHAP waterfall for False Negative Sample: {idx}")
+        plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, f"{shap_path}/false_negative_waterfall_grouped", model_type, logger)
+
 
     #for idx in true_negative_ids:
     #    print(f"Plotting SHAP waterfall for Sample: {idx}")
