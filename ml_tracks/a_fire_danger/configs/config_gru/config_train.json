@@ -9,7 +9,7 @@
     "class": "1"
   },
     "XAI": {
-        "ig_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/gru/0606_191651",
+        "ig_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/gru/0721_162240",
       "checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/models/gru/0514_140125/model_best.pth",
       "only_positive": false,
         "only_negative": false

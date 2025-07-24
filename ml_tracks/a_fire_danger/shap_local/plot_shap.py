@@ -39,7 +39,6 @@ def main(config):
 
     shap_data, labels, sample_ids = load_shap_inputs_from_combined_npz(shap_path, model_id, model_type)
 
-    # convert SHAP class to correct shap values
     shap_class = config["shap"]["class"]
     shap_values = shap_data[f"class_{shap_class}"]
     print(f"SHAP shape: {shap_values.shape}, Labels shape: {labels.shape}, Unique labels: {np.unique(labels)}")
@@ -67,7 +66,6 @@ def main(config):
     else:
         print("Using all SHAP values:", shap_values.shape)
 
-
     shap_files = [
         '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/cnn/0615_020509/shap_values_0517_181322_cnn.npz',
         '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/mlp/0615_020230/shap_values_0517_175347_mlp.npz',
@@ -89,7 +87,6 @@ def main(config):
         '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/rf/0616_091841/shap_values_0612_082906_rf_input.npy',
         '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/tft/0616_133748/shap_values_0612_083316_tft_input.npy'
     ]
-
 
     model_names = ['cnn', 'mlp', 'gru', 'lstm', 'transformer', 'gtn', 'rf', 'tft']
     features = ['lst_day_t-1', 'lst_day_t-2', 'rh_t-1', 't2m_t-1', 'd2m_t-1', 'lst_night_t-1', 'ndvi_t-1', 't2m_t-2', 'tp_t-1', 'wind_speed_t-1', 'lai_t-1', 'lst_day_t-5']
@@ -117,7 +114,7 @@ def main(config):
 
 
     print(f"Shape input: {input_tensor.shape}, SHAP: {np.array(shap_values).shape}")
-    #plot_grouped_feature_importance(shap_values, feature_names, shap_path, model_type)
+    plot_grouped_feature_importance(shap_values, feature_names, shap_path, model_type)
     #plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, model_id, shap_path, model_type, logger)
     #plot_beeswarm_grouped(shap_values, shap_class, input_tensor, feature_names, model_id, shap_path, model_type, logger)
 

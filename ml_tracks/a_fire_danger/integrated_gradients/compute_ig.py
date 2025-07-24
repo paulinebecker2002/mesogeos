@@ -81,26 +81,42 @@ def main(config):
     if model_type in ["lstm", "gru", "tft"]:
         model.train()
 
-    ig_results, coord_x, coord_y, labels_all, input_all = [], [], [], [], []
+    ig_results, coord_x, coord_y, labels_all, input_all, sample_ids_all, probs_all = [], [], [], [], [], [], []
 
     for batch_idx, batch in enumerate(dataloader):
-        dynamic, static, label, _, x, y = batch[:6]
+        dynamic, static, _, labels, x, y, sample_id = batch[:7]
+
         if model_type == "tft":
-            input_ = dynamic  # Nur dynamische Features fürs Modell
+            input_ = dynamic
         else:
             static_expanded = static.unsqueeze(1).repeat(1, dynamic.shape[1], 1)
             input_ = torch.cat([dynamic, static_expanded], dim=2)
 
         if model_type == "mlp":
             input_ = input_.view(input_.shape[0], -1)
-        else:
-            pass
 
         input_ = input_.float().to(device)
         static = static.float().to(device)
+        with torch.no_grad():
+            if model_type == "tft":
+                output = model(input_, static)
+            elif model_type in ["transformer", "gtn"]:
+                reshaped = input_.permute(1, 0, 2)  # [seq_len, B, F]
+                output = model(reshaped)
+            elif model_type in ["lstm", "gru", "cnn"]:
+                output = model(input_)
+            elif model_type == "mlp":
+                output = model(input_)
+            else:
+                raise NotImplementedError
 
-        labels = batch[3]  # <- Index 3 laut __getitem__
-        labels_all.extend(labels.cpu().numpy())
+            probs = torch.softmax(output, dim=1)[:, 1]  # Klasse 1 Wahrscheinlichkeit
+            probs_all.extend(probs.cpu().numpy())
+
+        labels_all.extend(labels.cpu().numpy().astype(int))
+        sample_ids_all.extend(sample_id.cpu().numpy().astype(int))
+        coord_x.extend(x.cpu().numpy())
+        coord_y.extend(y.cpu().numpy())
 
         if model_type == "tft":
             static_expanded = static.unsqueeze(1).repeat(1, seq_len, 1)
@@ -114,36 +130,75 @@ def main(config):
             input_all.append(input_.detach().cpu())
 
         ig_results.append(ig_batch.detach().cpu())
-        coord_x.extend(x.cpu().numpy())
-        coord_y.extend(y.cpu().numpy())
 
         if (batch_idx + 1) % 2 == 0:
             logger.info(f"Processed {batch_idx + 1} batches")
 
-    ig_all = torch.cat(ig_results, dim=0)
+    ig_all = torch.cat(ig_results, dim=0).numpy()
+    input_all = torch.cat(input_all, dim=0).numpy()
+
     timestamp = datetime.now().strftime("%m%d_%H%M%S")
     base_save_path = f"/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/{model_type}/"
     save_path = os.path.join(base_save_path, timestamp)
     os.makedirs(save_path, exist_ok=True)
 
-    ig_np = ig_all.numpy()
-    input_tensor = torch.cat(input_all, dim=0).numpy()
-    print("[DEBUG] ig_all shape:", ig_all.shape)
-    print("[DEBUG] ig_all.reshape: ", ig_np.reshape(ig_np.shape[0], -1).shape)
-    print("[DEBUG] len(feature_names):", len(feature_names))
-    np.save(os.path.join(save_path, f"ig_values_{model_type}.npy"), ig_np)
-    np.save(os.path.join(save_path, f"ig_labels_{model_type}.npy"), np.array(labels_all))
-    np.save(os.path.join(save_path, f"ig_input_tensor_{model_type}.npy"), input_tensor)
+    model_id = os.path.basename(os.path.dirname(checkpoint_path))
 
-    base_names = [f.split("_t-")[0] for f in feature_names]
-    df = pd.DataFrame(ig_np.reshape(ig_np.shape[0], -1), columns=feature_names)
-    df.columns = base_names
-    df["x"] = coord_x
-    df["y"] = coord_y
-    df["label"] = labels_all
-    df.to_csv(os.path.join(save_path, f"ig_map_{model_type}.csv"), index=False)
+    # Speichern als NPZ
+    ig_save_path = os.path.join(save_path, f"ig_values_{model_id}_{model_type}.npz")
+    np.savez(
+        ig_save_path,
+        class_1=ig_all
+    )
 
-    logger.info(f"IG saved to: {save_path}")
+    combined_npz_path = ig_save_path.replace(".npz", "_combined.npz")
+    np.savez(
+        combined_npz_path,
+        class_1=ig_all,
+        sample_id=np.array(sample_ids_all),
+        label=np.array(labels_all),
+        feature_names=np.array(feature_names)
+    )
+
+    # Kombinierte CSV
+    df_combined = pd.DataFrame({
+        'sample_id': sample_ids_all,
+        'label': labels_all,
+        'x': coord_x,
+        'y': coord_y,
+        'probs': probs_all
+    })
+
+    ig_df = pd.DataFrame(ig_all.reshape(ig_all.shape[0], -1), columns=feature_names)
+    ig_df = ig_df.add_prefix("ig_class_1_")
+    df_combined = pd.concat([df_combined, ig_df], axis=1)
+
+    combined_csv_path = ig_save_path.replace(".npz", "_combined.csv")
+    df_combined.to_csv(combined_csv_path, index=False)
+
+    # Aggregierte Map nach Basis-Feature-Namen
+    base_feature_names = [f.split("_t-")[0] for f in feature_names]
+    ig_df = pd.DataFrame(ig_all.reshape(ig_all.shape[0], -1), columns=feature_names)
+    ig_df.columns = base_feature_names
+    ig_agg = ig_df.groupby(axis=1, level=0).mean()
+
+    df_map = pd.DataFrame({
+        'sample': sample_ids_all,
+        'label': labels_all,
+        'x': coord_x,
+        'y': coord_y,
+        'probs': probs_all
+    })
+    df_map = pd.concat([df_map, ig_agg], axis=1)
+    map_csv_path = os.path.join(save_path, f"ig_map_{model_type}.csv")
+    df_map.to_csv(map_csv_path, index=False)
+
+    # Optional: Input-Tensor speichern
+    np.save(ig_save_path.replace(".npz", "_input.npy"), input_all)
+
+    logger.info(f"Saved IG NPZ to: {ig_save_path}")
+    logger.info(f"Saved combined CSV to: {combined_csv_path}")
+    logger.info(f"Saved IG map CSV to: {map_csv_path}")
 
 
 if __name__ == "__main__":

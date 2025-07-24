@@ -6,6 +6,22 @@ from parse_config import ConfigParser
 from utils.util import get_feature_names
 from ig_utils import plot_bar, plot_temporal_heatmap, plot_ig_beeswarm, plot_ig_beeswarm_only_once_each_feature, plot_ig_beeswarm_by_feature, plot_ig_beeswarm_grouped, plot_ig_beeswarm_by_feature_grouped, plot_ig_waterfall_grouped, plot_ig_waterfall
 
+def load_ig_inputs_from_combined_npz(ig_path, model_id, model_type):
+    """
+    Lädt IG-Werte, Labels und Sample-IDs aus einer kombinierten .npz-Datei.
+    """
+    combined_npz_path = os.path.join(ig_path, f"ig_values_{model_id}_{model_type}_combined.npz")
+    if not os.path.exists(combined_npz_path):
+        raise FileNotFoundError(f"Combined IG file not found: {combined_npz_path}")
+
+    data = np.load(combined_npz_path, allow_pickle=True)
+
+    ig_values = data["class_1"]         # oder class_0 je nach Interesse
+    labels = data["label"]
+    sample_ids = data["sample_id"]
+
+    return ig_values, labels, sample_ids
+
 def main(config):
     logger = config.get_logger('ig')
 
@@ -18,12 +34,10 @@ def main(config):
     model_id = os.path.basename(os.path.dirname(checkpoint_path))
     all_model_path = '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/all_model_comparison'
 
-    ig_file = os.path.join(ig_path, f"ig_values_{model_type}.npy")
-    ig_data = np.load(ig_file)
-    label_file = os.path.join(ig_path, f"ig_labels_{model_type}.npy")
-    labels = np.load(label_file)
-    input_file = os.path.join(ig_path, f"ig_input_tensor_{model_type}.npy")
-    input_data = np.load(input_file)
+    ig_data, labels, sample_ids = load_ig_inputs_from_combined_npz(ig_path, model_id, model_type)
+
+    input_file_path = os.path.join(ig_path, f"ig_values_{model_id}_{model_type}_input.npy")
+    input_data = np.load(input_file_path)
 
     if only_neg and only_pos:
         raise ValueError("Both only_positive and only_negative cannot be True at the same time.")
@@ -50,7 +64,7 @@ def main(config):
     #plot_temporal_heatmap(ig_data, feature_names, model_id, model_type, ig_path, logger, scaled=False)
     #plot_ig_beeswarm(ig_data, input_data, feature_names, model_id, model_type, ig_path, logger)
     #plot_ig_beeswarm_only_once_each_feature(ig_data, input_data, feature_names, model_id, model_type, ig_path, logger)
-    plot_ig_beeswarm_grouped(ig_values=ig_data, input_tensor=input_data, feature_names=feature_names, model_id=model_id, model_type=model_type, base_path=ig_path)
+    #plot_ig_beeswarm_grouped(ig_values=ig_data, input_tensor=input_data, feature_names=feature_names, model_id=model_id, model_type=model_type, base_path=ig_path)
 
     shap_files = [
         '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/cnn/0606_191829/ig_values_cnn.npy',
@@ -75,8 +89,14 @@ def main(config):
     model_names = ['cnn', 'mlp', 'gru', 'lstm', 'transformer', 'gtn', 'tft']
     #features = ["lst_day_t-1", "lst_day_t-30", "rh_t-1", "rh_t-30", "smi_t-1", "smi_t-30", "lc_forest_t-1", "lc_forest_t-30", "wind_speed_t-1", "wind_speed_t-30"]
     features = ["lst_day", "rh", "smi", "lc_forest", "wind_speed"]
-    for feature in features:
-        plot_ig_beeswarm_by_feature_grouped(shap_files, feature, feature_names, model_names, input_files, all_model_path)
+    #for feature in features:
+        #plot_ig_beeswarm_by_feature_grouped(shap_files, feature, feature_names, model_names, input_files, all_model_path)
+
+    bigFire_sample_idx = [4792, 679, 8418, 1645, 1676]
+    for idx in bigFire_sample_idx:
+        print(f"Plotting SHAP waterfall for Sample: {idx}")
+        plot_ig_waterfall_grouped(ig_values=ig_data, input_tensor=input_data, feature_names=feature_names, sample_ids=sample_ids, sample_idx=idx, base_path=f"{ig_path}/big_fire_waterfall", model_type=model_type)
+
 
 
 
