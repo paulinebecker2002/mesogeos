@@ -90,7 +90,7 @@ This will train the model and save the best checkpoint under saved/models as 'mo
 
 ---
 
-## 🧪 Testing / Evaluation
+## Testing / Evaluation
 
 1. Open the corresponding `config_test.py` file and update the `model_path` entry to point to the `model_best.pth` checkpoint.
 2. Run:
@@ -100,7 +100,7 @@ This will train the model and save the best checkpoint under saved/models as 'mo
 
 ---
 
-## 🔍 Explainable AI (XAI)
+## Explainable AI (XAI)
 
 We use **SHAP (SHapley Additive Explanations)** and **Integrated Gradients (IG)** to interpret the predictions of trained models.
 
