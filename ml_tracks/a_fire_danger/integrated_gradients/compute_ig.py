@@ -103,9 +103,7 @@ def main(config):
             elif model_type in ["transformer", "gtn"]:
                 reshaped = input_.permute(1, 0, 2)  # [seq_len, B, F]
                 output = model(reshaped)
-            elif model_type in ["lstm", "gru", "cnn"]:
-                output = model(input_)
-            elif model_type == "mlp":
+            elif model_type in ["lstm", "gru", "cnn", "mlp"]:
                 output = model(input_)
             else:
                 raise NotImplementedError

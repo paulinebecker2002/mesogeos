@@ -25,7 +25,7 @@ def get_shap_explanation(model, model_type, input_all, device, seq_len, static_f
             print(f"input {input_all.shape}, seq_len={seq_len}, n_features={n_features}")
         # Wrapper to convert input to PyTorch tensor, run the model and convert output back to numpy
         def model_wrapper(x_numpy):
-            x_tensor = torch.from_numpy(x_numpy).float().to(device)
+            x_tensor = torch.from_numpy(x_numpy.astype(np.float32)).to(device)
             with torch.no_grad():
                 output = model(x_tensor)
                 output = torch.softmax(output, dim=1)
@@ -78,7 +78,7 @@ def get_shap_explanation(model, model_type, input_all, device, seq_len, static_f
             logger.info(f"Using KernelExplainer for model_type='{model_type}'")
 
         def model_wrapper(x_numpy):
-            x_tensor = torch.from_numpy(x_numpy).float().to(device)
+            x_tensor = torch.from_numpy(x_numpy.astype(np.float32)).to(device)
             if model_type in ['lstm', 'gru', 'cnn']:
                 # Reshape for LSTM/GRU: [batch_size, seq_len, n_features]
                 x_tensor = x_tensor.view(x_tensor.shape[0], seq_len, n_features)
@@ -227,19 +227,33 @@ def main(config):
         model = model.to(device)
         model.eval()
 
-        all_inputs, coords_x, coords_y, all_labels, all_samples = [], [], [], [], []
+        all_inputs, coords_x, coords_y, all_labels, all_samples, all_probs = [], [], [], [], [], []
         for batch in dataloader:
             dynamic, static, bas_size, labels, x, y, sample_id = batch[:7]
             static = static.unsqueeze(1).repeat(1, dynamic.shape[1], 1)
             input_ = torch.cat([dynamic, static], dim=2)
             if config["model_type"] == "mlp":
                 input_ = input_.view(input_.shape[0], -1)
+
+            with torch.no_grad():
+                if model_type == "tft":
+                    output = model(input_, static)
+                elif model_type in ["transformer", "gtn"]:
+                    reshaped = input_.permute(1, 0, 2).float().to(device)   # [seq_len, B, F]
+                    output = model(reshaped)
+                elif model_type in ["lstm", "gru", "cnn", "mlp"]:
+                    output = model(input_)
+                else:
+                    raise NotImplementedError
+
+            probs = torch.softmax(output, dim=1)[:, 1]
+
+            all_probs.append(probs.cpu().numpy())
             all_inputs.append(input_)
             coords_x.extend(x.cpu().numpy())
             coords_y.extend(y.cpu().numpy())
             all_labels.extend(labels.cpu().numpy().astype(int))
             all_samples.extend(sample_id.cpu().numpy().astype(int))
-
 
         input_all = torch.cat(all_inputs, dim=0).to(device).float()
         print(type(input_all), input_all.shape)
@@ -293,12 +307,13 @@ def main(config):
     base_feature_names = [name.split("_t-")[0] for name in feature_names]
     shap_df = pd.DataFrame(shap_values[1], columns=feature_names)
     shap_df.columns = base_feature_names
-    shap_agg = shap_df.groupby(axis=1, level=0).mean()  # → (n_samples, n_base_features)
+    shap_agg = shap_df.groupby(axis=1, level=0).sum()  # → (n_samples, n_base_features) jetzt hier summ statt mean
     df_shap = shap_agg.copy()
     df_shap['x'] = coords_x
     df_shap['y'] = coords_y
     df_shap['label'] = all_labels
     df_shap['sample'] = all_samples
+    df_shap['prob'] = np.concatenate(all_probs)
     csv_save_path = os.path.join(base_save_path, timestamp, f"shap_map_{model_type}.csv")
     os.makedirs(os.path.dirname(csv_save_path), exist_ok=True)
     df_shap.to_csv(csv_save_path, index=False)
