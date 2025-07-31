@@ -1,182 +1,121 @@
-# Mesogeos: A multi-purpose dataset for data-driven wildfire modeling in the Mediterranean
+# Mesogeos Wildfire Prediction
 
-🆕 2023-09: Accepted at [Neurips 2023 Datasets and Benchmarks Track](https://openreview.net/group?id=NeurIPS.cc/2023/Track/Datasets_and_Benchmarks)
+This project focuses on wildfire danger forecasting using machine learning and explainable AI (XAI) methods, based on the **Mesogeos** dataset — a publicly available datacube covering the Mediterranean region from 2006 to 2022 at 1 km × 1 km × 1 day resolution.
 
-This is the official code repository of the mesogeos dataset. 
+---
 
-[Pre-print](https://arxiv.org/abs/2306.05144) describing the paper.
+## Data Repository
 
-This repo contains code for the following:
-* Creation of the Mesogeos datacube.
-* Extraction of machine learning datasets for different tracks.
-* Training and evaluation of machine learning models for these tracks.
+The dataset originates from **Mesogeos**.  
+You can download it from the following Google Drive folder:
 
-**Authors**: *Spyros Kondylatos (1, 2), Ioannis Prapas (1, 2), Gustau Camps-Valls (2), Ioannis Papoutsis (1)*
+ **[Mesogeos Data Repository](https://drive.google.com/drive/folders/1aRXQXVvw6hz0eYgtJDoixjPQO-_bRKz9)**
 
-*(1) Orion Lab, IAASARS, National Observatory of Athens*
+This folder includes:
+- **`mesogeos_cube.zarr/`**: The full Mesogeos datacube  
+- **`ml_tracks/`**: Pre‑extracted datasets for machine learning tracks  
+- **`notebooks/`**: Jupyter notebooks demonstrating how to access and process the Mesogeos cubes  
 
-*(2) Image & Signal Processing Group, Universitat de València*
+---
 
-## Table of Contents
-
-- [Downloading the data](#downloading-the-data)
-- [Datacube Generation](#datacube-generation)
-- [Machine Learning Tracks](#machine-learning-tracks)
- - [Track A: Wildfire Danger Forecasting](#track-a-wildfire-danger-forecasting)
- - [Track B: Final Burned Area Prediction](#track-b-final-burned-area-prediction)
-- [Contributing](#contributing)
-- [Datacube Details](#datacube-details)
-- [Citation](#citation)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
-
-## Data repository
-
-You can access the data using this [Drive link](https://drive.google.com/drive/folders/1aRXQXVvw6hz0eYgtJDoixjPQO-_bRKz9). This link contains the mesogeos datacube (`mesogeos_cube.zarr/`), the extracted datasets for the machine learning tracks (`ml_tracks/`), as well as notebooks showing how to access the mesogeos cubes (`notebooks/`).
-
-### Accessing the mesogeos cube
-
-The mesogeos cube is publicly accessible in the following places:
-
-- Google Drive folder: [https://drive.google.com/drive/folders/1aRXQXVvw6hz0eYgtJDoixjPQO-_bRK z9
-](https://drive.google.com/drive/folders/1aRXQXVvw6hz0eYgtJDoixjPQO-_bRKz9)
-
-- ~~S3 Storage in OVH~~ (This option isn't supported anymore due to supporting project termination)
-
-#### Option 1: Access from Google Colab
-[notebooks/1_Exploring_Mesogeos.ipynb](notebooks/1_Exploring_Mesogeos.ipynb) shows how to open Mesogeos directly in google colab 
-[![colab_link](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Orion-AI-Lab/mesogeos/blob/main/notebooks/1_Exploring_Mesogeos.ipynb)
-
-#### Option 2: Download from Google Colab
-
-[Rclone](https://rclone.org/) may be the best option to download the dataset from google drive. See [this issue](https://github.com/Orion-AI-Lab/mesogeos/issues/4). 
-
-## Datacube Generation
-
-Find the code to generate a datacube like mesogeos in [datacube_creation](datacube_creation/).
-
-## Machine Learning Tracks
-### Track A: Wildfire Danger Forecasting
-
-This track defines wildfire danger forecasting as a binary classification problem.
-
-More details in [Track A](ml_tracks/a_fire_danger/)
-
-### Track B: Final Burned Area Prediction
-
-This track is about predicting the final burned area of a wildfire given the ignition point and the conditions of the fire drivers at the first day of the fire in a neighborhood around the ignition point.
-
-More details in [Track B](./ml_tracks/b.final_burned_area/README.md)
-
-## Datacube Details
-
-Mesogeos is meant to be used to develop models for wildfire modeling in the Mediterranean. 
-It contains variables related to the ignition and spread of wildfire for the years 2006 to 2022 at a daily 1km x 1km grid.
-
-<details> <summary>Datacube Variables</summary>
-
-The datacube contains the following variables:
-
-- satellite data from MODIS (Land Surface Temperature (https://lpdaac.usgs.gov/products/mod11a1v061/), Normalized Vegetation Index (https://lpdaac.usgs.gov/products/mod13a2v061/), Leaf Area Index (https://lpdaac.usgs.gov/products/mod15a2hv061/))
-- weather variables from ERA5-Land (max daily temperature, max daily dewpoint temperature, min daily relative humidity, 
-max daily wind speed, max daily surface pressure, mean daily surface solar radiation downwards) (https://cds.climate.copernicus.eu/cdsapp#!/dataset/10.24381/cds.e2161bac?tab=overview)
-- soil moisture index from JRC European Drought Observatory (https://edo.jrc.ec.europa.eu/edov2/home.static.html)
-- population count (https://hub.worldpop.org/geodata/listing?id=64) & distance to roads (https://hub.worldpop.org/geodata/listing?id=33) from worldpop.org 
-- land cover from Copernicus Climate Change Service (https://cds.climate.copernicus.eu/cdsapp#!/dataset/satellite-land-cover?tab=overview)
-- elevation, aspect, slope and curvature from Copernicus EU-DEM (https://land.copernicus.eu/imagery-in-situ/eu-dem/eu-dem-v1.1?tab=download)
-- burned areas and ignition points from EFFIS (https://effis.jrc.ec.europa.eu/applications/data-and-services)
-
-Vriables in the cube:
-| Variable | Units | Description |
-| --- | --- | --- |
-| aspect | ° | aspect |
-| burned areas | unitless | rasterized burned polygons. 0 when no burned area occurs in that cell, 1 if it does for the day of interest |
-| curvature | rad | curvature |
-| d2m | K | day's maximum 2 metres dewpoint temperature |
-| dem | m | elevation |
-| ignition_points | hectares | rasterized fire ignitions. It contains the final hectares of the burned area resulted from the fire |
-| lai | unitless | leaf area index |
-| lc_agriculture | % | fraction of agriculture in the pixel. 1st Jan of each year has the values of the year |
-| lc_forest | % | fraction of forest in the pixel. 1st Jan of each year has the values of the year |
-| lc_grassland | % | fraction of grassland in the pixel. 1st Jan of each year has the values of the year |
-| lc_settlement | % | fraction of settlement in the pixel. 1st Jan of each year has the values of the year |
-| lc_shrubland | % | fraction of shrubland in the pixel. 1st Jan of each year has the values of the year |
-| lc_sparse_veagetation | % | fraction of sparse vegetation in the pixel. 1st Jan of each year has the values of the year |
-| lc_water_bodies | % | fraction of water bodies in the pixel. 1st Jan of each year has the values of the year |
-| lc_wetland | % | fraction of wetland in the pixel. 1st Jan of each year has the values of the year |
-| lst_day | K | day's land surface temperature |
-| lst_night | K | nights' land surface temperature |
-| ndvi | unitless | normalized difference vegetation index |
-| population | people/km^2 | population count per year. 1st Jan of each year has the values of the year |
-| rh | %/100 | day's minimum relative humidity |
-| roads_distance | km | distance from the nearest road |
-| slope | rad | slope |
-| smi | unitless | soil moisture index |
-| sp | Pa | day's maximum surface pressure |
-| ssrd | J/m^2| day's average surface solar radiation downwards |
-| t2m | K | day's maximum 2 metres temperature |
-| tp | m | day's total precipitation |
-| wind_speed | m/s | day's maximum wind speed |
-
-</details>
-
-An example of some variables for a day in the cube:
-![image](https://user-images.githubusercontent.com/76213770/225653285-754a7d4a-8f32-4200-820b-d3614e14b864.png)
-
-
-**Datacube Metadata**
-
-- Temporal Extent: `(2006-04-01, 2022-09-29)`
-- Spatial Extent: `(-10.72, 30.07, 36.74, 47.7)`, i.e. the wider Mediterranean region.
-- Coordinate Reference System: `EPSG:4326`
-
-
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7741518.svg)](https://doi.org/10.5281/zenodo.7741518)
-
-**Datacube Citation** 
+## Repository Structure
 
 ```
-Spyros Kondylatos, Ioannis Prapas, Gustau Camps-Valls, & Ioannis Papoutsis. (2023). 
-Mesogeos: A multi-purpose dataset for data-driven wildfire modeling in the Mediterranean. 
-Zenodo. https://doi.org/10.5281/zenodo.7473331
+mesogeos/
+├── ml_tracks/
+│   └── a_fire_danger/
+│       ├── configs/                  # Model-specific configs (MLP, CNN, LSTM, etc.)
+│       ├── dataloaders/              # Data loading utilities
+│       ├── datasets/                 # Dataset definitions
+│       ├── integrated_gradients/     # IG computation & plotting
+│       ├── models/                   # Model architectures & metrics
+│       ├── shap_local/               # SHAP computation & plotting
+│       ├── trainer/                  # Training scripts & utilities
+│       ├── tester/                   # Evaluation and testing scripts
+│       └── utils/                    # Helper utilities
+│
+├── notebooks/                        # Jupyter notebooks for exploration & visualization
+├── outputs/                          # Analysis outputs & comparison notebooks
+├── requirements.txt                  # Python dependencies
+├── train.py                          # Entry point for training
+├── test.py                           # Entry point for testing
+└── README.md                         # Project documentation
 ```
 
-## Contributing
+---
 
-We welcome new contributions for new models and new machine learning tracks!
+## Setup Environment
 
-**New Model**: To contribute a new model for an existing track, your code has to be (i) open, (ii) reproducible (we should be able to easily run your code and get the reported results) and (iii) use the same dataset split defined for the track. 
-After we verify your results, you get to **add your model and name to the leaderboard**. 
-Check the current [leaderboards](https://orion-ai-lab.github.io/mesogeos/).
+Follow these steps to set up your Python environment:
 
-[Submit a new issue](https://github.com/Orion-AI-Lab/mesogeos/issues/new/choose) containing a link to your code.
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/paulinebecker2002/mesogeos.git
+   cd mesogeos
+   ```
 
-**New ML Track**: To contribute a new track, [submit a new issue](https://github.com/Orion-AI-Lab/mesogeos/issues/new/choose).
+2. **Create and activate a Python environment (e.g., venv):**
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
 
-We recommend at minimum:
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-1. a dataset extraction process that samples from mesogeos,
-2. a description of the task,
-3. a baseline model,
-4. appropriate metrics.
+---
 
-### License
+## Training a Model
 
-Creative Commons Attribution v4
-
-### Citation
-
-```
-@inproceedings{
-kondylatos2023mesogeos,
-title={Mesogeos: A multi-purpose dataset for data-driven wildfire modeling in the Mediterranean},
-author={Spyros Kondylatos and Ioannis Prapas and Gustau Camps-Valls and Ioannis Papoutsis},
-booktitle={Thirty-seventh Conference on Neural Information Processing Systems Datasets and Benchmarks Track},
-year={2023},
-url={https://openreview.net/forum?id=VH1vxapUTs}
-}
+To train a model (e.g., MLP), run:
+```bash
+python train.py --config configs/config_<model_name>/config_train.py
 ```
 
-### Acknowledgements 
+This will train the model and save the best checkpoint under saved/models as:
+```
+model_best.pth
+```
 
-This work has received funding from the European Union’s Horizon 2020 Research and Innovation Projects DeepCube and TREEADS, under Grant Agreement Numbers 101004188 and 101036926353 respectively
+---
+
+## 🧪 Testing / Evaluation
+
+1. Open the corresponding `config_test.py` file and update the `model_path` entry to point to the `model_best.pth` checkpoint.
+2. Run:
+   ```bash
+   python test.py --config configs/config_<model_name>/config_test.py
+   ```
+
+---
+
+## 🔍 Explainable AI (XAI)
+
+We use **SHAP (SHapley Additive Explanations)** and **Integrated Gradients (IG)** to interpret the predictions of trained models.
+
+### Compute SHAP:
+```bash
+python shap_local/compute_shap.py --config configs/config_<model_name>/config_train.py
+```
+### Compute IG:
+python integrated_gradients/compute_ig.py --config configs/config_<model_name>/config_train.py
+
+### Important config keys:
+- **`checkpoint_path`**: Path to the trained model checkpoint (e.g., `model_best.pth`)  
+- **`shap_path`**: Directory where SHAP and IG explanation outputs will be saved  
+
+These scripts will generate feature attribution values for interpretability and store them for visualization.
+
+---
+
+## Visualization with Notebooks
+
+The `notebooks/` folder contains Jupyter notebooks designed for:
+- Exploring the Mesogeos datacube  
+- Visualizing input features and data distributions  
+- Plotting model predictions and evaluation metrics  
+- Displaying SHAP and Integrated Gradients explanation plots  
+
+---
