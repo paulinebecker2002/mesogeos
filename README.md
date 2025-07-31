@@ -13,8 +13,8 @@ You can download it from the following Google Drive folder:
 
 This folder includes:
 - **`mesogeos_cube.zarr/`**: The full Mesogeos datacube  
-- **`ml_tracks/`**: Pre‑extracted datasets for machine learning tracks  
-- **`notebooks/`**: Jupyter notebooks demonstrating how to access and process the Mesogeos cubes  
+- **`ml_tracks/`**: Contains the pre‑extracted datasets from Mesogeos that serve as the foundation of this project. We build upon these datasets by implementing additional models and extending the pipeline with explainable AI (XAI) analyses.
+- **`notebooks/`**: Jupyter notebook demonstrating how to access and process the Mesogeos datacube
 
 ---
 
@@ -24,21 +24,28 @@ This folder includes:
 mesogeos/
 ├── ml_tracks/
 │   └── a_fire_danger/
+│       ├── a_danger_forecasting/     # Contains classification data files (e.g., negatives.csv and positives.csv)
 │       ├── configs/                  # Model-specific configs (MLP, CNN, LSTM, etc.)
 │       ├── dataloaders/              # Data loading utilities
 │       ├── datasets/                 # Dataset definitions
 │       ├── integrated_gradients/     # IG computation & plotting
 │       ├── models/                   # Model architectures & metrics
+│       ├── saved/                    # Stores all model outputs and artifacts
+│       │   └── ale/                  # Stores first-order and second-order ALE plots for feature effect analysis
+│       │   └── ig/                   # Stores computed Integrated Gradients (CSV/NPZ) and their corresponding plots
+│       │   ├── model/                # Stores trained model checkpoints (e.g., model_best.pth)
+│       │   ├── log/                  # Contains log files and the used config files for each training/testing run
+│       │   ├── shap_plot/            # Stores computed SHAP values (CSV/NPZ) and their corresponding plots
 │       ├── shap_local/               # SHAP computation & plotting
 │       ├── trainer/                  # Training scripts & utilities
 │       ├── tester/                   # Evaluation and testing scripts
 │       └── utils/                    # Helper utilities
-│
-├── notebooks/                        # Jupyter notebooks for exploration & visualization
-├── outputs/                          # Analysis outputs & comparison notebooks
+│       └── train.py                  # Entry point for training
+│       └── test.py                   # Entry point for testing
+|
+├── notebooks/                        # Jupyter notebooks for exploring the Mesogeos datacube and analyzing raw variables
+├── outputs/                          # Analysis outputs and notebooks for evaluating ML and XAI results and generating plots
 ├── requirements.txt                  # Python dependencies
-├── train.py                          # Entry point for training
-├── test.py                           # Entry point for testing
 └── README.md                         # Project documentation
 ```
 
@@ -110,12 +117,24 @@ These scripts will generate feature attribution values for interpretability and 
 
 ---
 
-## Visualization with Notebooks
+## Visualization and Interpretation with Jupyter Notebooks
 
-The `notebooks/` folder contains Jupyter notebooks designed for:
-- Exploring the Mesogeos datacube  
-- Visualizing input features and data distributions  
-- Plotting model predictions and evaluation metrics  
-- Displaying SHAP and Integrated Gradients explanation plots  
+The `outputs/` folder contains Jupyter notebooks specifically designed to **analyze, interpret, and visualize the results of trained machine learning (ML) models** and their explainable AI (XAI) outputs. These notebooks collectively provide a comprehensive framework to interpret ML models applied to wildfire forecasting, evaluate their performance, and connect their predictions to physically meaningful insights.
 
----
+### Included Notebooks
+- **`big_fires.ipynb`**: Analysis of large fire events and their associated predictors.  
+- **`compare_models.ipynb`**: Comparison of ML model performance (metrics, curves, and results).  
+- **`confusion_matrix_analysis.ipynb`**: In-depth analysis of false positives and false negatives.  
+- **`csv_timeseries_before_fire_plot.ipynb`**: Visualization of time-series data leading up to fire events.  
+- **`evaluate_cv_results.ipynb`**: Cross-validation evaluation across different models and configurations.  
+- **`F1_Score_Comparison.ipynb`**: Direct comparison of F1 scores across multiple trained models.  
+- **`physical_interpretability.ipynb`**: Relating SHAP/IG attributions to environmental and physical drivers.  
+- **`RF_FeatureImportance_Top24.ipynb`**: Feature importance analysis for Random Forest baselines.  
+- **`shap_analysis.ipynb`**: SHAP value computation and visualization for feature impact assessment.  
+- **`shap_clustering.ipynb`**: Clustering of SHAP patterns to identify groups of similar model explanations.  
+- **`shap_ig_plots.ipynb`**: Combined visualization of SHAP and Integrated Gradients explanations.  
+- **`softmax_outputs_plots.ipynb`**: Plotting softmax output distributions and model confidence levels.  
+- **`Timelag_Analysis.ipynb`**: Investigation of time lags and their influence on model predictions.  
+
+
+
