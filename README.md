@@ -37,6 +37,14 @@ Spyros Kondylatos, Ioannis Prapas, Gustau Camps-Valls, & Ioannis Papoutsis. (202
 *Zenodo*. [https://doi.org/10.5281/zenodo.7473331](https://doi.org/10.5281/zenodo.7473331)
 
 ---
+## Machine Learning Pipeline Architecture
+
+This project implements a temporal deep learning pipeline for wildfire danger prediction Mesogeos Datacube. Samples are extracted from the datacube, combining features from four domains: Fuel, Meteorology, Human Factors, and Topography. A 17-fold cross-validation is applied, and models are trained with early stopping and hyperparameter tuning using GridSearch and Optuna, saving the best checkpoint (`model_best.pth`). Predictions are produced as class probabilities via a Softmax layer. To interpret the models, we apply SHAP, Integrated Gradients, and Accumulated Local Effects (ALE), linking feature attributions to physically meaningful wildfire drivers.
+
+### Pipeline Overview
+![Machine Learning Pipeline](/Users/I566184/bachelorarbeit_coding/mesogeos/Documentation/ML%20Setup.pdf) 
+
+---
 
 ## Repository Structure
 
@@ -68,7 +76,6 @@ mesogeos/
 ├── requirements.txt                  # Python dependencies
 └── README.md                         # Project documentation
 ```
-
 ---
 
 ## Training a Model
@@ -97,7 +104,6 @@ This will train the model and save the best checkpoint under saved/models as 'mo
    ```bash
    python test.py --config configs/config_<model_name>/config_test.py
    ```
-
 ---
 
 ## Explainable AI (XAI)
@@ -111,12 +117,7 @@ python shap_local/compute_shap.py --config configs/config_<model_name>/config_tr
 ### Compute IG:
 python integrated_gradients/compute_ig.py --config configs/config_<model_name>/config_train.py
 
-### Important config keys:
-- **`checkpoint_path`**: Path to the trained model checkpoint (e.g., `model_best.pth`)  
-- **`shap_path`**: Directory where SHAP and IG explanation outputs will be saved  
-
-These scripts will generate feature attribution values for interpretability and store them for visualization.
-
+In the configuration files, the `checkpoint_path` specifies the location of the trained model checkpoint (e.g., `model_best.pth`), and the `shap_path` defines where the computed SHAP and Integrated Gradients (IG) values and plots will be stored. These paths may need to be adjusted depending on your local directory structure or when using different models or experiments.
 ---
 
 ## Visualization and Interpretation with Jupyter Notebooks
@@ -137,6 +138,4 @@ The `outputs/` folder contains Jupyter notebooks specifically designed to **anal
 - **`shap_ig_plots.ipynb`**: Combined visualization of SHAP and Integrated Gradients explanations.  
 - **`softmax_outputs_plots.ipynb`**: Plotting softmax output distributions and model confidence levels.  
 - **`Timelag_Analysis.ipynb`**: Investigation of time lags and their influence on model predictions.  
-
-
 
