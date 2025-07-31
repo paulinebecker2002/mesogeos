@@ -1,6 +1,20 @@
-# Mesogeos Wildfire Prediction
+# Designing and Explaining Temporal Deep Learning Models for Wildfire Danger Prediction
 
-This project focuses on wildfire danger forecasting using machine learning and explainable AI (XAI) methods, based on the **Mesogeos** dataset — a publicly available datacube covering the Mediterranean region from 2006 to 2022 at 1 km × 1 km × 1 day resolution.
+This project focuses on **wildfire danger forecasting** using advanced **temporal deep learning models** combined with **explainable AI (XAI)** techniques, based on the [**Mesogeos** dataset](https://doi.org/10.5281/zenodo.7473331) — a publicly available spatio-temporal datacube covering the Mediterranean region from 2006 to 2022 at a resolution of **1 km × 1 km × 1 day**.
+
+In this work, we evaluate multiple deep learning architectures (including LSTM, GRU, CNN, MLP, Transformer, Gated Transformer Network and Temporal Fusion Transformer) against a Random Forest baseline and apply state-of-the-art XAI methods to enhance interpretability.  
+
+### Key XAI Analyses:
+- **SHAP (SHapley Additive exPlanations):** Feature attribution and ranking across models, temporal dynamics of variable importance, and physical consistency checks with known wildfire drivers.
+- **Integrated Gradients (IG):** Sample-level attributions for specific fire events and feature effect comparisons between models.
+- **Accumulated Local Effects (ALE):** Non-linear feature sensitivity analysis to understand global variable impacts on predictions.
+- **Case studies and interpretability metrics:** Detailed analysis of model predictions for significant fire events and comparison of explanation patterns.
+
+These analyses not only provide accurate fire danger predictions but also offer insights into **how and why the models make their decisions**, bridging the gap between data-driven methods and domain knowledge in wildfire science.
+
+Interested about the project? Explore the full details, methodology, and results here: 
+- 📄 [Bachelor Thesis PDF (link placeholder)](link-to-bachelor-thesis)
+- 🎥 [Thesis Presentation Slides (link placeholder)](link-to-presentation)
 
 ---
 
@@ -82,15 +96,14 @@ Follow these steps to set up your Python environment:
 
 ## Training a Model
 
-To train a model (e.g., MLP), run:
+To train a model (e.g., MLP), check if the dataset path to the "dataset_root" in the config files correspond to your correct path.
+
+run:
 ```bash
 python train.py --config configs/config_<model_name>/config_train.py
 ```
 
-This will train the model and save the best checkpoint under saved/models as:
-```
-model_best.pth
-```
+This will train the model and save the best checkpoint under saved/models as 'model_best.pth' and under saved/log a info.log file with all information about the trainings process. 
 
 ---
 
