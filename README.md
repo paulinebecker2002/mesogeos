@@ -16,6 +16,12 @@ This folder includes:
 - **`ml_tracks/`**: Contains the pre‑extracted datasets from Mesogeos that serve as the foundation of this project. We build upon these datasets by implementing additional models and extending the pipeline with explainable AI (XAI) analyses.
 - **`notebooks/`**: Jupyter notebook demonstrating how to access and process the Mesogeos datacube
 
+- ### Datacube Citation
+
+Spyros Kondylatos, Ioannis Prapas, Gustau Camps-Valls, & Ioannis Papoutsis. (2023).  
+**Mesogeos: A multi-purpose dataset for data-driven wildfire modeling in the Mediterranean.**  
+*Zenodo*. [https://doi.org/10.5281/zenodo.7473331](https://doi.org/10.5281/zenodo.7473331)
+
 ---
 
 ## Repository Structure
