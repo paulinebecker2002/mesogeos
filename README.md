@@ -110,12 +110,14 @@ This will train the model and save the best checkpoint under saved/models as 'mo
 
 We use **SHAP (SHapley Additive Explanations)** and **Integrated Gradients (IG)** to interpret the predictions of trained models.
 
-### Compute SHAP:
+#### Compute SHAP:
 ```bash
 python shap_local/compute_shap.py --config configs/config_<model_name>/config_train.py
 ```
-### Compute IG:
+#### Compute IG:
+```bash
 python integrated_gradients/compute_ig.py --config configs/config_<model_name>/config_train.py
+```
 
 In the configuration files, the `checkpoint_path` specifies the location of the trained model checkpoint (e.g., `model_best.pth`), and the `shap_path` defines where the computed SHAP and Integrated Gradients (IG) values and plots will be stored. These paths may need to be adjusted depending on your local directory structure or when using different models or experiments.
 
