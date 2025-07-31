@@ -71,30 +71,13 @@ mesogeos/
 
 ---
 
-## Setup Environment
-
-Follow these steps to set up your Python environment:
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/paulinebecker2002/mesogeos.git
-   cd mesogeos
-   ```
-
-2. **Create and activate a Python environment (e.g., venv):**
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
-
-3. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
----
-
 ## Training a Model
+
+Install all the requirements from the requirements.txt file. 
+
+```bash
+pip install -r requirements.txt
+```
 
 To train a model (e.g., MLP), check if the dataset path to the "dataset_root" in the config files correspond to your correct path.
 
