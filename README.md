@@ -13,8 +13,8 @@ In this work, we evaluate multiple deep learning architectures (including LSTM, 
 These analyses not only provide accurate fire danger predictions but also offer insights into **how and why the models make their decisions**, bridging the gap between data-driven methods and domain knowledge in wildfire science.
 
 Interested about the project? Explore the full details, methodology, and results here: 
-- 📄 [Bachelor Thesis PDF (link placeholder)](link-to-bachelor-thesis)
-- 🎥 [Thesis Presentation Slides (link placeholder)](link-to-presentation)
+- 📄 [Bachelor Thesis PDF](Documentation/Bachelorthesis_Pauline_Becker.pdf)
+- 🎥 [Thesis Presentation Slides](Documentation/BA_Presentation_Pauline_Becker_final.pdf)
 
 ---
 
