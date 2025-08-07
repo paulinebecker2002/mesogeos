@@ -143,7 +143,7 @@ The `outputs/` folder contains Jupyter notebooks specifically designed to **anal
 - **`Timelag_Analysis.ipynb`**: Investigation of time lags and their influence on model predictions.  
 
 
-## 🙏 Contributors and Acknowledgements
+## Contributors and Acknowledgements
 
 This project was developed as part of my Bachelor's thesis on Designing and Explaining Temporal Deep Learning Models for Wildfire Danger Prediction.  
 
