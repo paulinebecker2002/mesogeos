@@ -159,6 +159,11 @@ def main(config):
         15755, 15084, 15925, 14814, 15154, 14848, 16281, 15202, 14985, 15704
     ]
 
+    true_negative_ids_july = [
+        16832, 16846, 16858, 16923, 16928, 16936
+    ]
+
+
     for idx in bigFire_sample_idx:
         print(f"Plotting SHAP waterfall for Sample: {idx}")
         #plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, f"{shap_path}/big_fire_waterfall", model_type, logger)
@@ -167,9 +172,9 @@ def main(config):
         print(f"Plotting SHAP waterfall for False Positive Sample: {idx}")
         #plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, f"{shap_path}/false_positive_waterfall_grouped", model_type, logger)
 
-    for idx in false_negative_sample_ids:
-        print(f"Plotting SHAP waterfall for False Negative Sample: {idx}")
-        plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, f"{shap_path}/false_negative_waterfall_grouped", model_type, logger)
+    for idx in true_negative_ids_july:
+        print(f"Plotting SHAP waterfall for True Negative Sample: {idx}")
+        plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, f"{shap_path}/true_negatives_waterfall_grouped", model_type, logger)
 
 
     #for idx in true_negative_ids:
