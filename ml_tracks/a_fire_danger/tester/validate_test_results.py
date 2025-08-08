@@ -21,14 +21,12 @@ for log_file in BASE_DIR.glob("*/info.log"):
         if not lines:
             continue
 
-        # get Model path from first line
         first_line = lines[0]
         model_path_match = model_path_pattern.search(first_line)
         if model_path_match:
             model_path_str = model_path_match.group(1)
             model_path = Path(model_path_str)
 
-            # get f1_score from last line (only necessary if model_path is found)
             last_line = lines[-1]
             match = f1_pattern.search(last_line)
             if match:

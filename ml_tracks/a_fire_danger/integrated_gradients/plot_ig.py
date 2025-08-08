@@ -16,7 +16,7 @@ def load_ig_inputs_from_combined_npz(ig_path, model_id, model_type):
 
     data = np.load(combined_npz_path, allow_pickle=True)
 
-    ig_values = data["class_1"]         # oder class_0 je nach Interesse
+    ig_values = data["class_1"]
     labels = data["label"]
     sample_ids = data["sample_id"]
 
@@ -57,14 +57,14 @@ def main(config):
 
     print("input_data shape:", input_data.shape)     # z. B. (4107, 30, 24)
     print("ig_data shape:", ig_data.shape)           # z. B. (4107, 30, 24)
-    print("len(feature_names):", len(feature_names)) # sollte 30×24 = 720 sein
+    print("len(feature_names):", len(feature_names))
 
-    #plot_bar(ig_data, feature_names, model_id, model_type, ig_path, logger)
-    #plot_temporal_heatmap(ig_data, feature_names, model_id, model_type, ig_path, logger, scaled=True)
-    #plot_temporal_heatmap(ig_data, feature_names, model_id, model_type, ig_path, logger, scaled=False)
-    #plot_ig_beeswarm(ig_data, input_data, feature_names, model_id, model_type, ig_path, logger)
-    #plot_ig_beeswarm_only_once_each_feature(ig_data, input_data, feature_names, model_id, model_type, ig_path, logger)
-    #plot_ig_beeswarm_grouped(ig_values=ig_data, input_tensor=input_data, feature_names=feature_names, model_id=model_id, model_type=model_type, base_path=ig_path)
+    plot_bar(ig_data, feature_names, model_id, model_type, ig_path, logger)
+    plot_temporal_heatmap(ig_data, feature_names, model_id, model_type, ig_path, logger, scaled=True)
+    plot_temporal_heatmap(ig_data, feature_names, model_id, model_type, ig_path, logger, scaled=False)
+    plot_ig_beeswarm(ig_data, input_data, feature_names, model_id, model_type, ig_path, logger)
+    plot_ig_beeswarm_only_once_each_feature(ig_data, input_data, feature_names, model_id, model_type, ig_path, logger)
+    plot_ig_beeswarm_grouped(ig_values=ig_data, input_tensor=input_data, feature_names=feature_names, model_id=model_id, model_type=model_type, base_path=ig_path)
 
     shap_files = [
         '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/cnn/0606_191829/ig_values_cnn.npy',

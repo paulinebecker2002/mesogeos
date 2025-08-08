@@ -96,7 +96,7 @@ for idx, log_file in enumerate(log_paths):
             print(f"Error for test.py at {run_id}: {e}")
             continue
 
-        # read test results
+
         test_subdirs  = sorted(
             TEST_LOG_BASE.glob("*/info.log"),
             key=lambda p: p.stat().st_mtime,

@@ -17,7 +17,6 @@ def plot_bar(ig_values, feature_names, model_id, model_type, base_path, logger=N
     if model_type in ["lstm", "gru", "tft", "transformer", "gtn", "cnn"]:
         ig_values = ig_values.reshape(ig_values.shape[0], -1)
 
-    # Compute mean absolute IG for each feature
     mean_ig = np.mean(np.abs(ig_values), axis=0)
     #mean_ig = np.mean(ig_values, axis=0)
 
@@ -29,10 +28,8 @@ def plot_bar(ig_values, feature_names, model_id, model_type, base_path, logger=N
         "Mean |IG value|": mean_ig
     })
 
-    # Sort by absolute value for most impactful features
     df = df.sort_values("Mean |IG value|", ascending=True)
 
-    # Plot
     plt.figure(figsize=(10, 8))
     df.tail(amount_of_feature).plot(kind='barh', x='Feature', y='Mean |IG value|', color='skyblue', legend=False)
     plt.xlabel("Mean |IG value|")
@@ -53,7 +50,6 @@ def plot_temporal_heatmap(ig_values, feature_names, model_id, model_type, base_p
 
     os.makedirs(os.path.dirname(save_file), exist_ok=True)
 
-    # Feature und Zeit extrahieren
     base_names = [name.split("_t-")[0] for name in feature_names]
     time_steps = [int(name.split("_t-")[1]) for name in feature_names]
 
@@ -125,12 +121,10 @@ def plot_ig_beeswarm(ig_values, input_tensor, feature_names, model_id, model_typ
 
     for name, indices in name_to_indices.items():
         if name in static_base_names:
-            # Mittelwert über Zeitachse für statische Features
             new_ig.append(np.mean(ig_values[:, indices], axis=1))
             new_input.append(np.mean(input_tensor[:, indices], axis=1))
             new_names.append(name)
         else:
-            # Dynamische Features einzeln behalten
             for i in indices:
                 new_ig.append(ig_values[:, i])
                 new_input.append(input_tensor[:, i])
@@ -237,13 +231,11 @@ def plot_ig_beeswarm_by_feature(ig_files, feature_name, feature_names, model_nam
         ig_data = np.load(ig_file)  # shape: (N, T, F) or (N, F)
         input_data = np.load(input_file)
 
-        # Flatten if necessary
         if ig_data.ndim == 3:
             ig_data = ig_data.reshape(ig_data.shape[0], -1)
         if input_data.ndim == 3:
             input_data = input_data.reshape(input_data.shape[0], -1)
 
-        # Index des gesuchten Features (z. B. lst_day_t-1)
         feature_index = [i for i, name in enumerate(feature_names) if name == feature_name]
         if not feature_index:
             raise ValueError(f"Feature {feature_name} not found in IG data for model {model_name}.")
@@ -261,7 +253,6 @@ def plot_ig_beeswarm_by_feature(ig_files, feature_name, feature_names, model_nam
     ig_values_all_models = np.stack(ig_values_all_models, axis=1)
     input_data_all_models = np.concatenate(input_data_all_models, axis=1)
 
-    # SHAP-kompatibles Explanation-Objekt
     expl = shap.Explanation(
         values=ig_values_all_models,
         data=input_data_all_models,

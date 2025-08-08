@@ -311,7 +311,6 @@ def plot_beeswarm_by_grouped_feature(
     all_input = []
 
     for shap_file, input_file, model_name in zip(shap_files, input_files, model_names):
-        # SHAP laden und gruppieren
         shap_data = np.load(shap_file)
         shap_values = shap_data['class_1']
         grouped_shap_df, grouped_features = compute_grouped_shap_over_time(shap_values, feature_names, sum=True)
@@ -322,13 +321,9 @@ def plot_beeswarm_by_grouped_feature(
         shap_vals_feat = grouped_shap_df[feature_to_plot].values
         all_shap.append(shap_vals_feat)
 
-        # Input laden und gruppieren
         input_tensor = torch.tensor(np.load(input_file))
         grouped_input_np, base_feature_names = compute_grouped_input_over_time(input_tensor, feature_names)
-        #print(f"  Grouped Features SHAP shape: {shap_values.shape}, Feature names: {len(feature_names)}, Model: {model_name}, input shape: {grouped_input_np.shape}")
 
-
-        # Featureindex holen und Input-Feature extrahieren
         if feature_to_plot not in base_feature_names:
             raise ValueError(f"Feature '{feature_to_plot}' not found in Input for model {model_name}")
 
@@ -337,18 +332,17 @@ def plot_beeswarm_by_grouped_feature(
         all_input.append(feat_input_vals)
         print(f"[{model_name}] → Samples used: {feat_input_vals.shape[0]}")
 
-    # SHAP- und Input-Werte zu Arrays kombinieren
+
     all_shap = np.array(all_shap).T  # (n_samples, n_models)
     all_input = np.concatenate(all_input, axis=1)  # (n_samples, n_models)
 
-    # SHAP-Explainer mit den Modellnamen als 'Features'
     expl = shap.Explanation(
         values=all_shap,
         data=all_input,
         feature_names=model_names
     )
 
-    # Plot speichern
+
     save_file = os.path.join(base_path, "grouped", f"shap_by_grouped_feature_{feature_to_plot}.png")
     os.makedirs(os.path.dirname(save_file), exist_ok=True)
 
@@ -411,7 +405,6 @@ def plot_beeswarm_by_feature(
 
         if input_tensor.shape[1] != len(feature_names):
             raise ValueError(f"[{model_name}] Input shape {input_tensor.shape} does not match feature_names length {len(feature_names)}")
-        #print(f"  SIngle Feature SHAP shape: {shap_values.shape}, Feature names: {len(feature_names)}, Model: {model_name}, sample size: {input_tensor.shape[0]}")
 
         input_vals_feat = input_tensor[:, feature_idx].cpu().numpy()
         all_input.append(input_vals_feat.reshape(-1, 1))  # shape (B, 1)
@@ -594,11 +587,11 @@ def compute_grouped_physical_consistency_score1(
     import os
     import numpy as np
 
-    # Step 1: Gruppieren über Zeit
+
     grouped_shap_df, grouped_features = compute_grouped_shap_over_time(shap_values, feature_names)
     grouped_input_np, base_feature_names = compute_grouped_input_over_time(input_tensor, feature_names)
 
-    # Step 2: Feature-Namen synchronisieren (SHAP & Input)
+
     col_idx = [base_feature_names.index(f) for f in grouped_features]
     grouped_input_np = grouped_input_np[:, col_idx]
     assert grouped_shap_df.shape == grouped_input_np.shape, "Mismatch zwischen gruppierten SHAP und Input"
@@ -606,7 +599,6 @@ def compute_grouped_physical_consistency_score1(
     df_shap = pd.DataFrame(grouped_shap_df.values, columns=grouped_features)
     df_input = pd.DataFrame(grouped_input_np, columns=grouped_features)
 
-    # Step 3: Konsistenzberechnung wie in compute_physical_consistency_score
     results = []
     for feat in grouped_features:
         base_feat = feat
@@ -657,11 +649,9 @@ def compute_grouped_physical_consistency_score(
         threshold: float = 0.1
 ):
 
-    # Step 1: Gruppieren über Zeit
     grouped_shap_df, grouped_features = compute_grouped_shap_over_time(shap_values, feature_names)
     grouped_input_np, base_feature_names = compute_grouped_input_over_time(input_tensor, feature_names)
 
-    # Step 2: Feature-Namen synchronisieren
     col_idx = [base_feature_names.index(f) for f in grouped_features]
     grouped_input_np = grouped_input_np[:, col_idx]
     assert grouped_shap_df.shape == grouped_input_np.shape, "Mismatch zwischen gruppierten SHAP und Input"
@@ -669,7 +659,6 @@ def compute_grouped_physical_consistency_score(
     df_shap = pd.DataFrame(grouped_shap_df.values, columns=grouped_features)
     df_input = pd.DataFrame(grouped_input_np, columns=grouped_features)
 
-    # Step 3: Konsistenzberechnung mit Quantilsgrenzen
     results = []
     for feat in grouped_features:
         base_feat = feat

@@ -112,11 +112,11 @@ def train_rf(config, dataloader_train, dataloader_val):
     writer.add_image("confusion_matrix", confusionMatrix)
     plt.close()
 
-    # --- Classification report
+
     report = classification_report(y_val, y_pred, digits=4)
     writer.add_text("classification_report", f"```\n{report}\n```")
 
-    # --- Feature Importances
+
     importances = rf.feature_importances_
     assert len(feature_names) == len(importances), "Mismatch in feature name and importance lengths!"
     sorted_idx = np.argsort(importances)[::-1]

@@ -419,7 +419,6 @@ class TemporalFusionTransformer(nn.Module):
         dynamic_combined, _ = self.vsn_dynamic(dynamic_proj.unsqueeze(2).expand(-1, -1, dynamic_inputs.shape[2], -1))
         dynamic_contextual = dynamic_combined + expanded_static  # [B, T, d_model]
 
-        # Initial states from static context
         h0 = self.static_context_h(static_context).unsqueeze(0)  # [1, B, d_model]
         c0 = self.static_context_c(static_context).unsqueeze(0)  # [1, B, d_model]
 

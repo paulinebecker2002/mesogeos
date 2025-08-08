@@ -18,11 +18,10 @@ class ConfigParser:
         :param modification: Dict keychain:value, specifying position values to be replaced from config dict.
         :param run_id: Unique Identifier for training processes. Used to save checkpoints and training log. Timestamp is being used as default
         """
-        # load config file and apply modification
+
         self._config = _update_config(config, modification)
         self.resume = resume
 
-        # set save_dir where trained models and log will be saved.
         save_dir = Path(self.config['trainer']['save_dir'])
 
         exper_name = self.config['name']
@@ -31,15 +30,12 @@ class ConfigParser:
         self._save_dir = save_dir / 'models' / exper_name / run_id
         self._log_dir = save_dir / 'log' / exper_name / run_id
 
-        # make directory for saving checkpoints and log.
         exist_ok = run_id == ''
         self.save_dir.mkdir(parents=True, exist_ok=exist_ok)
         self.log_dir.mkdir(parents=True, exist_ok=exist_ok)
 
-        # save updated config file to the checkpoint dir
         write_json(self.config, self.save_dir / 'config_train.json')
 
-        # configure logging module
         setup_logging(self.log_dir)
         self.log_levels = {
             0: logging.WARNING,

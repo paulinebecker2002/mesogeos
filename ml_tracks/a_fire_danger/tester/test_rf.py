@@ -29,7 +29,6 @@ def test_rf(config):
     logger.info(f"Loading Random Forest model from: {model_path}")
     rf = joblib.load(model_path)
 
-    # Load test data
     dataset = config.init_obj('dataset', module_data,
                               dynamic_features=config['features']['dynamic'],
                               static_features=config['features']['static'],

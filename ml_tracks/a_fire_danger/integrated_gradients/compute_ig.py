@@ -108,7 +108,7 @@ def main(config):
             else:
                 raise NotImplementedError
 
-            probs = torch.softmax(output, dim=1)[:, 1]  # Klasse 1 Wahrscheinlichkeit
+            probs = torch.softmax(output, dim=1)[:, 1]
             probs_all.extend(probs.cpu().numpy())
 
         labels_all.extend(labels.cpu().numpy().astype(int))

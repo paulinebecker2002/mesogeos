@@ -31,7 +31,7 @@ def train_rf(config, dataloader_train, dataloader_val):
 
     rf.fit(X_train, y_train)
 
-    # Evaluate on training set
+
     y_train_pred = rf.predict(X_train)
     y_train_proba = rf.predict_proba(X_train)[:, 1]
 
@@ -50,7 +50,7 @@ def train_rf(config, dataloader_train, dataloader_val):
     logger.info(f"train_f1_score  : {f1_tr:.6f}")
     logger.info(f"train_auprc     : {auprc_tr:.6f}")
 
-    # Evaluate on validation set
+
     writer.set_step(0, mode='valid')
     y_pred = rf.predict(X_val)
     y_proba = rf.predict_proba(X_val)[:, 1]

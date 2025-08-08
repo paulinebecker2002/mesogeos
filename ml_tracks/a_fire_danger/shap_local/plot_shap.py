@@ -105,23 +105,23 @@ def main(config):
         "lc_grassland_t-1", "lc_settlement_t-1",  "lc_shrubland_t-1",  "lc_sparse_vegetation_t-1",
         "lc_water_bodies_t-1", "lc_wetland_t-1"]
 
-    #for feature in grouped_features:
-        #plot_beeswarm_by_grouped_feature(shap_files=shap_files, input_files=input_files, feature_names=feature_names, feature_to_plot=feature, model_names=model_names, base_path=all_model_path, only_pos=only_pos, only_neg=only_neg)
-       # plot_beeswarm_by_feature(shap_files=shap_files, input_files=input_files, feature_names=feature_names, full_feature_name=f"{feature}_t-1", model_names=model_names, base_path=all_model_path, only_pos=only_pos, only_neg=only_neg)
+    for feature in grouped_features:
+        plot_beeswarm_by_grouped_feature(shap_files=shap_files, input_files=input_files, feature_names=feature_names, feature_to_plot=feature, model_names=model_names, base_path=all_model_path, only_pos=only_pos, only_neg=only_neg)
+        plot_beeswarm_by_feature(shap_files=shap_files, input_files=input_files, feature_names=feature_names, full_feature_name=f"{feature}_t-1", model_names=model_names, base_path=all_model_path, only_pos=only_pos, only_neg=only_neg)
 
-    #for idx in range(1, 30):
-     #   plot_beeswarm_by_feature(shap_files=shap_files, input_files=input_files, feature_names=feature_names, full_feature_name=f"lai_t-{idx}", model_names=model_names, base_path=all_model_path, only_pos=only_pos, only_neg=only_neg)
+    for idx in range(1, 30):
+       plot_beeswarm_by_feature(shap_files=shap_files, input_files=input_files, feature_names=feature_names, full_feature_name=f"lai_t-{idx}", model_names=model_names, base_path=all_model_path, only_pos=only_pos, only_neg=only_neg)
 
 
     print(f"Shape input: {input_tensor.shape}, SHAP: {np.array(shap_values).shape}")
     plot_grouped_feature_importance(shap_values, feature_names, shap_path, model_type)
-    #plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, model_id, shap_path, model_type, logger)
-    #plot_beeswarm_grouped(shap_values, shap_class, input_tensor, feature_names, model_id, shap_path, model_type, logger)
+    plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, model_id, shap_path, model_type, logger)
+    plot_beeswarm_grouped(shap_values, shap_class, input_tensor, feature_names, model_id, shap_path, model_type, logger)
 
-    #plot_shap_difference_bar(shap_data['class_0'], shap_data['class_1'], feature_names, model_id, shap_path, model_type, logger)
-    #plot_shap_difference_aggregated(shap_data['class_0'], shap_data['class_1'], feature_names, model_id, shap_path, model_type, logger)
+    plot_shap_difference_bar(shap_data['class_0'], shap_data['class_1'], feature_names, model_id, shap_path, model_type, logger)
+    plot_shap_difference_aggregated(shap_data['class_0'], shap_data['class_1'], feature_names, model_id, shap_path, model_type, logger)
 
-    #plot_shap_temporal_heatmap(shap_values, shap_class, feature_names, model_id, shap_path, model_type, logger)
+    plot_shap_temporal_heatmap(shap_values, shap_class, feature_names, model_id, shap_path, model_type, logger)
 
     bigFire_sample_idx = [4792, 679, 8418, 1645, 1676]
 
@@ -177,9 +177,9 @@ def main(config):
         plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, f"{shap_path}/true_negatives_waterfall_grouped", model_type, logger)
 
 
-    #for idx in true_negative_ids:
-    #    print(f"Plotting SHAP waterfall for Sample: {idx}")
-        #plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, f"{shap_path}/true_negative_waterfall_grouped", model_type, logger)
+    for idx in true_negative_ids:
+        print(f"Plotting SHAP waterfall for Sample: {idx}")
+        plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, f"{shap_path}/true_negative_waterfall_grouped", model_type, logger)
 
 
     physical_knowledge = {
@@ -190,8 +190,8 @@ def main(config):
     }
 
 
-    #compute_grouped_physical_consistency_score( shap_values=shap_values, input_tensor=input_tensor,
-           # feature_names=feature_names, physical_signs=physical_knowledge, save_path=shap_path, model_type=model_type)
+    compute_grouped_physical_consistency_score( shap_values=shap_values, input_tensor=input_tensor,
+           feature_names=feature_names, physical_signs=physical_knowledge, save_path=shap_path, model_type=model_type)
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser(description='Compute SHAP values')
