@@ -98,12 +98,13 @@ def get_shap_explanation(model, model_type, input_all, device, seq_len, static_f
         #test_input = input_all[:10].detach().cpu().numpy().reshape(10, -1)
 
         explainer = shap.KernelExplainer(model_wrapper, background)
-        shap_values = explainer.shap_values(test_input, nsamples=1000) #test only nsamples of feature-kombinations
+        shap_values = explainer.shap_values(test_input, nsamples=1000) #test only nsamples of feature-combinations
         print(f"SHAP: {np.array(shap_values).shape}")
     else:
         raise NotImplementedError(f"SHAP explanation not implemented for model_type='{model_type}'")
 
     return shap_values
+
 
 def generate_rf_shap_values(model, dataloader, base_save_path, model_id, feature_names, logger=None):
     """
@@ -262,7 +263,6 @@ def main(config):
     print("n_features from feature_names:", len(feature_names))  # z. B. 810?
     print("expected flat shape:", input_all.shape[0], "×", input_all.shape[1])  # Kontrolle
 
-
     shap_values = get_shap_explanation(model, model_type, input_all, device, seq_len, static_features, dynamic_features, logger)
 
     model_id = os.path.basename(os.path.dirname(checkpoint_path))
@@ -275,7 +275,6 @@ def main(config):
         class_0=shap_values[0],
         class_1=shap_values[1]
     )
-
 
     combined_npz_path = shap_save_path.replace(".npz", "_combined.npz")
     np.savez(

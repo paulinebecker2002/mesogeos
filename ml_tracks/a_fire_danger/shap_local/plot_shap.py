@@ -163,7 +163,6 @@ def main(config):
         16832, 16846, 16858, 16923, 16928, 16936
     ]
 
-
     for idx in bigFire_sample_idx:
         print(f"Plotting SHAP waterfall for Sample: {idx}")
         #plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, f"{shap_path}/big_fire_waterfall", model_type, logger)
@@ -176,11 +175,9 @@ def main(config):
         print(f"Plotting SHAP waterfall for True Negative Sample: {idx}")
         plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, f"{shap_path}/true_negatives_waterfall_grouped", model_type, logger)
 
-
     for idx in true_negative_ids:
         print(f"Plotting SHAP waterfall for Sample: {idx}")
         plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, f"{shap_path}/true_negative_waterfall_grouped", model_type, logger)
-
 
     physical_knowledge = {
         "t2m": "+", "d2m": "-", "lc_agriculture": "+", "lc_forest": "+", "lc_grassland": "+",
@@ -188,7 +185,6 @@ def main(config):
         "lc_wetland": "-", "lst_day": "+", "lst_night": "+", "rh": "-", "roads_distance": "+", "slope": "+",
         "smi": "-", "ssrd": "+", "tp": "-", "wind_speed": "+"
     }
-
 
     compute_grouped_physical_consistency_score( shap_values=shap_values, input_tensor=input_tensor,
            feature_names=feature_names, physical_signs=physical_knowledge, save_path=shap_path, model_type=model_type)

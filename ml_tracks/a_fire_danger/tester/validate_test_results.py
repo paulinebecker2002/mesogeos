@@ -2,7 +2,6 @@ import json
 import re
 from pathlib import Path
 
-# Basisverzeichnis, in dem alle logs liegen
 BASE_DIR = Path("/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/log/transformer")
 
 best_model = None

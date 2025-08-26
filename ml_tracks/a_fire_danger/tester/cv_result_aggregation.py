@@ -122,4 +122,4 @@ for idx, log_file in enumerate(log_paths):
 df = pd.DataFrame(results)
 csv_path = SAVE_DIR / f"{MODEL_NAME}_cv_results.csv"
 df.to_csv(csv_path, index=False)
-print(f"Ergebnisse gespeichert unter: {csv_path}")
+print(f"Results stored at: {csv_path}")

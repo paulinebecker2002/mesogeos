@@ -14,7 +14,6 @@ CONFIG_TRAIN = BASE_DIR / f"configs/config_{MODEL_NAME}/config_train.json"
 TEST_LOG_BASE = BASE_DIR / "tester/saved/log" / MODEL_NAME
 SAVE_DIR = BASE_DIR / "saved/crossValidation"
 
-# Die Time-Lags und Seeds
 time_lags = [5, 10, 15, 20, 25, 30]
 seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12345]
 
@@ -26,7 +25,7 @@ for lag in time_lags:
         train_cmd = [
             "python", str(TRAIN_SCRIPT),
             "--config", str(CONFIG_TRAIN),
-            "--tlag", str(lag),       # Fix hier
+            "--tlag", str(lag),
             "--seed", str(seed),
         ]
 
@@ -44,7 +43,7 @@ for lag in time_lags:
         test_cmd = [
             "python", str(TEST_SCRIPT),
             "--config", str(CONFIG_TEST),
-            "--tlag", str(lag),       # Fix hier
+            "--tlag", str(lag),
             "--seed", str(seed),
             "--model_path", str(model_path)
         ]

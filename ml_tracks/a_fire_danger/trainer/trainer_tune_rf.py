@@ -129,13 +129,6 @@ def train_rf(config, dataloader_train, dataloader_val):
     logger.info(f"f1_score     : {f1:.6f}")
     logger.info(f"auprc        : {auprc:.6f}")
     logger.info("Top %d wichtigste Features:", top_n)
-    #for rank in range(top_n):
-     #   fname = feature_names[sorted_idx[rank]]
-      #  imp = importances[sorted_idx[rank]]
-       # logger.info(f"{fname:<24} → {imp:.4f}")
-        #writer.add_scalar(f"feature_importance/{fname}", imp)
-
-    #plot_feature_importances(writer, 20, importances, feature_names)
 
     return rf
 

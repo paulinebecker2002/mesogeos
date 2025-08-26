@@ -31,7 +31,7 @@ def main(config):
 
     # device, device_ids = prepare_device(config['n_gpu'], config['gpu_id'])
     device = 'cpu'
-    # # build models architecture
+    # build models architecture
     if config["model_type"] == "rf":
         test_rf(config)
         return

@@ -142,7 +142,6 @@ def main(config):
 
     model_id = os.path.basename(os.path.dirname(checkpoint_path))
 
-    # Speichern als NPZ
     ig_save_path = os.path.join(save_path, f"ig_values_{model_id}_{model_type}.npz")
     np.savez(
         ig_save_path,
@@ -158,7 +157,6 @@ def main(config):
         feature_names=np.array(feature_names)
     )
 
-    # Kombinierte CSV
     df_combined = pd.DataFrame({
         'sample_id': sample_ids_all,
         'label': labels_all,
@@ -191,7 +189,6 @@ def main(config):
     map_csv_path = os.path.join(save_path, f"ig_map_{model_type}.csv")
     df_map.to_csv(map_csv_path, index=False)
 
-    # Optional: Input-Tensor speichern
     np.save(ig_save_path.replace(".npz", "_input.npy"), input_all)
 
     logger.info(f"Saved IG NPZ to: {ig_save_path}")

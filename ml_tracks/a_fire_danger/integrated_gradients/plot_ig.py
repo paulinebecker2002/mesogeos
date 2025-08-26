@@ -8,7 +8,7 @@ from ig_utils import plot_bar, plot_temporal_heatmap, plot_ig_beeswarm, plot_ig_
 
 def load_ig_inputs_from_combined_npz(ig_path, model_id, model_type):
     """
-    Lädt IG-Werte, Labels und Sample-IDs aus einer kombinierten .npz-Datei.
+    Loads IG-Values, Labels and Sample-IDs from combined .npz-Datei.
     """
     combined_npz_path = os.path.join(ig_path, f"ig_values_{model_id}_{model_type}_combined.npz")
     if not os.path.exists(combined_npz_path):

@@ -47,7 +47,7 @@ def main(config):
     device, device_ids = prepare_device(config['n_gpu'], config['gpu_id'])
 
     if config["model_type"] == "rf":
-        # separate training process as Random Forest is not a torch mowas isdel
+        # separate training process as Random Forest is not a torch model
         train_rf(config, dataloader['train'], dataloader['val'])
         return
 

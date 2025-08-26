@@ -54,23 +54,6 @@ class FireDataset(Dataset):
         self.positives['YEAR'] = self.positives.groupby(self.positives.index // 30).apply(get_last_year).values.repeat(30)
         self.negatives['YEAR'] = self.negatives.groupby(self.negatives.index // 30).apply(get_last_year).values.repeat(30)
 
-        #grouped = self.positives.groupby(self.positives.index // 30)
-        #years = grouped.apply(get_last_year)
-        #repeats = grouped.size().values
-        #self.positives['YEAR'] = np.repeat(years.values, repeats)
-
-        #grouped = self.negatives.groupby(self.negatives.index // 30)
-        #years = grouped.apply(get_last_year)
-        #repeats = grouped.size().values
-        #self.negatives['YEAR'] = np.repeat(years.values, repeats)
-
-        #val_year = ['2020']
-        #test_year = ['2021', '2022']
-
-        #self.train_positives = self.positives[~self.positives['YEAR'].isin(val_year + test_year)]
-        #self.val_positives = self.positives[self.positives['YEAR'].isin(val_year)]
-        #self.test_positives = self.positives[self.positives['YEAR'].isin(test_year)]
-
         self.train_positives = self.positives[self.positives['YEAR'].isin(self.train_year)]
         self.val_positives = self.positives[self.positives['YEAR'].isin(self.val_year)]
         self.test_positives = self.positives[self.positives['YEAR'].isin(self.test_year)]

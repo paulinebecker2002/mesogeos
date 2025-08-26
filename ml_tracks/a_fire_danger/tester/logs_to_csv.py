@@ -124,4 +124,4 @@ with open(OUTPUT_CSV, 'w', newline='') as csvfile:
     writer.writeheader()
     writer.writerows(rows)
 
-print(f"✅ Saved results to {OUTPUT_CSV}")
+print(f"Saved results to {OUTPUT_CSV}")

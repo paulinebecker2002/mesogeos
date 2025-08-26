@@ -9,25 +9,31 @@ import torch
 import models.model as module_arch
 import datasets.dataset as module_data
 import dataloaders.dataloader as module_dataloader
+
+
 def ensure_dir(dirname):
     dirname = Path(dirname)
     if not dirname.is_dir():
         dirname.mkdir(parents=True, exist_ok=False)
+
 
 def read_json(fname):
     fname = Path(fname)
     with fname.open('rt') as handle:
         return json.load(handle, object_hook=OrderedDict)
 
+
 def write_json(content, fname):
     fname = Path(fname)
     with fname.open('wt') as handle:
         json.dump(content, handle, indent=4, sort_keys=False)
 
+
 def inf_loop(data_loader):
     ''' wrapper function for endless data loader. '''
     for loader in repeat(data_loader):
         yield from loader
+
 
 def prepare_device(n_gpu_use, num_device):
     """
@@ -46,6 +52,7 @@ def prepare_device(n_gpu_use, num_device):
     list_ids = list(range(n_gpu_use))
     return device, list_ids
 
+
 def extract_numpy(dataloader):
     X_all, y_all = [], []
     for batch in dataloader:
@@ -57,6 +64,7 @@ def extract_numpy(dataloader):
         y_all.append(labels.numpy().astype(int))
     return np.vstack(X_all), np.concatenate(y_all)
 
+
 def calculate_metrics(y_values, y_pred, y_proba):
     acc = accuracy_score(y_values, y_pred)
     prec = precision_score(y_values, y_pred)
@@ -65,12 +73,12 @@ def calculate_metrics(y_values, y_pred, y_proba):
     auprc = average_precision_score(y_values, y_proba)
     return acc, prec, rec, f1, auprc
 
+
 def build_model(config, dynamic_features, static_features):
     dynamic_dim = len(dynamic_features)
     static_dim = len(static_features)
     model_type = config["model_type"]
     seq_len = config["dataset"]["args"].get("last_n_timesteps", 30)
-
 
     if model_type == "mlp":
         return config.init_obj('arch', module_arch,
@@ -141,11 +149,13 @@ def get_dataloader(config, static_features, dynamic_features, mode='val'):
     dataloader = config.init_obj('dataloader', module_dataloader, dataset=dataset).dataloader()
     return dataloader
 
+
 def set_seed(seed):
     torch.manual_seed(seed)
     torch.backends.cudnn.deterministic = False
     torch.backends.cudnn.benchmark = False
     np.random.seed(seed)
+
 
 def get_feature_names(config):
     dynamic = config['features']['dynamic']
@@ -160,6 +170,7 @@ def get_feature_names(config):
             feature_names.append(f"{name}_t-{lag - t}")
 
     return feature_names
+
 
 def get_model_name(model_type):
     if model_type != "transformer":

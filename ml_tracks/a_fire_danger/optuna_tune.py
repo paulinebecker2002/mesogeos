@@ -133,10 +133,8 @@ def objective(trial, base_config):
                       lr_scheduler=lr_scheduler)
     log = trainer.train()
 
-    #val_aucpr = log.get('val_aucpr', 0.0)
-    #val_f1 = log.get('val_f1_score', 0.0)
     val_f1 = trainer.best_val_f1
-    #val_aucpr = trainer.best_val_aucpr
+    #val_aucpr = trainer.best_val_aucpr #if tuning for AUC-PR
 
     trial.report(val_f1, step=trainer.epochs)
     if trial.should_prune():
@@ -147,7 +145,6 @@ def objective(trial, base_config):
 
 
 if __name__ == "__main__":
-    # Argumente wie in train.py
     args = argparse.ArgumentParser(description='Optuna Tuning')
     args.add_argument('-c', '--config', default=None, type=str,
                       help='config file path (default: None)')

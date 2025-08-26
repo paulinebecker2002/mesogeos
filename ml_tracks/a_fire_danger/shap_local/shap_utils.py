@@ -456,6 +456,7 @@ def map_sample_ids_to_indices(sample_ids, selected_ids):
             raise ValueError(f"Sample ID {sid} not found in sample_ids.")
     return indices
 
+
 def compute_grouped_shap_over_time(shap_values, feature_names, sum=False):
     """
     Grouped SHAP-Values over time for base features
@@ -464,6 +465,7 @@ def compute_grouped_shap_over_time(shap_values, feature_names, sum=False):
         base_features: List with base feature names
         sum: bool, if True, sums the SHAP values over time instead of averaging
     """
+
     shap_df = pd.DataFrame(shap_values, columns=feature_names)
     base_names = [name.split("_t-")[0] for name in feature_names]
     shap_df.columns = base_names
@@ -594,7 +596,7 @@ def compute_grouped_physical_consistency_score1(
 
     col_idx = [base_feature_names.index(f) for f in grouped_features]
     grouped_input_np = grouped_input_np[:, col_idx]
-    assert grouped_shap_df.shape == grouped_input_np.shape, "Mismatch zwischen gruppierten SHAP und Input"
+    assert grouped_shap_df.shape == grouped_input_np.shape, "Mismatch between grouped SHAP and Input"
 
     df_shap = pd.DataFrame(grouped_shap_df.values, columns=grouped_features)
     df_input = pd.DataFrame(grouped_input_np, columns=grouped_features)
@@ -654,7 +656,7 @@ def compute_grouped_physical_consistency_score(
 
     col_idx = [base_feature_names.index(f) for f in grouped_features]
     grouped_input_np = grouped_input_np[:, col_idx]
-    assert grouped_shap_df.shape == grouped_input_np.shape, "Mismatch zwischen gruppierten SHAP und Input"
+    assert grouped_shap_df.shape == grouped_input_np.shape, "Mismatch between grouped SHAP and Input"
 
     df_shap = pd.DataFrame(grouped_shap_df.values, columns=grouped_features)
     df_input = pd.DataFrame(grouped_input_np, columns=grouped_features)
@@ -699,6 +701,6 @@ def compute_grouped_physical_consistency_score(
     df_results = pd.DataFrame(results)
     save_file = os.path.join(save_path, f"{model_type}_grouped_physical_consistency_quantiles.csv")
     df_results.to_csv(save_file, index=False)
-    print(f"✅ Grouped Physical consistency (quantile-based) saved to: {save_file}")
+    print(f"Grouped Physical consistency (quantile-based) saved to: {save_file}")
     return df_results, save_file
 
