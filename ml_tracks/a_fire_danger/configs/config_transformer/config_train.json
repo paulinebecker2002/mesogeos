@@ -10,10 +10,12 @@
     },
 
     "XAI": {
-      "ig_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/transformer/0721_155850",
-      "checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/models/transformer/0519_125059/model_best.pth",
+      "ig_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/transformer/1010_171719",
+      "checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/models/transformer/1010_144913/model_best.pth",
+      "original_ig_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/transformer/0721_155850",
+      "original_checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/models/transformer/0519_125059/model_best.pth",
       "only_positive": false,
-        "only_negative": false
+      "only_negative": false
     },
 
     "arch": {
@@ -44,7 +46,14 @@
       "last_n_timesteps": 30,
       "train_year": ["2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019"],
       "val_year": ["2020"],
-      "test_year": ["2021", "2022"]
+      "test_year": ["2021", "2022"],
+      "pos_source": "positives_binary_coastal.csv",
+      "neg_source": "negatives_binary_coastal.csv",
+      "coastal_only": false,
+      "inland_only": false,
+      "n_train_pos": null,
+      "n_val_pos": null,
+      "n_test_pos":  null
     }
   },
   "dataloader": {
@@ -88,7 +97,6 @@
 
         "tensorboard": true
     },
-
 
     "features": {
         "dynamic": ["d2m",

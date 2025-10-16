@@ -35,7 +35,14 @@
       "last_n_timesteps": 30,
       "train_year": ["2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019"],
       "val_year": ["2020"],
-      "test_year": ["2021", "2022"]
+      "test_year": ["2021", "2022"],
+      "pos_source": "positives_binary_coastal.csv",
+      "neg_source": "negatives_binary_coastal.csv",
+      "coastal_only": false,
+      "inland_only": false,
+      "n_train_pos": null,
+      "n_val_pos": null,
+      "n_test_pos":  null
     }
   },
   "dataloader": {

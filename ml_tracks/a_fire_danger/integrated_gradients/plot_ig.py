@@ -62,6 +62,8 @@ def main(config):
     plot_bar(ig_data, feature_names, model_id, model_type, ig_path, logger)
     plot_temporal_heatmap(ig_data, feature_names, model_id, model_type, ig_path, logger, scaled=True)
     plot_temporal_heatmap(ig_data, feature_names, model_id, model_type, ig_path, logger, scaled=False)
+    plot_ig_waterfall_grouped(ig_values=ig_data, input_tensor=input_data, feature_names=feature_names, sample_ids=sample_ids, sample_idx=679, base_path=ig_path, model_type=model_type)
+    plot_ig_waterfall_grouped(ig_values=ig_data, input_tensor=input_data, feature_names=feature_names, sample_ids=sample_ids, sample_idx=1645, base_path=ig_path, model_type=model_type)
     plot_ig_beeswarm(ig_data, input_data, feature_names, model_id, model_type, ig_path, logger)
     plot_ig_beeswarm_only_once_each_feature(ig_data, input_data, feature_names, model_id, model_type, ig_path, logger)
     plot_ig_beeswarm_grouped(ig_values=ig_data, input_tensor=input_data, feature_names=feature_names, model_id=model_id, model_type=model_type, base_path=ig_path)

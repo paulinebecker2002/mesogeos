@@ -24,6 +24,8 @@ def main(config):
     set_seed(SEED)
 
     logger = config.get_logger('train')
+    logger.info(f"costal_only: {config['dataset']['args'].get('coastal_only', False)}")
+    logger.info(f"inland_only: {config['dataset']['args'].get('inland_only', False)}")
     logger.info(f"Save directory: {config.save_dir}")
     logger.info(f"Seed:          {config['dataset']['args'].get('seed')}")
     logger.info(f"Last n timesteps: {config['dataset']['args'].get('last_n_timesteps')}")
@@ -35,6 +37,9 @@ def main(config):
     logger.info(f"Training years:      {config['dataset']['args'].get('train_year')}")
     logger.info(f"Validation years:    {config['dataset']['args'].get('val_year')}")
     logger.info(f"Testing years:       {config['dataset']['args'].get('test_year')}")
+    logger.info(f"Pos source:          {config['dataset']['args'].get('pos_source', 'all')}")
+    logger.info(f"Neg source:          {config['dataset']['args'].get('neg_source', 'all')}")
+
 
     dynamic_features = config["features"]["dynamic"]
     static_features = config["features"]["static"]
@@ -117,7 +122,12 @@ if __name__ == '__main__':
         CustomArgs(['--val_year'], type=str, nargs='+', target='dataset;args;val_year'),
         CustomArgs(['--test_year'], type=str, nargs='+', target='dataset;args;test_year'),
         CustomArgs(['--seed'], type=int, target='dataset;args;seed', nargs=None),
-
+        CustomArgs(['--pos_source'], type=str, target='dataset;args;pos_source', nargs=None),
+        CustomArgs(['--neg_source'], type=str, target='dataset;args;neg_source', nargs=None),
+        CustomArgs(['--coastal_only'], type=bool, target='dataset;args;coastal_only', nargs=None),
+        CustomArgs(['--inland_only'], type=bool, target='dataset;args;inland_only', nargs=None),
+        CustomArgs(['--n_train_pos', '--ntp'], type=int, target='dataset;args;n_train_pos', nargs=None),
+        CustomArgs(['--n_val_pos', '--nvp'], type=int, target='dataset;args;n_val_pos', nargs=None),
 
     ]
     config = ConfigParser.from_args(args, options)

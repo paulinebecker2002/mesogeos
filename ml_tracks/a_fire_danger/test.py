@@ -14,6 +14,7 @@ from utils import MetricTracker, build_model
 from logger import TensorboardWriter
 from tester.test_rf import test_rf
 import torch.nn as nn
+from utils import grouped_classification_metrics, calculate_metrics
 
 
 def main(config):
@@ -43,7 +44,12 @@ def main(config):
     metric_ftns = [getattr(module_metric, met) for met in config['metrics']]
 
     logger.info('Loading checkpoint: {} ...'.format(config["model_path"]))
+    logger.info(f"costal_only: {config['dataset']['args'].get('coastal_only', False)}")
+    logger.info(f"inland_only: {config['dataset']['args'].get('inland_only', False)}")
     logger.info(f"Seed:          {config['dataset']['args'].get('seed')}")
+    logger.info(f"Pos source:          {config['dataset']['args'].get('pos_source', 'all')}")
+    logger.info(f"Neg source:          {config['dataset']['args'].get('neg_source', 'all')}")
+
     checkpoint = torch.load(config["model_path"], map_location=device)
 
     state_dict = checkpoint['state_dict']
@@ -63,10 +69,10 @@ def main(config):
     test_metrics = MetricTracker('loss', *[m.__name__ for m in metric_ftns], writer=writer)
     test_metrics.reset()
 
-    all_probs, all_lats, all_lons, all_samples, all_labels, all_bas, all_preds = [], [], [], [], [], [], []
+    all_probs, all_lats, all_lons, all_samples, all_labels, all_bas, all_preds, all_coastal = [], [], [], [], [], [], [], []
     with torch.no_grad():
         for batch_idx, batch in enumerate(dataloader):
-            (dynamic, static, bas_size, labels, x, y, sample_id) = batch[:7]
+            (dynamic, static, bas_size, labels, x, y, sample_id, coastal) = batch[:8]
             if config['model_type'] == 'tft':
                 dynamic = dynamic.to(device, dtype=torch.float32)
                 static = static.to(device, dtype=torch.float32)
@@ -96,6 +102,7 @@ def main(config):
             labels_np = labels.detach().cpu().numpy()
             bas_np = bas_size.detach().cpu().numpy()
             sample_ids = sample_id.cpu().numpy().astype(int)
+            coastal_np = coastal.detach().cpu().numpy().astype(int)
 
             output = torch.argmax(outputs, dim=1)
             predictions_np = output.detach().cpu().numpy()
@@ -107,6 +114,7 @@ def main(config):
             all_samples.extend(sample_ids)
             all_labels.extend(labels_np)
             all_bas.extend(bas_np)
+            all_coastal.extend(coastal_np)
 
             loss = criterion(torch.log(outputs + e), labels)
             loss = torch.mean(loss * bas_size)
@@ -125,6 +133,31 @@ def main(config):
 
     log = test_metrics.result()
     logger.info(log)
+
+    y_true  = np.asarray(all_labels, dtype=int)
+    y_pred  = np.asarray(all_preds, dtype=int)
+    y_proba = np.asarray(all_probs, dtype=float)
+    g       = np.asarray(all_coastal, dtype=int)  # 0 = inland, 1 = coastal
+
+    metrics = grouped_classification_metrics(y_true, y_pred, y_proba, g, positive_group=1)
+
+    # Schönes Logging
+    logger.info(
+        "[OVERALL] acc={acc:.4f} prec={precision:.4f} rec={recall:.4f} f1={f1:.4f} auprc={auprc:.4f}"
+        .format(**metrics['overall'])
+    )
+    for name in ['coastal', 'inland']:
+        m = metrics[name]
+        logger.info(
+            f"[{name.upper()}] acc={m['acc']:.4f} prec={m['precision']:.4f} rec={m['recall']:.4f} "
+            f"f1={m['f1']:.4f} auprc={m['auprc']:.4f}"
+        )
+
+    summary_path = Path(config.save_dir) / f"group_metrics_{config['model_type']}.csv"
+    (pd.DataFrame(metrics).T).to_csv(summary_path)
+    logger.info(f"Saved grouped metrics to: {summary_path}")
+
+
     df = pd.DataFrame({
         'prob': all_probs,
         'lat': all_lats,
@@ -133,6 +166,7 @@ def main(config):
         'label': all_labels,
         'pred_label': all_preds,
         'log_burned_area': all_bas,
+        'coastal': all_coastal,
     })
     output_path = Path(config.save_dir) / f"test_softmax_outputs_{config['model_type']}.csv"
     df.to_csv(output_path, index=False)
@@ -161,6 +195,12 @@ if __name__ == '__main__':
         CustomArgs(['--val_year'], type=str, nargs='+', target='dataset;args;val_year'),
         CustomArgs(['--test_year'], type=str, nargs='+', target='dataset;args;test_year'),
         CustomArgs(['--seed'], type=int, target='dataset;args;seed', nargs=None),
+        CustomArgs(['--pos_source'], type=str, target='dataset;args;pos_source', nargs=None),
+        CustomArgs(['--neg_source'], type=str, target='dataset;args;neg_source', nargs=None),
+        CustomArgs(['--coastal_only'], type=bool, target='dataset;args;coastal_only', nargs=None),
+        CustomArgs(['--inland_only'], type=bool, target='dataset;args;inland_only', nargs=None),
+        CustomArgs(['--n_test_pos', '--ntestp'], type=int, target='dataset;args;n_test_pos', nargs=None),
+
     ]
     config = ConfigParser.from_args(args, options)
     main(config)

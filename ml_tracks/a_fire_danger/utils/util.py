@@ -53,16 +53,26 @@ def prepare_device(n_gpu_use, num_device):
     return device, list_ids
 
 
-def extract_numpy(dataloader):
-    X_all, y_all = [], []
-    for batch in dataloader:
-        dynamic, static, bas_size, labels = batch[:4]
-        static = static.unsqueeze(1).repeat(1, dynamic.shape[1], 1)
-        input_ = torch.cat([dynamic, static], dim=2)
-        input_ = input_.view(input_.shape[0], -1).numpy()
-        X_all.append(input_)
-        y_all.append(labels.numpy().astype(int))
-    return np.vstack(X_all), np.concatenate(y_all)
+def extract_numpy(dataloader, coastal=False):
+    X_all, y_all, coastal_all = [], [], []
+    if coastal:
+        for batch in dataloader:
+            dynamic, static, bas_size, labels, *_rest, coastal = batch
+            static = static.unsqueeze(1).repeat(1, dynamic.shape[1], 1)
+            input_ = torch.cat([dynamic, static], dim=2)
+            X_all.append(input_.view(input_.shape[0], -1).numpy())
+            y_all.append(labels.numpy().astype(int))
+            coastal_all.append(coastal.numpy().astype(int))
+        return np.vstack(X_all), np.concatenate(y_all), np.concatenate(coastal_all)
+    else:
+        for batch in dataloader:
+            dynamic, static, bas_size, labels = batch[:4]
+            static = static.unsqueeze(1).repeat(1, dynamic.shape[1], 1)
+            input_ = torch.cat([dynamic, static], dim=2)
+            input_ = input_.view(input_.shape[0], -1).numpy()
+            X_all.append(input_)
+            y_all.append(labels.numpy().astype(int))
+        return np.vstack(X_all), np.concatenate(y_all)
 
 
 def calculate_metrics(y_values, y_pred, y_proba):
@@ -178,6 +188,29 @@ def get_model_name(model_type):
     else:
         model_type = "Transformer"
     return model_type
+
+def grouped_classification_metrics(y_true, y_pred, y_proba, group_array, positive_group=1):
+    """
+    Gibt dict mit Overall/Coastal/Inland-Metriken zurück.
+    """
+    y_true = np.asarray(y_true).astype(int)
+    y_pred = np.asarray(y_pred).astype(int)
+    y_proba = np.asarray(y_proba).astype(float)
+    g = np.asarray(group_array).astype(int)
+
+    results = {}
+    acc, prec, rec, f1, auprc = calculate_metrics(y_true, y_pred, y_proba)
+    results['overall'] = dict(acc=acc, precision=prec, recall=rec, f1=f1, auprc=auprc)
+
+    for val, name in [(positive_group, 'coastal'), (1 - positive_group, 'inland')]:
+        mask = (g == val)
+        if mask.sum() > 0:
+            acc, prec, rec, f1, auprc = calculate_metrics(y_true[mask], y_pred[mask], y_proba[mask])
+            results[name] = dict(acc=acc, precision=prec, recall=rec, f1=f1, auprc=auprc)
+        else:
+            results[name] = dict(acc=np.nan, precision=np.nan, recall=np.nan, f1=np.nan, auprc=np.nan)
+    return results
+
 
 
 

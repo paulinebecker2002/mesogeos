@@ -1,5 +1,6 @@
 from torch.utils.data import Dataset
 from pathlib import Path
+from typing import Optional
 import numpy as np
 import pandas as pd
 import random
@@ -11,7 +12,13 @@ class FireDataset(Dataset):
                  dynamic_features: list = None, static_features: list = None, nan_fill: float = 0,
                  neg_pos_ratio: int = 2, lag: int = 30, seed: int = 12345, last_n_timesteps: int = 30,
                  train_year: list = ['2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019'],
-                 val_year: list = ['2020'], test_year: list = ['2021', '2022']):
+                 val_year: list = ['2020'], test_year: list = ['2021', '2022'],
+                 pos_source: str = 'positives.csv',
+                 neg_source: str = 'negatives.csv',
+                 coastal_only: bool = False, inland_only: bool = False,
+                 n_train_pos: Optional[int] = None,
+                 n_val_pos:   Optional[int] = None,
+                 n_test_pos:  Optional[int] = None,):
         """
         @param access_mode: spatial, temporal or spatiotemporal
         @param problem_class: classification or segmentation
@@ -36,16 +43,50 @@ class FireDataset(Dataset):
         self.train_year = train_year
         self.val_year = val_year
         self.test_year = test_year
+        self.pos_source = pos_source
+        self.neg_source = neg_source
+        self.coastal_only = coastal_only
+        self.inland_only = inland_only
+        self.n_train_pos = n_train_pos
+        self.n_val_pos = n_val_pos
+        self.n_test_pos = n_test_pos
 
         random.seed(self.seed)
         np.random.seed(self.seed)
 
         assert problem_class in ['classification', 'segmentation']
+        assert self.pos_source in ['positives.csv', 'positives_binary_coastal.csv']
+        assert self.neg_source in ['negatives.csv', 'negatives_binary_coastal.csv']
+        assert not (coastal_only and inland_only), "You cannot set both `coastal=True` and `inland=True` at the same time."
 
-        self.positives = pd.read_csv(dataset_root / 'positives.csv')
+
+        pos_csv = dataset_root / self.pos_source
+        neg_csv = dataset_root / self.neg_source
+
+        print(f"Loading positives from: {pos_csv}")
+        print(f"Loading negatives from: {neg_csv}")
+
+        self.positives = pd.read_csv(pos_csv)
         self.positives['label'] = 1
-        self.negatives = pd.read_csv(dataset_root / 'negatives.csv')
+        self.negatives = pd.read_csv(neg_csv)
         self.negatives['label'] = 0
+
+        # Filter by coastal or inland selection
+        if coastal_only:
+            print("Filtering: keeping only coastal samples (coastal == 1)")
+            self.positives = self.positives[self.positives['coastal'] == 1]
+            self.negatives = self.negatives[self.negatives['coastal'] == 1]
+        elif inland_only:
+            print("Filtering: keeping only inland samples (coastal == 0)")
+            self.positives = self.positives[self.positives['coastal'] == 0]
+            self.negatives = self.negatives[self.negatives['coastal'] == 0]
+
+
+        for df in (self.positives, self.negatives):
+            if 'coastal' not in df.columns:
+                warnings.warn("'coastal' column not found; defaulting to 0.")
+                df['coastal'] = 0
+            df['coastal'] = df['coastal'].astype(int).clip(0, 1)
 
         def get_last_year(group):
             last_date = group['time'].iloc[-1]
@@ -61,13 +102,24 @@ class FireDataset(Dataset):
         print(f"Validation in years: {self.val_year}")
         print(f"Testing in years: {self.test_year}")
 
+        def limit_positives(pos_df: pd.DataFrame, n_limit: Optional[int]) -> pd.DataFrame:
+            if n_limit is None:
+                return pos_df
+            pos_ids = pos_df['sample'].unique()
+            if n_limit > len(pos_ids):
+                raise ValueError(f"Proposed amount of positives samples: {n_limit}, but only {len(pos_ids)} available.")
+            chosen = np.random.choice(pos_ids, size=n_limit, replace=False)
+            return pos_df[pos_df['sample'].isin(chosen)]
+
+        if self.n_train_pos is not None:
+            self.train_positives = limit_positives(self.train_positives, self.n_train_pos)
+        if self.n_val_pos is not None:
+            self.val_positives   = limit_positives(self.val_positives,   self.n_val_pos)
+        if self.n_test_pos is not None:
+            self.test_positives  = limit_positives(self.test_positives,  self.n_test_pos)
+
         bas_median = self.train_positives['burned_area_has'].median()
 
-        #def random_(negatives, positives, neg_pos_ratio):
-         #   ids_selected = np.random.choice(negatives['sample'].unique(), (len(positives) // 30) * neg_pos_ratio,
-          #                                  replace=False)
-           # negatives = negatives[negatives['sample'].isin(ids_selected)]
-            #return negatives
         def random_(negatives, positives, neg_pos_ratio):
             n_pos_samples = len(positives) // 30
             n_neg_required = n_pos_samples * neg_pos_ratio
@@ -108,6 +160,9 @@ class FireDataset(Dataset):
 
         self.burned_areas_size = self.all['burned_area_has'].replace(0, 30)
 
+        self.coastal = self.all['coastal'].astype(int)
+
+
     def __len__(self):
         return int(len(self.all) / 30)
 
@@ -122,6 +177,8 @@ class FireDataset(Dataset):
         sample_id = self.samples[idx * 30]
         x = self.all.iloc[idx * 30]['x']
         y = self.all.iloc[idx * 30]['y']
+        coastal = int(self.coastal.iloc[idx * 30])
+
 
         # Fill NaN values with the mean of the column
         with warnings.catch_warnings():
@@ -135,4 +192,4 @@ class FireDataset(Dataset):
         dynamic = np.nan_to_num(dynamic, nan=self.nan_fill)
         static = np.nan_to_num(static, nan=self.nan_fill)
 
-        return dynamic, static, burned_areas_size, labels, x, y, sample_id
+        return dynamic, static, burned_areas_size, labels, x, y, sample_id, coastal

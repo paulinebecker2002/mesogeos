@@ -5,11 +5,12 @@ import matplotlib.pyplot as plt
 import torchvision
 import io
 import PIL.Image
-
+import pandas as pd
+from pathlib import Path
 import datasets.dataset as module_data
 import dataloaders.dataloader as module_dataloader
 from logger import TensorboardWriter
-from utils.util import extract_numpy, calculate_metrics
+from utils.util import extract_numpy, calculate_metrics, grouped_classification_metrics
 import PIL
 from PIL import Image
 
@@ -35,11 +36,23 @@ def test_rf(config):
                               train_val_test='test')
     dataloader = config.init_obj('dataloader', module_dataloader, dataset=dataset).dataloader()
 
-    X_test, y_test = extract_numpy(dataloader)
+    X_test, y_test, g_coastal = extract_numpy(dataloader, coastal=True)
     y_pred = rf.predict(X_test)
     y_proba = rf.predict_proba(X_test)[:, 1]
 
     acc, prec, rec, f1, auprc = calculate_metrics(y_test, y_pred, y_proba)
+    metrics = grouped_classification_metrics(y_test, y_pred, y_proba, g_coastal, positive_group=1)
+
+    for name in ["coastal", "inland"]:
+        m = metrics[name]
+        logger.info(
+            f"[{name.upper()}] acc={m['acc']:.4f} prec={m['precision']:.4f} "
+            f"rec={m['recall']:.4f} f1={m['f1']:.4f} auprc={m['auprc']:.4f}"
+        )
+
+    summary_path = Path(config.save_dir) / f"group_metrics_rf.csv"
+    (pd.DataFrame(metrics).T).to_csv(summary_path)
+    logger.info(f"Saved grouped metrics to: {summary_path}")
 
     writer.add_scalar("test/accuracy", acc)
     writer.add_scalar("test/precision", prec)

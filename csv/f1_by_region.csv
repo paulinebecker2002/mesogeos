@@ -1,0 +1,9 @@
+Model,Abbreviations,F1_Coastal_mean,F1_Coastal_std,F1_Inland_mean,F1_Inland_std,F1_Overall_mean,F1_Overall_std
+Transformer,Transformer,0.8452,0.0,0.6196,0.0,0.793,0.0
+LSTM,LSTM,0.8223,0.0,0.6273,0.0,0.7763,0.0
+GRU,GRU,0.8242,0.0,0.6263,0.0,0.7757,0.0
+CNN,CNN,0.8156,0.0,0.6287,0.0,0.7696,0.0
+TFT,TFT,0.8342,0.0,0.6555,0.0,0.7899,0.0
+GTN,GTN,0.8363,0.0,0.659,0.0,0.7926,0.0
+MLP,MLP,0.8129,0.0,0.6443,0.0,0.7725,0.0
+Random Forest,RF,0.9149,0.0,0.8629,0.0,0.903466,0.0

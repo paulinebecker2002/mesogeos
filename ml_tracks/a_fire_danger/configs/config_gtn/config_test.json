@@ -24,7 +24,14 @@
       "neg_pos_ratio": 2,
       "lag": 30,
       "seed": 12345,
-      "last_n_timesteps": 30
+      "last_n_timesteps": 30,
+      "pos_source": "positives_binary_coastal.csv",
+      "neg_source": "negatives_binary_coastal.csv",
+      "coastal_only": false,
+      "inland_only": false,
+      "n_train_pos": null,
+      "n_val_pos": null,
+      "n_test_pos":  null
     }
   },
   "dataloader": {
