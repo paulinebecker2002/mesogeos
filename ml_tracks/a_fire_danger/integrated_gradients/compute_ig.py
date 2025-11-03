@@ -136,7 +136,7 @@ def main(config):
     input_all = torch.cat(input_all, dim=0).numpy()
 
     timestamp = datetime.now().strftime("%m%d_%H%M%S")
-    base_save_path = f"/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/{model_type}/"
+    base_save_path = f"/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/ig-plots/{model_type}/"
     save_path = os.path.join(base_save_path, timestamp)
     os.makedirs(save_path, exist_ok=True)
 

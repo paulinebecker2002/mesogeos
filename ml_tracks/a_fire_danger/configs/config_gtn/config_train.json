@@ -5,12 +5,12 @@
     "gpu_id": 0,
 
   "shap": {
-    "shap_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/gtn/0624_142112",
+    "shap_path": "/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/gtn/0624_142112",
     "class": "1"
   },
     "XAI": {
-        "ig_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/gtn/0624_084137",
-      "checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/models/gtn/0623_205004/model_best.pth",
+        "ig_path": "/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/ig-plots/gtn/0624_084137",
+      "checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/models/gtn/0623_205004/model_best.pth",
       "only_positive": false,
         "only_negative": false
     },
@@ -29,7 +29,7 @@
   "dataset": {
     "type": "FireDataset",
     "args": {
-      "dataset_root": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/a.danger_forecasting",
+      "dataset_root": "/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/a.danger_forecasting",
       "problem_class": "classification",
       "nan_fill": 0,
       "neg_pos_ratio": 2,

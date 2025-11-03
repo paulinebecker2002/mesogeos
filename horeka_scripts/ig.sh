@@ -12,7 +12,7 @@
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=pauline.becker@student.kit.edu
 
-cd /hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger
+cd /hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger
 
 
 ~/miniconda3/envs/mesogeos_py38/bin/python integrated_gradients/compute_ig.py --config configs/config_gtn/config_train.json

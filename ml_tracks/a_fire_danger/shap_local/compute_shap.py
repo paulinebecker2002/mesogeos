@@ -204,7 +204,7 @@ def main(config):
     dynamic_features = config["features"]["dynamic"]
     seq_len = config["dataset"]["args"]["lag"]
     model_type = config["model_type"]
-    base_save_path = f"/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/{model_type}/"
+    base_save_path = f"/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/{model_type}/"
     feature_names = get_feature_names(config)
 
     dataloader = get_dataloader(config, static_features, dynamic_features, mode='test')

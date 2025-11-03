@@ -4,7 +4,7 @@ from pathlib import Path
 
 MODEL_NAME = "transformer"
 
-BASE_DIR = Path("/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger")
+BASE_DIR = Path("/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger")
 LOG_DIR = BASE_DIR / "saved/log" / MODEL_NAME
 MODEL_DIR = BASE_DIR / "saved/models" / MODEL_NAME
 TEST_SCRIPT = BASE_DIR / "test.py"

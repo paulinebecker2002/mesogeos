@@ -33,7 +33,7 @@ def main(config):
     only_pos = config["XAI"]["only_positive"]
     only_neg = config["XAI"]["only_negative"]
     shap_path = config["shap"]["shap_path"]
-    all_model_path = '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/all_model_comparison'
+    all_model_path = '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/all_model_comparison'
     model_id = os.path.basename(os.path.dirname(checkpoint_path))
     feature_names = get_feature_names(config)
 
@@ -67,25 +67,25 @@ def main(config):
         print("Using all SHAP values:", shap_values.shape)
 
     shap_files = [
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/cnn/0615_020509/shap_values_0517_181322_cnn.npz',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/mlp/0615_020230/shap_values_0517_175347_mlp.npz',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/gru/0616_141854/shap_values_0514_140125_gru.npz',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/lstm/0615_020730/shap_values_0513_230004_lstm.npz',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/transformer/0615_025441/shap_values_0519_125059_transformer.npz',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/gtn/0624_142112/shap_values_0623_205004_gtn.npz',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/rf/0616_091841/shap_values_0612_082906_rf.npz',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/tft/0616_133748/shap_values_0612_083316_tft.npz'
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/cnn/0615_020509/shap_values_0517_181322_cnn.npz',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/mlp/0615_020230/shap_values_0517_175347_mlp.npz',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/gru/0616_141854/shap_values_0514_140125_gru.npz',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/lstm/0615_020730/shap_values_0513_230004_lstm.npz',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/transformer/0615_025441/shap_values_0519_125059_transformer.npz',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/gtn/0624_142112/shap_values_0623_205004_gtn.npz',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/rf/0616_091841/shap_values_0612_082906_rf.npz',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/tft/0616_133748/shap_values_0612_083316_tft.npz'
     ]
 
     input_files = [
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/cnn/0615_020509/shap_values_0517_181322_cnn_input.npy',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/mlp/0615_020230/shap_values_0517_175347_mlp_input.npy',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/gru/0616_141854/shap_values_0514_140125_gru_input.npy',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/lstm/0615_020730/shap_values_0513_230004_lstm_input.npy',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/transformer/0615_025441/shap_values_0519_125059_transformer_input.npy',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/gtn/0624_142112/shap_values_0623_205004_gtn_input.npy',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/rf/0616_091841/shap_values_0612_082906_rf_input.npy',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/tft/0616_133748/shap_values_0612_083316_tft_input.npy'
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/cnn/0615_020509/shap_values_0517_181322_cnn_input.npy',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/mlp/0615_020230/shap_values_0517_175347_mlp_input.npy',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/gru/0616_141854/shap_values_0514_140125_gru_input.npy',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/lstm/0615_020730/shap_values_0513_230004_lstm_input.npy',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/transformer/0615_025441/shap_values_0519_125059_transformer_input.npy',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/gtn/0624_142112/shap_values_0623_205004_gtn_input.npy',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/rf/0616_091841/shap_values_0612_082906_rf_input.npy',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/tft/0616_133748/shap_values_0612_083316_tft_input.npy'
     ]
 
     model_names = ['cnn', 'mlp', 'gru', 'lstm', 'transformer', 'gtn', 'rf', 'tft']

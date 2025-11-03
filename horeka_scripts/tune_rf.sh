@@ -10,5 +10,5 @@
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=pauline.becker@student.kit.edu
 
-~/miniconda3/envs/mesogeos_py38/bin/python /hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/train.py \
-  --config /hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/configs/config_rf/config_train.json
+~/miniconda3/envs/mesogeos_py38/bin/python /hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/train.py \
+  --config /hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/configs/config_rf/config_train.json

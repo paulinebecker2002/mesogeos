@@ -13,7 +13,7 @@
 #SBATCH --mail-user=pauline.becker@student.kit.edu
 
 
-cd /hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger
+cd /hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger
 
 
 ~/miniconda3/envs/mesogeos_py38/bin/python train.py --config configs/config_cnn/config_train.json --pos_source positives_inland.csv --neg_source negatives_inland.csv

@@ -13,7 +13,7 @@
 #SBATCH --mail-user=pauline.becker@student.kit.edu
 
 
-cd /hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger
+cd /hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger
 
 MODEL_NAMES=("cnn" "gru" "lstm" "transformer" "gtn" "rf" "tft")
 

@@ -32,7 +32,7 @@ def main(config):
     feature_names = get_feature_names(config)
     ig_path = config["XAI"]["ig_path"]
     model_id = os.path.basename(os.path.dirname(checkpoint_path))
-    all_model_path = '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/all_model_comparison'
+    all_model_path = '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/ig-plots/all_model_comparison'
 
     ig_data, labels, sample_ids = load_ig_inputs_from_combined_npz(ig_path, model_id, model_type)
 
@@ -69,23 +69,23 @@ def main(config):
     plot_ig_beeswarm_grouped(ig_values=ig_data, input_tensor=input_data, feature_names=feature_names, model_id=model_id, model_type=model_type, base_path=ig_path)
 
     shap_files = [
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/cnn/0606_191829/ig_values_cnn.npy',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/mlp/0606_103457/ig_values_mlp.npy',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/gru/0606_191651/ig_values_gru.npy',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/lstm/0606_191651/ig_values_lstm.npy',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/transformer/0606_191656/ig_values_transformer.npy',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/gtn/0624_084137/ig_values_gtn.npy',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/tft/0607_112458/ig_values_tft.npy'
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/ig-plots/cnn/0606_191829/ig_values_cnn.npy',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/ig-plots/mlp/0606_103457/ig_values_mlp.npy',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/ig-plots/gru/0606_191651/ig_values_gru.npy',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/ig-plots/lstm/0606_191651/ig_values_lstm.npy',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/ig-plots/transformer/0606_191656/ig_values_transformer.npy',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/ig-plots/gtn/0624_084137/ig_values_gtn.npy',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/ig-plots/tft/0607_112458/ig_values_tft.npy'
     ]
 
     input_files = [
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/cnn/0606_191829/ig_input_tensor_cnn.npy',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/mlp/0606_103457/ig_input_tensor_mlp.npy',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/gru/0606_191651/ig_input_tensor_gru.npy',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/lstm/0606_191651/ig_input_tensor_lstm.npy',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/transformer/0606_191656/ig_input_tensor_transformer.npy',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/gtn/0624_084137/ig_input_tensor_gtn.npy',
-        '/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ig-plots/tft/0607_112458/ig_input_tensor_tft.npy'
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/ig-plots/cnn/0606_191829/ig_input_tensor_cnn.npy',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/ig-plots/mlp/0606_103457/ig_input_tensor_mlp.npy',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/ig-plots/gru/0606_191651/ig_input_tensor_gru.npy',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/ig-plots/lstm/0606_191651/ig_input_tensor_lstm.npy',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/ig-plots/transformer/0606_191656/ig_input_tensor_transformer.npy',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/ig-plots/gtn/0624_084137/ig_input_tensor_gtn.npy',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/ig-plots/tft/0607_112458/ig_input_tensor_tft.npy'
     ]
 
     model_names = ['cnn', 'mlp', 'gru', 'lstm', 'transformer', 'gtn', 'tft']

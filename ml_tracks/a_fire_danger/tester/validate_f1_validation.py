@@ -4,7 +4,7 @@ import subprocess
 from pathlib import Path
 
 MODEL_NAME = "lstm"  # Change this to the model name you want to analyze
-BASE_DIR = Path(f"/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/log/{MODEL_NAME}")
+BASE_DIR = Path(f"/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/log/{MODEL_NAME}")
 
 best_model = None
 best_f1 = -1

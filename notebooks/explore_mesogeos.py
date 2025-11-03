@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.INFO)
 
 # ---- Öffne das Dataset
 # Pfad zur Zarr-Datei anpassen, falls nötig
-zarr_path = "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/mesogeos_cube.zarr"
+zarr_path = "/hkfs/work/workspace/scratch/uyxib-mesogeos2/mesogeos_cube.zarr"
 logging.info(f"Öffne Zarr Dataset von: {zarr_path}")
 ds = xr.open_zarr(zarr_path)
 

@@ -11,7 +11,7 @@
 #SBATCH --mail-user=pauline.becker@student.kit.edu
 
 
-cd /hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger
+cd /hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger
 
 for tlag in 5 10 15 20 25 30; do
     ~/miniconda3/envs/mesogeos_py38/bin/python train.py --config configs/config_mlp/config_train.json --tlag $tlag

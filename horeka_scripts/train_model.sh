@@ -15,6 +15,6 @@
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate mesogeos_py38
 
-cd /hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger
+cd /hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger
 
 python trainer/timelag_seed_training.py

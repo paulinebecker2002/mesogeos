@@ -58,7 +58,7 @@ def main(config):
     static_features = config["features"]["static"]
     checkpoint_path = config["XAI"]["checkpoint_path"]
     seq_len = config["dataset"]["args"]["lag"]
-    base_save_path = f"/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/ale-values/{model_type}/"
+    base_save_path = f"/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/ale-values/{model_type}/"
 
     dataloader = get_dataloader(config, static_features, dynamic_features, mode='test')
     X_test, y_test = extract_numpy(dataloader)

@@ -13,11 +13,11 @@
 #SBATCH --mail-user=pauline.becker@student.kit.edu
 
 PYTHON="/home/hk-project-pai00005/uyxib/miniconda3/envs/mesogeos_py38/bin/python"
-export PYTHONPATH="/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger"
+export PYTHONPATH="/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger"
 MODEL_NAME="cnn"
 
-CONFIG_TRAIN_PATH="/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a.fire_danger/configs/config_cnn/config_train.json"
-TRAIN_SCRIPT="/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a.fire_danger/train.py"
+CONFIG_TRAIN_PATH="/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a.fire_danger/configs/config_cnn/config_train.json"
+TRAIN_SCRIPT="/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a.fire_danger/train.py"
 SAVE_DIR="/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a.fire_danger/saved/models"
 
 CONFIG_TEST_PATH="/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a.fire_danger/configs/config_cnn/config_test.json"

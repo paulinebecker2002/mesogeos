@@ -5,12 +5,12 @@
   "gpu_id": 0,
 
   "shap": {
-    "shap_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/shap-plots/rf/0616_091841",
+    "shap_path": "/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/rf/0616_091841",
     "class": "1"
   },
     "XAI": {
         "ig_path": null,
-      "checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/horeka_scripts/saved/log/rf/0612_082906/random_forest_model_0612_082906.pkl",
+      "checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/horeka_scripts/saved/log/rf/0612_082906/random_forest_model_0612_082906.pkl",
       "only_positive": false,
       "only_negative": false
     },
@@ -35,7 +35,7 @@
   "dataset": {
     "type": "FireDataset",
     "args":{
-      "dataset_root": "/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/a.danger_forecasting",
+      "dataset_root": "/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/a.danger_forecasting",
       "problem_class": "classification",
       "nan_fill": 0,
       "neg_pos_ratio": 2,

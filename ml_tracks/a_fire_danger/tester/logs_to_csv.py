@@ -41,7 +41,7 @@ Limitations:
 """
 
 MODEL_NAME = "transformer"  # Change this to the model name you want to analyze
-BASE_DIR = Path(f"/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger/saved/log/{MODEL_NAME}")
+BASE_DIR = Path(f"/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/log/{MODEL_NAME}")
 OUTPUT_CSV = f"{MODEL_NAME}_summary.csv"
 TIMESTEP_VALUES = [5, 10, 15, 20, 25, 30]
 
