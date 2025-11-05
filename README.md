@@ -42,7 +42,7 @@ Spyros Kondylatos, Ioannis Prapas, Gustau Camps-Valls, & Ioannis Papoutsis. (202
 This project implements a temporal deep learning pipeline for wildfire danger prediction Mesogeos Datacube. Samples are extracted from the datacube, combining features from four domains: Fuel, Meteorology, Human Factors, and Topography. A 17-fold cross-validation is applied, and models are trained with early stopping and hyperparameter tuning using GridSearch and Optuna, saving the best checkpoint (`model_best.pth`). Predictions are produced as class probabilities via a Softmax layer. To interpret the models, we apply SHAP, Integrated Gradients, and Accumulated Local Effects (ALE), linking feature attributions to physically meaningful wildfire drivers.
 
 ### Pipeline Overview
-![Machine Learning Pipeline](Documentation/ML_Setup-KIT.png) 
+![Machine Learning Pipeline](Documentation/ML_Setup-KIT.pdf) 
 
 ---
 
