@@ -24,7 +24,6 @@ CONFIG_TEST_PATH="/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/cod
 TEST_SCRIPT="/hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a.fire_danger/test.py"
 
 cd /hkfs/work/workspace/scratch/uyxib-pauline_gddpfa/mesogeos/code/ml_tracks/a_fire_danger
-# GridSearch Parameters
 for lr in 0.0005 0.001 0.002
 do
   for dr in 0.0 0.025 0.05 0.075
@@ -38,7 +37,6 @@ do
         --dr $dr \
         --bs $bs
 
-      # Get latest run_id (last modified dir in models/$MODEL_NAME/)
       RUN_ID=$(ls -t $SAVE_DIR/$MODEL_NAME/ | head -n 1)
       MODEL_PATH="$SAVE_DIR/$MODEL_NAME/$RUN_ID/model_best.pth"
 
