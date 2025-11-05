@@ -1,5 +1,4 @@
-# Designing and Explaining Temporal Deep Learning Models for Wildfire Danger Prediction
-
+# Assessing and Explaining Temporal Deep Learning Models for Wildfire Danger Prediction
 This project focuses on **wildfire danger forecasting** using advanced **temporal deep learning models** combined with **explainable AI (XAI)** techniques, based on the [**Mesogeos** dataset](https://orionlab.space.noa.gr/mesogeos/) — a publicly available spatio-temporal datacube covering the Mediterranean region from 2006 to 2022 at a resolution of **1 km × 1 km × 1 day**.
 
 In this work, we evaluate multiple deep learning architectures (including LSTM, GRU, CNN, MLP, Transformer, Gated Transformer Network and Temporal Fusion Transformer) against a Random Forest baseline and apply state-of-the-art XAI methods to enhance interpretability.  
@@ -7,14 +6,13 @@ In this work, we evaluate multiple deep learning architectures (including LSTM, 
 ### Key XAI Analyses:
 - **SHAP (SHapley Additive exPlanations):** Feature attribution and ranking across models, temporal dynamics of variable importance, and physical consistency checks with known wildfire drivers.
 - **Integrated Gradients (IG):** Sample-level attributions for specific fire events and feature effect comparisons between models.
-- **Accumulated Local Effects (ALE):** Non-linear feature sensitivity analysis to understand global variable impacts on predictions.
 - **Case studies and interpretability metrics:** Detailed analysis of model predictions for significant fire events and comparison of explanation patterns.
 
 These analyses not only provide accurate fire danger predictions but also offer insights into **how and why the models make their decisions**, bridging the gap between data-driven methods and domain knowledge in wildfire science.
 
 Interested about the project? Explore the full details, methodology, and results here: 
-- 📄 [Bachelor Thesis PDF](Documentation/Bachelorthesis_Pauline_Becker.pdf)
-- 🎥 [Thesis Presentation Slides](Documentation/BA_Presentation_Pauline_Becker_final.pdf)
+- 📄 [Assessing and Explaining Temporal Deep Learning Models for Wildfire Danger Prediction
+ - Paper](Documentation/Bachelorthesis_Pauline_Becker.pdf)
 
 ---
 
@@ -147,7 +145,7 @@ The `outputs/` folder contains Jupyter notebooks specifically designed to **anal
 
 This project was developed as part of my Bachelor's thesis on Designing and Explaining Temporal Deep Learning Models for Wildfire Danger Prediction.  
 
-I would like to express my sincere gratitude to [Peer Nowack](mailto:peer.nowack@kit.edu) and [Carolina Moura](mailto:carolina.moura@kit.edu) for their invaluable guidance and continuous support throughout the course of this thesis. Their expertise, encouragement, and insightful feedback were instrumental in shaping the direction and quality of this work.  
+I would like to express my sincere gratitude to [Peer Nowack](mailto:peer.nowack@kit.edu) and [Carolina Moura](mailto:carolina.moura@kit.edu) for their invaluable guidance and continuous support throughout the research. Their expertise, encouragement, and insightful feedback were instrumental in shaping the direction and quality of this work.  
 I am also deeply thankful to [Lina Rennstein](mailto:lina.rennstein@kit.edu) (PhD at the Chair for AI in Climate and Environmental Sciences) for her patience and for answering my numerous questions about HoreKa, as well as for her suggestions regarding visualization approaches for my thesis.  
 Finally, I would like to thank [Julian Strietzel](https://www.linkedin.com/in/julian-strietzel/) for his unwavering support, understanding, and encouragement.
 
