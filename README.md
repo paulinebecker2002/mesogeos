@@ -10,9 +10,8 @@ In this work, we evaluate multiple deep learning architectures (including LSTM, 
 
 These analyses not only provide accurate fire danger predictions but also offer insights into **how and why the models make their decisions**, bridging the gap between data-driven methods and domain knowledge in wildfire science.
 
-Interested about the project? Explore the full details, methodology, and results here: 
-- 📄 [Assessing and Explaining Temporal Deep Learning Models for Wildfire Danger Prediction
- - Paper](Documentation/Assessing_and_Explaining_Temporal_Deep_Learning_Models_for_Wildfire_Danger_Prediction.pdf)
+Interested in the project? Explore the full details, methodology, and results here:  
+- 📄 [Assessing and Explaining Temporal Deep Learning Models for Wildfire Danger Prediction (Paper)](Documentation/Assessing_and_Explaining_Temporal_Deep_Learning_Models_for_Wildfire_Danger_Prediction.pdf)
 
 ---
 
