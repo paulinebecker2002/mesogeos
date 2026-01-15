@@ -13,6 +13,7 @@ from parse_config import ConfigParser
 from utils import MetricTracker, build_model
 from logger import TensorboardWriter
 from tester.test_rf import test_rf
+from tester.test_xgb import test_xgb
 import torch.nn as nn
 from utils import grouped_classification_metrics, calculate_metrics
 
@@ -35,6 +36,9 @@ def main(config):
     # build models architecture
     if config["model_type"] == "rf":
         test_rf(config)
+        return
+    if config["model_type"] in ["xgb", "xgboost"]:
+        test_xgb(config)
         return
     else:
         model = build_model(config, dynamic_features, static_features)

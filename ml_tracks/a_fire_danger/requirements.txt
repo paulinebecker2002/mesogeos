@@ -171,6 +171,7 @@ Werkzeug==2.2.2
 widgetsnbextension==4.0.7
 xarray==0.20.1
 xbatcher==0.2.0
+xgboost==2.1.4
 yarl==1.8.1
 zarr==2.10.2
 zipp==3.11.0

@@ -1,13 +1,11 @@
 #!/bin/bash
-#SBATCH --job-name=cnn_c
-#SBATCH --partition=accelerated
+#SBATCH --job-name=train_rf
+#SBATCH --partition=cpuonly
 #SBATCH --account=hk-project-p0024498
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=8
-#SBATCH --gpus=1
-#SBATCH --gres=gpu:1
-#SBATCH --mem=480G
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=60G
 #SBATCH --time=12:00:00
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=pauline.becker@student.kit.edu

@@ -14,6 +14,8 @@ import optuna
 from trainer.trainer_rf import optuna_rf
 #from trainer.trainer_tune_rf import train_rf
 from trainer.trainer_rf import train_rf
+from trainer.trainer_xgboost import train_xgboost
+from trainer.trainer_tune_xgb import train_xgboost_tune
 from utils.util import set_seed, build_model, get_dataloader
 
 
@@ -65,6 +67,21 @@ def main(config):
         logger.info("Best trial:")
         logger.info(study.best_trial)
         logger.info(f"Best params: {study.best_trial.params}")
+        return
+
+    if config["model_type"] == "xgb":
+        tune_mode = None
+        try:
+            finetune_cfg = config["finetune"]  # may not exist
+            if finetune_cfg is not None:
+                tune_mode = finetune_cfg.get("sklearn_tune", None)
+        except KeyError:
+            finetune_cfg = None
+
+        if tune_mode in ("GridSearch", "RandomizedSearch"):
+            train_xgboost_tune(config, dataloader["train"], dataloader["val"])
+        else:
+            train_xgboost(config, dataloader["train"], dataloader["val"])
         return
 
     # Model setup

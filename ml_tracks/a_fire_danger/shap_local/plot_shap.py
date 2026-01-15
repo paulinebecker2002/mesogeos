@@ -1,6 +1,13 @@
 import argparse
 import collections
 import os
+import sys
+
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+import xgboost as xgb
 import numpy as np
 import torch
 from parse_config import ConfigParser
@@ -10,6 +17,7 @@ from shap_utils import (plot_beeswarm, plot_beeswarm_grouped,
                         plot_shap_difference_aggregated, plot_shap_waterfall, plot_shap_waterfall_grouped,
                         map_sample_ids_to_indices,
                         compute_physical_consistency_score, compute_grouped_physical_consistency_score,
+                        compute_grouped_physical_consistency_score1,
                         plot_beeswarm_by_grouped_feature, plot_beeswarm_by_feature)
 
 def load_shap_inputs_from_combined_npz(shap_path, model_id, model_type):
@@ -74,7 +82,8 @@ def main(config):
         '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/transformer/0615_025441/shap_values_0519_125059_transformer.npz',
         '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/gtn/0624_142112/shap_values_0623_205004_gtn.npz',
         '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/rf/0616_091841/shap_values_0612_082906_rf.npz',
-        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/tft/0616_133748/shap_values_0612_083316_tft.npz'
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/tft/0616_133748/shap_values_0612_083316_tft.npz',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/xgb/0115_105505/shap_values_0115_103258_xgb.npz'
     ]
 
     input_files = [
@@ -85,10 +94,11 @@ def main(config):
         '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/transformer/0615_025441/shap_values_0519_125059_transformer_input.npy',
         '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/gtn/0624_142112/shap_values_0623_205004_gtn_input.npy',
         '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/rf/0616_091841/shap_values_0612_082906_rf_input.npy',
-        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/tft/0616_133748/shap_values_0612_083316_tft_input.npy'
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/tft/0616_133748/shap_values_0612_083316_tft_input.npy',
+        '/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/xgb/0115_111242/shap_values_0115_103258_xgb_input.npy'
     ]
 
-    model_names = ['cnn', 'mlp', 'gru', 'lstm', 'transformer', 'gtn', 'rf', 'tft']
+    model_names = ['cnn', 'mlp', 'gru', 'lstm', 'transformer', 'gtn', 'rf', 'tft', 'xgb']
     features = ['lst_day_t-1', 'lst_day_t-2', 'rh_t-1', 't2m_t-1', 'd2m_t-1', 'lst_night_t-1', 'ndvi_t-1', 't2m_t-2', 'tp_t-1', 'wind_speed_t-1', 'lai_t-1', 'lst_day_t-5']
     grouped_features = [
         "d2m", "lai", "lst_day", "lst_night", "ndvi", "rh", "smi", "sp", "ssrd",
@@ -105,23 +115,23 @@ def main(config):
         "lc_grassland_t-1", "lc_settlement_t-1",  "lc_shrubland_t-1",  "lc_sparse_vegetation_t-1",
         "lc_water_bodies_t-1", "lc_wetland_t-1"]
 
-    for feature in grouped_features:
-        plot_beeswarm_by_grouped_feature(shap_files=shap_files, input_files=input_files, feature_names=feature_names, feature_to_plot=feature, model_names=model_names, base_path=all_model_path, only_pos=only_pos, only_neg=only_neg)
-        plot_beeswarm_by_feature(shap_files=shap_files, input_files=input_files, feature_names=feature_names, full_feature_name=f"{feature}_t-1", model_names=model_names, base_path=all_model_path, only_pos=only_pos, only_neg=only_neg)
+    #for feature in grouped_features:
+     #   plot_beeswarm_by_grouped_feature(shap_files=shap_files, input_files=input_files, feature_names=feature_names, feature_to_plot=feature, model_names=model_names, base_path=all_model_path, only_pos=only_pos, only_neg=only_neg)
+      #  plot_beeswarm_by_feature(shap_files=shap_files, input_files=input_files, feature_names=feature_names, full_feature_name=f"{feature}_t-1", model_names=model_names, base_path=all_model_path, only_pos=only_pos, only_neg=only_neg)
 
-    for idx in range(1, 30):
-       plot_beeswarm_by_feature(shap_files=shap_files, input_files=input_files, feature_names=feature_names, full_feature_name=f"lai_t-{idx}", model_names=model_names, base_path=all_model_path, only_pos=only_pos, only_neg=only_neg)
+    #for idx in range(1, 30):
+     #  plot_beeswarm_by_feature(shap_files=shap_files, input_files=input_files, feature_names=feature_names, full_feature_name=f"lai_t-{idx}", model_names=model_names, base_path=all_model_path, only_pos=only_pos, only_neg=only_neg)
 
 
     print(f"Shape input: {input_tensor.shape}, SHAP: {np.array(shap_values).shape}")
-    plot_grouped_feature_importance(shap_values, feature_names, shap_path, model_type)
-    plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, model_id, shap_path, model_type, logger)
-    plot_beeswarm_grouped(shap_values, shap_class, input_tensor, feature_names, model_id, shap_path, model_type, logger)
+    #plot_grouped_feature_importance(shap_values, feature_names, shap_path, model_type)
+    #plot_beeswarm(shap_values, shap_class, input_tensor, feature_names, model_id, shap_path, model_type, logger)
+    #plot_beeswarm_grouped(shap_values, shap_class, input_tensor, feature_names, model_id, shap_path, model_type, logger)
 
-    plot_shap_difference_bar(shap_data['class_0'], shap_data['class_1'], feature_names, model_id, shap_path, model_type, logger)
-    plot_shap_difference_aggregated(shap_data['class_0'], shap_data['class_1'], feature_names, model_id, shap_path, model_type, logger)
+    #plot_shap_difference_bar(shap_data['class_0'], shap_data['class_1'], feature_names, model_id, shap_path, model_type, logger)
+    #plot_shap_difference_aggregated(shap_data['class_0'], shap_data['class_1'], feature_names, model_id, shap_path, model_type, logger)
 
-    plot_shap_temporal_heatmap(shap_values, shap_class, feature_names, model_id, shap_path, model_type, logger)
+    #plot_shap_temporal_heatmap(shap_values, shap_class, feature_names, model_id, shap_path, model_type, logger)
 
     bigFire_sample_idx = [4792, 679, 8418, 1645, 1676]
 
@@ -173,11 +183,11 @@ def main(config):
 
     for idx in true_negative_ids_july:
         print(f"Plotting SHAP waterfall for True Negative Sample: {idx}")
-        plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, f"{shap_path}/true_negatives_waterfall_grouped", model_type, logger)
+        #plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, f"{shap_path}/true_negatives_waterfall_grouped", model_type, logger)
 
     for idx in true_negative_ids:
         print(f"Plotting SHAP waterfall for Sample: {idx}")
-        plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, f"{shap_path}/true_negative_waterfall_grouped", model_type, logger)
+        #plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, f"{shap_path}/true_negative_waterfall_grouped", model_type, logger)
 
     physical_knowledge = {
         "t2m": "+", "d2m": "-", "lc_agriculture": "+", "lc_forest": "+", "lc_grassland": "+",
@@ -186,7 +196,7 @@ def main(config):
         "smi": "-", "ssrd": "+", "tp": "-", "wind_speed": "+"
     }
 
-    compute_grouped_physical_consistency_score( shap_values=shap_values, input_tensor=input_tensor,
+    compute_grouped_physical_consistency_score1( shap_values=shap_values, input_tensor=input_tensor,
            feature_names=feature_names, physical_signs=physical_knowledge, save_path=shap_path, model_type=model_type)
 
 if __name__ == '__main__':

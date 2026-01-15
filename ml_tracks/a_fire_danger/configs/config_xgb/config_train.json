@@ -1,0 +1,153 @@
+{
+  "name": "xgb",
+  "model_type": "xgb",
+  "n_gpu": 1,
+  "gpu_id": 0,
+  "shap": {
+    "shap_path": "/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/shap-plots/xgb/0115_111242",
+    "class": "1"
+  },
+  "XAI": {
+    "ig_path": null,
+    "checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/log/xgb/0115_103258/xgboost_model_0115_103258.pkl",
+    "only_positive": false,
+    "only_negative": false
+  },
+  "arch": {
+    "type": "XGBoost",
+    "args": {}
+  },
+  "finetune": {
+    "sklearn_tune": ""
+  },
+  "model_args": {
+    "n_estimators": 1200,
+    "max_depth": 8,
+    "learning_rate": 0.05,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "min_child_weight": 1.0,
+    "gamma": 0.0,
+    "reg_alpha": 0.0,
+    "reg_lambda": 1.0,
+    "tree_method": "hist",
+    "eval_metric": "logloss",
+    "early_stopping_rounds": 50,
+    "scale_pos_weight": "auto",
+    "n_jobs": -1
+  },
+  "dataset": {
+    "type": "FireDataset",
+    "args": {
+      "dataset_root": "/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/a.danger_forecasting",
+      "problem_class": "classification",
+      "nan_fill": 0,
+      "neg_pos_ratio": 2,
+      "lag": 30,
+      "seed": 12345,
+      "last_n_timesteps": 30,
+      "train_year": [
+        "2006",
+        "2007",
+        "2008",
+        "2009",
+        "2010",
+        "2011",
+        "2012",
+        "2013",
+        "2014",
+        "2015",
+        "2016",
+        "2017",
+        "2018",
+        "2019"
+      ],
+      "val_year": [
+        "2020"
+      ],
+      "test_year": [
+        "2021",
+        "2022"
+      ],
+      "pos_source": "positives_binary_coastal.csv",
+      "neg_source": "negatives_binary_coastal.csv",
+      "coastal_only": false,
+      "inland_only": false,
+      "n_train_pos": null,
+      "n_val_pos": null,
+      "n_test_pos": null
+    }
+  },
+  "dataloader": {
+    "type": "FireDataloader",
+    "args": {
+      "batch_size": 256,
+      "shuffle": true,
+      "num_workers": 2,
+      "pin_memory": false
+    }
+  },
+  "optimizer": {
+    "type": "Adam",
+    "args": {
+      "lr": 0.004,
+      "weight_decay": 0.0063,
+      "amsgrad": false
+    }
+  },
+  "seed": 12345,
+  "loss": "nll_loss",
+  "metrics": [
+    "accuracy",
+    "precision",
+    "recall",
+    "f1_score",
+    "aucpr"
+  ],
+  "lr_scheduler": {
+    "type": "StepLR",
+    "args": {
+      "step_size": 15,
+      "gamma": 0.1
+    }
+  },
+  "trainer": {
+    "epochs": 30,
+    "save_dir": "saved/",
+    "save_period": 1,
+    "verbosity": 2,
+    "monitor": "min val_loss",
+    "early_stop": 50,
+    "tensorboard": true
+  },
+  "features": {
+    "dynamic": [
+      "d2m",
+      "lai",
+      "lst_day",
+      "lst_night",
+      "ndvi",
+      "rh",
+      "smi",
+      "sp",
+      "ssrd",
+      "t2m",
+      "tp",
+      "wind_speed"
+    ],
+    "static": [
+      "dem",
+      "roads_distance",
+      "slope",
+      "lc_agriculture",
+      "lc_forest",
+      "lc_grassland",
+      "lc_settlement",
+      "lc_shrubland",
+      "lc_sparse_vegetation",
+      "lc_water_bodies",
+      "lc_wetland",
+      "population"
+    ]
+  }
+}

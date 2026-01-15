@@ -509,81 +509,14 @@ def compute_grouped_input_over_time(input_tensor, feature_names):
     return input_agg, base_feature_names
 
 
-def compute_physical_consistency_score(
+def compute_grouped_physical_consistency_score_0_treshold(
         shap_values: np.ndarray,
         input_tensor: torch.Tensor,
         feature_names: list,
         physical_signs: dict,
         save_path: str,
         model_type: str,
-        threshold: float = 0.5,
-):
-    if isinstance(input_tensor, torch.Tensor):
-        input_tensor = input_tensor.detach().cpu().numpy()
-
-    if model_type in ["lstm", "gru", "tft", "transformer", "gtn", "cnn"]:
-        if len(input_tensor.shape) == 3:
-            input_tensor = input_tensor.reshape(input_tensor.shape[0], -1)
-
-    assert input_tensor.shape == shap_values.shape, "Shape mismatch between input and SHAP values."
-    assert input_tensor.shape[1] == len(feature_names), f"Feature name count {len(feature_names)} does not match input shape {input_tensor.shape[1]}"
-
-    df_input = pd.DataFrame(input_tensor, columns=feature_names)
-    df_shap = pd.DataFrame(shap_values, columns=feature_names)
-
-    results = []
-    ignored = 0
-
-    for feat in feature_names:
-        base_feat = feat.split("_t-")[0]
-        print(f"base features names: {base_feat}")
-        if base_feat not in physical_signs:
-            ignored += 1
-            continue
-
-        sign = physical_signs[base_feat]
-        shap_vals = df_shap[feat]
-        inputs = df_input[feat]
-
-        mask_high_input = inputs > threshold
-        mask_low_input = inputs < -threshold
-
-        if sign == "+":
-            mask_consistent = (mask_high_input & (shap_vals > 0)) | (mask_low_input & (shap_vals < 0))
-        elif sign == "-":
-            mask_consistent = (mask_high_input & (shap_vals < 0)) | (mask_low_input & (shap_vals > 0))
-        else:
-            continue
-
-        n_consistent = mask_consistent.sum()
-        n_considered = (mask_high_input | mask_low_input).sum()
-        score = n_consistent / n_considered if n_considered > 0 else np.nan
-
-        results.append({
-            "feature_time": feat,
-            "base_feature": base_feat,
-            "physical_sign": sign,
-            "n_considered": n_considered,
-            "n_consistent": n_consistent,
-            "consistency_score": score
-        })
-
-    df_results = pd.DataFrame(results)
-    save_file = os.path.join(save_path, f"{model_type}_physical_consistency_detailed.csv")
-    df_results.to_csv(save_file, index=False)
-    print(f"Physical consistency scores saved to: {save_file}")
-    print(f"features names: {feature_names}")
-    print(f" {ignored} features skipped due to missing physical_signs entry")
-
-
-def compute_grouped_physical_consistency_score1(
-        shap_values: np.ndarray,
-        input_tensor: torch.Tensor,
-        feature_names: list,
-        physical_signs: dict,
-        save_path: str,
-        model_type: str,
-        threshold: float = 0.1
+        threshold: float = 0.0
 ):
     import pandas as pd
     import os
@@ -635,7 +568,7 @@ def compute_grouped_physical_consistency_score1(
         })
 
     df_results = pd.DataFrame(results)
-    save_file = os.path.join(save_path, f"{model_type}_grouped_physical_consistency_0.1.csv")
+    save_file = os.path.join(save_path, f"{model_type}_grouped_physical_consistency_0.0.csv")
     df_results.to_csv(save_file, index=False)
     print(f"feature names: {grouped_features}")
     print(f"feature names: {feature_names}")

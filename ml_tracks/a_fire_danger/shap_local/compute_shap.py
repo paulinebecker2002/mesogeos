@@ -5,6 +5,13 @@ import shap
 import numpy as np
 from datetime import datetime
 import os
+import sys
+
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+import xgboost as xgb
 import pandas as pd
 import joblib
 from parse_config import ConfigParser
@@ -105,8 +112,17 @@ def get_shap_explanation(model, model_type, input_all, device, seq_len, static_f
 
     return shap_values
 
+def _xgb_pred_contribs(model, X: np.ndarray) -> np.ndarray:
+    """
+    Returns SHAP contributions from XGBoost directly.
+    Output shape: (n_samples, n_features + 1) where last column is the bias term.
+    """
+    booster = model.get_booster() if hasattr(model, "get_booster") else model
+    dmat = xgb.DMatrix(X)
+    contribs = booster.predict(dmat, pred_contribs=True)
+    return contribs
 
-def generate_rf_shap_values(model, dataloader, base_save_path, model_id, feature_names, logger=None):
+def generate_tree_shap_values(model, dataloader, base_save_path, model_id, feature_names, model_type, logger=None):
     """
     Compute and save SHAP values for a Random Forest model using TreeExplainer,
     and output the same files as for deep learning models.
@@ -131,19 +147,28 @@ def generate_rf_shap_values(model, dataloader, base_save_path, model_id, feature
     coords_y = np.array(y_coords)
     sample_ids = np.array(sample_ids)
 
-    # SHAP Werte berechnen
-    explainer = shap.TreeExplainer(model)
-    shap_values = explainer.shap_values(X_val)  # [class_0, class_1]
+    if model_type == "xgb":
+        contribs = _xgb_pred_contribs(model, X_val)  # (N, F+1)
+        shap_class1 = contribs[:, :-1]  # (N, F)
+        shap_values = [-shap_class1, shap_class1]  # [class_0, class_1]
+    else:
+        explainer = shap.TreeExplainer(model)
+        shap_values = explainer.shap_values(X_val)  # [class_0, class_1]
 
     timestamp = datetime.now().strftime("%m%d_%H%M%S")
     shap_dir = os.path.join(base_save_path, timestamp)
     os.makedirs(shap_dir, exist_ok=True)
 
     # Save .npz (class only)
-    shap_save_path = os.path.join(shap_dir, f"shap_values_{model_id}_rf.npz")
+    shap_save_path = os.path.join(shap_dir, f"shap_values_{model_id}_{model_type}.npz")
     np.savez(shap_save_path, class_0=shap_values[0], class_1=shap_values[1])
     if logger:
-        logger.info(f"[RF] SHAP values saved at: {shap_save_path}")
+        logger.info(f"[{model_type}] SHAP values saved at: {shap_save_path}")
+
+    input_save_path = shap_save_path.replace(".npz", "_input.npy")
+    np.save(input_save_path, X_val)
+    if logger:
+        logger.info(f"[{model_type}] Input saved at: {input_save_path}")
 
     # Save combined .npz
     combined_npz_path = shap_save_path.replace(".npz", "_combined.npz")
@@ -156,7 +181,7 @@ def generate_rf_shap_values(model, dataloader, base_save_path, model_id, feature
         feature_names=np.array(feature_names)
     )
     if logger:
-        logger.info(f"[RF] Combined SHAP NPZ saved at: {combined_npz_path}")
+        logger.info(f"[{model_type}] Combined SHAP NPZ saved at: {combined_npz_path}")
 
     # Save combined CSV (only class 1)
     df_combined = pd.DataFrame({
@@ -172,7 +197,7 @@ def generate_rf_shap_values(model, dataloader, base_save_path, model_id, feature
     combined_csv_path = shap_save_path.replace(".npz", "_combined.csv")
     df_combined.to_csv(combined_csv_path, index=False)
     if logger:
-        logger.info(f"[RF] Combined SHAP CSV saved at: {combined_csv_path}")
+        logger.info(f"[{model_type}] Combined SHAP CSV saved at: {combined_csv_path}")
 
     # Aggregierte SHAP Map
     base_feature_names = [name.split("_t-")[0] for name in feature_names]
@@ -188,10 +213,10 @@ def generate_rf_shap_values(model, dataloader, base_save_path, model_id, feature
     })
     df_map = pd.concat([df_map, shap_agg], axis=1)
 
-    map_csv_path = os.path.join(shap_dir, f"shap_map_rf.csv")
+    map_csv_path = os.path.join(shap_dir, f"shap_map_{model_type}.csv")
     df_map.to_csv(map_csv_path, index=False)
     if logger:
-        logger.info(f"[RF] Aggregated SHAP map CSV saved at: {map_csv_path}")
+        logger.info(f"[{model_type}] Aggregated SHAP map CSV saved at: {map_csv_path}")
 
 
 def main(config):
@@ -210,14 +235,15 @@ def main(config):
     dataloader = get_dataloader(config, static_features, dynamic_features, mode='test')
     device, _ = prepare_device(config['n_gpu'], config['gpu_id'])
 
-    if model_type == 'rf':
+    if model_type in ["rf", "xgb"]:
         model = joblib.load(checkpoint_path)
-        generate_rf_shap_values(
+        generate_tree_shap_values(
             model=model,
             dataloader=dataloader,
             base_save_path=base_save_path,
             model_id=os.path.basename(os.path.dirname(checkpoint_path)),
             feature_names=feature_names,
+            model_type=model_type,
             logger=logger
         )
         return
