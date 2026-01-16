@@ -10,9 +10,8 @@ In this work, we evaluate multiple deep learning architectures (including LSTM, 
 
 These analyses not only provide accurate fire danger predictions but also offer insights into **how and why the models make their decisions**, bridging the gap between data-driven methods and domain knowledge in wildfire science.
 
-Interested about the project? Explore the full details, methodology, and results here: 
-- 📄 [Assessing and Explaining Temporal Deep Learning Models for Wildfire Danger Prediction
- - Paper](Documentation/Bachelorthesis_Pauline_Becker.pdf)
+Interested in the project? Explore the full details, methodology, and results here:  
+- 📄 [Assessing and Explaining Temporal Deep Learning Models for Wildfire Danger Prediction (Paper)](Documentation/Assessing_and_Explaining_Temporal_Deep_Learning_Models_for_Wildfire_Danger_Prediction.pdf)
 
 ---
 
@@ -40,7 +39,7 @@ Spyros Kondylatos, Ioannis Prapas, Gustau Camps-Valls, & Ioannis Papoutsis. (202
 This project implements a temporal deep learning pipeline for wildfire danger prediction Mesogeos Datacube. Samples are extracted from the datacube, combining features from four domains: Fuel, Meteorology, Human Factors, and Topography. A 17-fold cross-validation is applied, and models are trained with early stopping and hyperparameter tuning using GridSearch and Optuna, saving the best checkpoint (`model_best.pth`). Predictions are produced as class probabilities via a Softmax layer. To interpret the models, we apply SHAP, Integrated Gradients, and Accumulated Local Effects (ALE), linking feature attributions to physically meaningful wildfire drivers.
 
 ### Pipeline Overview
-![Machine Learning Pipeline](Documentation/ML_Setup-KIT.pdf) 
+![Machine Learning Pipeline](Documentation/ML_Setup.png) 
 
 ---
 
