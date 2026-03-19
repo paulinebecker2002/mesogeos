@@ -15,7 +15,7 @@
 
 cd /hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger
 
-MODEL_NAMES=("cnn" "gru" "lstm" "transformer" "gtn" "rf" "tft")
+MODEL_NAMES=("cnn" "gru" "lstm" "transformer" "gtn" "rf" "tft" "xgb")
 
 for MODEL_NAME in "${MODEL_NAMES[@]}";
 do

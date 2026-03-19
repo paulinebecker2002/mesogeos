@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import shap
+import itertools
 import matplotlib.colors as mcolors
 import matplotlib.cm as cm
 from utils.util import get_model_name
@@ -508,6 +509,313 @@ def compute_grouped_input_over_time(input_tensor, feature_names):
 
     return input_agg, base_feature_names
 
+def _safe_corr(a: np.ndarray, b: np.ndarray) -> float:
+    """Pearson correlation, safe for constant vectors / NaNs."""
+    a = np.asarray(a).reshape(-1)
+    b = np.asarray(b).reshape(-1)
+
+    mask = np.isfinite(a) & np.isfinite(b)
+    a = a[mask]
+    b = b[mask]
+    if a.size < 3:
+        return np.nan
+
+    if np.std(a) < 1e-12 or np.std(b) < 1e-12:
+        return np.nan
+
+    return float(np.corrcoef(a, b)[0, 1])
+
+
+def plot_grouped_interaction_heatmap(
+    shap_values: np.ndarray,
+    input_tensor: torch.Tensor,
+    feature_names: list,
+    base_path: str,
+    model_id: str,
+    model_type: str,
+    logger=None,
+    sum_over_time: bool = True,
+):
+    """
+    Creates a global 'interaction strength' heatmap for the 24 base features
+    using aggregated SHAP over time and aggregated inputs over time.
+
+    NOTE: This is a proxy (not TreeExplainer interaction tensor).
+    Off-diagonal entry(i,j) ~ avg(|corr(shap_i, x_j)|, |corr(shap_j, x_i)|) * 0.5
+    Diagonal is mean(|shap_i|) to represent main effect strength.
+    """
+    save_dir = os.path.join(base_path, "interactions_grouped")
+    os.makedirs(save_dir, exist_ok=True)
+    save_file = os.path.join(save_dir, f"shap_interaction_heatmap_{model_id}_{model_type}.png")
+
+    grouped_shap_df, grouped_features = compute_grouped_shap_over_time(
+        shap_values, feature_names, sum=sum_over_time
+    )
+    grouped_input_np, base_feature_names = compute_grouped_input_over_time(input_tensor, feature_names)
+
+    # Align input columns to grouped SHAP columns
+    col_idx = [base_feature_names.index(f) for f in grouped_features]
+    X = grouped_input_np[:, col_idx]  # (N, 24)
+    S = grouped_shap_df.values        # (N, 24)
+    feats = grouped_features
+
+    n = len(feats)
+    mat = np.zeros((n, n), dtype=float)
+
+    # diagonal: main effect magnitude
+    for i in range(n):
+        mat[i, i] = np.nanmean(np.abs(S[:, i]))
+
+    # off-diagonal: symmetric proxy for interaction strength
+    for i in range(n):
+        for j in range(i + 1, n):
+            c1 = _safe_corr(S[:, i], X[:, j])
+            c2 = _safe_corr(S[:, j], X[:, i])
+            val = np.nanmean([abs(c1), abs(c2)])
+            mat[i, j] = val
+            mat[j, i] = val
+
+    df = pd.DataFrame(mat, index=feats, columns=feats)
+
+    # mimic Kaggle convention: double off-diagonal
+    doubled = df.values.copy()
+    for i in range(n):
+        for j in range(n):
+            if i != j:
+                doubled[i, j] *= 2.0
+    df2 = pd.DataFrame(doubled, index=feats, columns=feats)
+
+    plt.figure(figsize=(14, 10))
+    sns.heatmap(df2.round(4), cmap="coolwarm", annot=True, fmt=".4g", cbar=True)
+    plt.title(f"Grouped SHAP interaction proxy heatmap (30-day aggregated) – {model_type}", fontsize=14)
+    plt.xticks(rotation=90)
+    plt.yticks(rotation=0)
+    plt.tight_layout()
+    plt.savefig(save_file, dpi=300)
+    plt.close()
+
+    if logger:
+        logger.info(f"Grouped interaction heatmap saved at: {save_file}")
+
+def load_tree_shap_interactions(shap_path: str, model_id: str, model_type: str, shap_class: int = 1):
+    fp = os.path.join(shap_path, f"shap_interaction_{model_id}_{model_type}.npz")
+    data = np.load(fp, allow_pickle=True)
+    inter = data[f"class_{shap_class}"]  # shape (N, F, F)
+    feature_names = data["feature_names"].tolist()
+    return inter, feature_names
+
+
+def plot_tree_interaction_heatmap_mean(
+    shap_interaction: np.ndarray,   # (N, F, F)
+    feature_names: list,
+    base_path: str,
+    model_id: str,
+    model_type: str,
+    logger=None,
+):
+    save_dir = os.path.join(base_path, "interactions_tree")
+    os.makedirs(save_dir, exist_ok=True)
+    save_file = os.path.join(save_dir, f"tree_interaction_heatmap_{model_id}_{model_type}.png")
+
+    mean_abs = np.abs(shap_interaction).mean(axis=0)  # (F,F)
+    df = pd.DataFrame(mean_abs, index=feature_names, columns=feature_names)
+
+    # double off diagonal (Kaggle convention)
+    vals = df.values
+    diag = np.diag(vals).copy()
+    vals2 = vals * 2.0
+    np.fill_diagonal(vals2, diag)
+    df2 = pd.DataFrame(vals2, index=feature_names, columns=feature_names)
+
+    plt.figure(figsize=(16, 12))
+    sns.heatmap(df2.round(4), cmap="coolwarm", annot=False, cbar=True)
+    plt.title(f"Tree SHAP interaction values (mean |.|) – {model_type}", fontsize=14)
+    plt.xticks(rotation=90)
+    plt.yticks(rotation=0)
+    plt.tight_layout()
+    plt.savefig(save_file, dpi=300)
+    plt.close()
+
+    if logger:
+        logger.info(f"Tree interaction heatmap saved at: {save_file}")
+
+def _compute_grouped_interaction_matrix_proxy(
+    shap_values: np.ndarray,
+    input_tensor: torch.Tensor,
+    feature_names: list,
+    sum_over_time: bool = True,
+):
+    """
+    Returns:
+        df2: DataFrame (n_base_features x n_base_features) with proxy strengths
+             (off-diagonal doubled like the Kaggle convention).
+        X:   DataFrame (N x n_base_features) aggregated inputs
+        S:   np.ndarray (N x n_base_features) aggregated SHAP
+        feats: list of base feature names (column order for X and S)
+    """
+    grouped_shap_df, grouped_features = compute_grouped_shap_over_time(
+        shap_values, feature_names, sum=sum_over_time
+    )
+    grouped_input_np, base_feature_names = compute_grouped_input_over_time(input_tensor, feature_names)
+
+    col_idx = [base_feature_names.index(f) for f in grouped_features]
+    X = pd.DataFrame(grouped_input_np[:, col_idx], columns=grouped_features)
+    S = grouped_shap_df.values
+    feats = grouped_features
+
+    n = len(feats)
+    mat = np.zeros((n, n), dtype=float)
+
+    # diagonal: main effect magnitude
+    for i in range(n):
+        mat[i, i] = np.nanmean(np.abs(S[:, i]))
+
+    # off-diagonal: symmetric proxy for interaction strength
+    for i in range(n):
+        for j in range(i + 1, n):
+            c1 = _safe_corr(S[:, i], X.iloc[:, j].values)
+            c2 = _safe_corr(S[:, j], X.iloc[:, i].values)
+            val = np.nanmean([abs(c1), abs(c2)])  # symmetric
+            mat[i, j] = val
+            mat[j, i] = val
+
+    df = pd.DataFrame(mat, index=feats, columns=feats)
+
+    # Kaggle-style: double off-diagonal
+    doubled = df.values.copy()
+    for i in range(n):
+        for j in range(n):
+            if i != j:
+                doubled[i, j] *= 2.0
+    df2 = pd.DataFrame(doubled, index=feats, columns=feats)
+
+    return df2, X, S, feats
+
+
+def plot_topk_grouped_dependence_interactions(
+    shap_values: np.ndarray,
+    input_tensor: torch.Tensor,
+    feature_names: list,
+    base_path: str,
+    model_id: str,
+    model_type: str,
+    logger=None,
+    sum_over_time: bool = True,
+    top_k: int = 20,
+):
+    """
+    1) Compute grouped interaction proxy matrix (24x24).
+    2) Rank strongest off-diagonal pairs.
+    3) Save dependence plots only for the top_k pairs:
+       x = f1, y = SHAP(f1), color = f2.
+    Also saves a CSV ranking for paper reporting.
+    """
+    save_dir = os.path.join(base_path, "interactions_grouped", f"top{top_k}_pairs")
+    os.makedirs(save_dir, exist_ok=True)
+
+    df2, X, S, feats = _compute_grouped_interaction_matrix_proxy(
+        shap_values=shap_values,
+        input_tensor=input_tensor,
+        feature_names=feature_names,
+        sum_over_time=sum_over_time,
+    )
+
+    # rank pairs i<j by off-diagonal score
+    pairs = []
+    n = len(feats)
+    for i in range(n):
+        for j in range(i + 1, n):
+            score = float(df2.iloc[i, j])
+            if np.isfinite(score):
+                pairs.append((feats[i], feats[j], score))
+
+    pairs_sorted = sorted(pairs, key=lambda t: t[2], reverse=True)[:top_k]
+
+    # save ranking csv
+    rank_df = pd.DataFrame(pairs_sorted, columns=["feature_1", "feature_2", "interaction_score"])
+    rank_csv = os.path.join(save_dir, f"top{top_k}_interaction_pairs_{model_id}_{model_type}.csv")
+    rank_df.to_csv(rank_csv, index=False)
+
+    # plot dependence for each top pair
+    for f1, f2, score in pairs_sorted:
+        plt.figure(figsize=(7, 5))
+        shap.dependence_plot(
+            ind=f1,
+            shap_values=S,
+            features=X,
+            interaction_index=f2,
+            show=False
+        )
+        plt.title(f"{model_type} – {f1} (colored by {f2}) | score={score:.4g}", fontsize=11)
+        plt.tight_layout()
+        out = os.path.join(save_dir, f"dep_{model_type}_{model_id}_{f1}__by__{f2}.png")
+        plt.savefig(out, dpi=300)
+        plt.close()
+
+    if logger:
+        logger.info(f"Saved top-{top_k} dependence interactions in: {save_dir}")
+        logger.info(f"Top-{top_k} ranking CSV saved at: {rank_csv}")
+
+
+def plot_topk_tree_interaction_dependence(
+    shap_interaction: np.ndarray,  # (N,F,F) for class_1
+    X: np.ndarray,                 # (N,F) raw input (must match features)
+    feature_names: list,
+    base_path: str,
+    model_id: str,
+    model_type: str,
+    logger=None,
+    top_k: int = 20,
+):
+    """
+    Rank pairs by mean_abs interaction (off-diagonal doubled convention),
+    then produce dependence plots for those top_k pairs.
+
+    Saves:
+      - CSV ranking
+      - dependence plots using shap.dependence_plot((f1,f2), shap_interaction, X_df)
+    """
+    save_dir = os.path.join(base_path, "interactions_tree", f"top{top_k}_pairs")
+    os.makedirs(save_dir, exist_ok=True)
+
+    X_df = pd.DataFrame(X, columns=feature_names)
+
+    mean_abs = np.abs(shap_interaction).mean(axis=0)  # (F,F)
+
+    # build pair scores i<j, using Kaggle doubling off-diagonal
+    pairs = []
+    F = len(feature_names)
+    for i in range(F):
+        for j in range(i + 1, F):
+            score = float(mean_abs[i, j] * 2.0)
+            if np.isfinite(score):
+                pairs.append((feature_names[i], feature_names[j], score))
+
+    pairs_sorted = sorted(pairs, key=lambda t: t[2], reverse=True)[:top_k]
+
+    # save ranking
+    rank_df = pd.DataFrame(pairs_sorted, columns=["feature_1", "feature_2", "interaction_score"])
+    rank_csv = os.path.join(save_dir, f"top{top_k}_tree_interaction_pairs_{model_id}_{model_type}.csv")
+    rank_df.to_csv(rank_csv, index=False)
+
+    # dependence plots
+    for f1, f2, score in pairs_sorted:
+        plt.figure(figsize=(7, 5))
+        shap.dependence_plot(
+            (f1, f2),
+            shap_interaction,   # must be (N,F,F)
+            X_df,
+            show=False
+        )
+        plt.title(f"{model_type} – interaction ({f1},{f2}) | score={score:.4g}", fontsize=11)
+        plt.tight_layout()
+        out = os.path.join(save_dir, f"dep_inter_{model_type}_{model_id}_{f1}__{f2}.png")
+        plt.savefig(out, dpi=300)
+        plt.close()
+
+    if logger:
+        logger.info(f"Saved top-{top_k} TRUE tree interaction plots at: {save_dir}")
+        logger.info(f"Ranking CSV saved at: {rank_csv}")
 
 def compute_grouped_physical_consistency_score_0_treshold(
         shap_values: np.ndarray,

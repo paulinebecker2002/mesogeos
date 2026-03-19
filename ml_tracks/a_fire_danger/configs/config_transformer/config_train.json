@@ -10,10 +10,10 @@
     },
 
     "XAI": {
-      "ig_path": "/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/ig-plots/transformer/1010_171719",
-      "checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/models/transformer/1010_144913/model_best.pth",
-      "original_ig_path": "/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/ig-plots/transformer/0721_155850",
-      "original_checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/models/transformer/0519_125059/model_best.pth",
+      "ig_path2": "/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/ig-plots/transformer/1010_171719",
+      "checkpoint_path2": "/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/models/transformer/1010_144913/model_best.pth",
+      "ig_path": "/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/ig-plots/transformer/0721_155850",
+      "checkpoint_path": "/hkfs/work/workspace/scratch/uyxib-mesogeos2/code/ml_tracks/a_fire_danger/saved/models/transformer/0519_125059/model_best.pth",
       "only_positive": false,
       "only_negative": false
     },

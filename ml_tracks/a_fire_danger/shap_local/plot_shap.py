@@ -15,10 +15,11 @@ from utils.util import get_feature_names
 from shap_utils import (plot_beeswarm, plot_beeswarm_grouped,
                         plot_grouped_feature_importance, plot_shap_temporal_heatmap, plot_shap_difference_bar,
                         plot_shap_difference_aggregated, plot_shap_waterfall, plot_shap_waterfall_grouped,
-                        map_sample_ids_to_indices,
-                        compute_physical_consistency_score, compute_grouped_physical_consistency_score,
-                        compute_grouped_physical_consistency_score1,
-                        plot_beeswarm_by_grouped_feature, plot_beeswarm_by_feature)
+                        map_sample_ids_to_indices, compute_grouped_physical_consistency_score,
+                        plot_beeswarm_by_grouped_feature, plot_beeswarm_by_feature,
+                        plot_grouped_interaction_heatmap,
+                        plot_topk_grouped_dependence_interactions,
+                        load_tree_shap_interactions, plot_tree_interaction_heatmap_mean, plot_topk_tree_interaction_dependence)
 
 def load_shap_inputs_from_combined_npz(shap_path, model_id, model_type):
     combined_npz_path = os.path.join(shap_path, f"shap_values_{model_id}_{model_type}_combined.npz")
@@ -189,6 +190,64 @@ def main(config):
         print(f"Plotting SHAP waterfall for Sample: {idx}")
         #plot_shap_waterfall_grouped(shap_values, shap_class, input_tensor, feature_names, sample_ids, idx, model_id, f"{shap_path}/true_negative_waterfall_grouped", model_type, logger)
 
+    if model_type in ["rf", "xgb"]:
+
+        shap_interaction, inter_feat_names = load_tree_shap_interactions(
+            shap_path=shap_path,
+            model_id=model_id,
+            model_type=model_type,
+            shap_class=int(shap_class),
+        )
+
+        X_np = input_tensor_np
+        if X_np.ndim == 3:
+            X_np = X_np.reshape(X_np.shape[0], -1)
+
+        plot_tree_interaction_heatmap_mean(
+            shap_interaction=shap_interaction,
+            feature_names=inter_feat_names,
+            base_path=shap_path,
+            model_id=model_id,
+            model_type=model_type,
+            logger=logger,
+        )
+
+        plot_topk_tree_interaction_dependence(
+            shap_interaction=shap_interaction,
+            X=X_np,
+            feature_names=inter_feat_names,
+            base_path=shap_path,
+            model_id=model_id,
+            model_type=model_type,
+            logger=logger,
+            top_k=20
+        )
+
+    else:
+        plot_grouped_interaction_heatmap(
+            shap_values=shap_values,
+            input_tensor=input_tensor,
+            feature_names=feature_names,
+            base_path=shap_path,
+            model_id=model_id,
+            model_type=model_type,
+            logger=logger,
+            sum_over_time=True,
+        )
+
+        plot_topk_grouped_dependence_interactions(
+            shap_values=shap_values,
+            input_tensor=input_tensor,
+            feature_names=feature_names,
+            base_path=shap_path,
+            model_id=model_id,
+            model_type=model_type,
+            logger=logger,
+            sum_over_time=True,
+            top_k=20
+        )
+
+
     physical_knowledge = {
         "t2m": "+", "d2m": "-", "lc_agriculture": "+", "lc_forest": "+", "lc_grassland": "+",
         "lc_settlement": "-", "lc_shrubland": "+", "lc_sparse_vegetation": "+", "lc_water_bodies": "-",
@@ -196,8 +255,7 @@ def main(config):
         "smi": "-", "ssrd": "+", "tp": "-", "wind_speed": "+"
     }
 
-    compute_grouped_physical_consistency_score1( shap_values=shap_values, input_tensor=input_tensor,
-           feature_names=feature_names, physical_signs=physical_knowledge, save_path=shap_path, model_type=model_type)
+    #compute_grouped_physical_consistency_score1( shap_values=shap_values, input_tensor=input_tensor, feature_names=feature_names, physical_signs=physical_knowledge, save_path=shap_path, model_type=model_type)
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser(description='Compute SHAP values')

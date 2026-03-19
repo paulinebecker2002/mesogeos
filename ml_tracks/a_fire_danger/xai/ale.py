@@ -5,6 +5,8 @@ import pandas as pd
 import torch
 import matplotlib.pyplot as plt
 from PyALE import ale
+import numpy as np
+from matplotlib.colors import TwoSlopeNorm, SymLogNorm
 from itertools import combinations
 
 from parse_config import ConfigParser
@@ -73,7 +75,74 @@ def plot_feature_histograms(X_df, features_to_plot, save_dir):
         plt.close()
 
 
-def plot_second_order_interactions(X_df, model_wrapper, feature1, feature2, base_save_path, model_type, logger):
+
+def plot_second_order_interactions(X_df, model_wrapper, feature1, feature2,
+                                   base_save_path, model_type, logger,
+                                   cmap="seismic", fixed_abs_range=None):
+    """
+    fixed_abs_range:
+      - None: auto-scale per plot (still centered at 0)
+      - float: use the same [-fixed_abs_range, +fixed_abs_range] for all plots
+    """
+    logger.info(f"Generating second order ALE plot for: {feature1} and {feature2}")
+    plot_path = os.path.join(
+        base_save_path, "second_order_NewColoring",
+        f"second_order_ale_{feature1}_{feature2}_{model_type}.png"
+    )
+    os.makedirs(os.path.dirname(plot_path), exist_ok=True)
+
+    # Create ALE plot
+    ale(
+        X=X_df,
+        model=model_wrapper,
+        feature=[feature1, feature2],
+        grid_size=100,
+        plot=True,
+    )
+
+    ax = plt.gca()
+
+    # Find the plotted surface (PyALE typically puts it into ax.collections or ax.images)
+    mappable = None
+    if len(ax.collections) > 0:
+        mappable = ax.collections[0]  # often QuadMesh/ContourSet collection
+    elif len(ax.images) > 0:
+        mappable = ax.images[0]
+
+    if mappable is not None:
+        # Get data range for centered normalization
+        arr = mappable.get_array()
+        # Some mappables store masked arrays or flattened arrays
+        arr = np.asarray(arr)
+        arr = arr[np.isfinite(arr)]
+
+        if fixed_abs_range is None:
+            m = np.max(np.abs(arr)) if arr.size else 1.0
+        else:
+            m = float(fixed_abs_range)
+
+        norm = TwoSlopeNorm(vmin=-m, vcenter=0.0, vmax=m)
+        mappable.set_norm(norm)
+        mappable.set_cmap(cmap)
+
+        # Update existing colorbar (if PyALE created one)
+        fig = plt.gcf()
+        for cb_ax in fig.axes:
+            # colorbar axes usually have no xlabel/ylabel and are narrow; safest is to try update all with a mappable
+            pass
+        # The robust way:
+        try:
+            # If a colorbar exists, it will follow the mappable norm automatically when figure redraws
+            plt.draw()
+        except Exception:
+            pass
+
+    print(plot_path)
+
+    plt.savefig(plot_path, bbox_inches="tight", dpi=300)
+    plt.close()
+
+def plot_second_order_interactions1(X_df, model_wrapper, feature1, feature2, base_save_path, model_type, logger):
     logger.info(f"Generating second order ALE plot for: {feature1} and {feature2}")
     plot_path = os.path.join(base_save_path, "second_order", f"second_order_ale_{feature1}_{feature2}_{model_type}.png")
     os.makedirs(os.path.dirname(plot_path), exist_ok=True)
@@ -85,6 +154,7 @@ def plot_second_order_interactions(X_df, model_wrapper, feature1, feature2, base
         grid_size=100,
         plot=True,
     )
+    print(plot_path)
 
     plt.savefig(plot_path, bbox_inches='tight')
     plt.close()
@@ -150,11 +220,7 @@ def main(config):
     #features_to_plot = ["ndvi_t-1", "lai_t-1", "population_t-1", "sp_t-1", "dem_t-1"]
 
     features_to_plot = [
-        "d2m_t-1", "lai_t-1",  "lst_day_t-1", "lst_night_t-1", "ndvi_t-1", "rh_t-1", "smi_t-1", "sp_t-1", "ssrd_t-1",
-        "t2m_t-1", "tp_t-1",  "wind_speed_t-1",
-        "dem_t-1",  "population_t-1",  "roads_distance_t-1", "slope_t-1", "lc_agriculture_t-1", "lc_forest_t-1",
-        "lc_grassland_t-1", "lc_settlement_t-1",  "lc_shrubland_t-1",  "lc_sparse_vegetation_t-1",
-        "lc_water_bodies_t-1", "lc_wetland_t-1"]
+         "lst_day_t-1", "ndvi_t-1", "smi_t-1", "lc_agriculture_t-1", "lc_forest_t-1"]
 
 
     #plot_feature_histograms(X_df=X_df, features_to_plot=features_to_plot, save_dir=os.path.join(base_save_path, "feature_distributions"))
@@ -165,11 +231,11 @@ def main(config):
     #plot_second_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature1='smi_t-1', feature2='lc_forest_t-1', base_save_path=base_save_path, model_type=model_type, logger=logger)
     #plot_second_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature1='lst_day_t-1', feature2='dem_t-1', base_save_path=base_save_path, model_type=model_type, logger=logger)
 
-    #for feature1, feature2 in combinations(features_to_plot, 2):
-        #plot_second_order_interactions( X_df=X_df, model_wrapper=model_wrapper, feature1=feature1, feature2=feature2, base_save_path=base_save_path, model_type=model_type, logger=logger)
+    for feature1, feature2 in combinations(features_to_plot, 2):
+        plot_second_order_interactions( X_df=X_df, model_wrapper=model_wrapper, feature1=feature1, feature2=feature2, base_save_path=base_save_path, model_type=model_type, logger=logger, fixed_abs_range=0.08)
 
-    for feature in features_to_plot:
-        plot_first_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature=feature, base_save_path=base_save_path, model_type=model_type, logger=logger)
+    #for feature in features_to_plot:
+        #plot_first_order_interactions(X_df=X_df, model_wrapper=model_wrapper, feature=feature, base_save_path=base_save_path, model_type=model_type, logger=logger)
 
 
 if __name__ == '__main__':

@@ -148,9 +148,11 @@ def generate_tree_shap_values(model, dataloader, base_save_path, model_id, featu
     sample_ids = np.array(sample_ids)
 
     if model_type == "xgb":
-        contribs = _xgb_pred_contribs(model, X_val)  # (N, F+1)
-        shap_class1 = contribs[:, :-1]  # (N, F)
-        shap_values = [-shap_class1, shap_class1]  # [class_0, class_1]
+        explainer = shap.TreeExplainer(model)
+        shap_values = explainer.shap_values(X_val)
+        #contribs = _xgb_pred_contribs(model, X_val)  # (N, F+1)
+        #shap_class1 = contribs[:, :-1]  # (N, F)
+        #shap_values = [-shap_class1, shap_class1]  # [class_0, class_1]
     else:
         explainer = shap.TreeExplainer(model)
         shap_values = explainer.shap_values(X_val)  # [class_0, class_1]
@@ -218,6 +220,98 @@ def generate_tree_shap_values(model, dataloader, base_save_path, model_id, featu
     if logger:
         logger.info(f"[{model_type}] Aggregated SHAP map CSV saved at: {map_csv_path}")
 
+    #save_tree_shap_interactions(
+    #    model=model,
+     #   X_val=X_val,
+      #  feature_names=feature_names,
+       # shap_dir=shap_dir,
+       # model_id=model_id,
+       # model_type=model_type,
+       # logger=logger,
+       # max_samples=300,
+       # seed=42)
+
+def save_tree_shap_interactions(
+    model,
+    X_val: np.ndarray,
+    feature_names: list,
+    shap_dir: str,
+    model_id: str,
+    model_type: str,
+    logger=None,
+    max_samples: int = 20000,
+    seed: int = 42,
+):
+    """
+    Computes and stores SHAP interaction tensor for tree models.
+    Saves:
+      - shap_interaction_{model_id}_{model_type}.npz  (compressed)
+      - shap_interaction_mean_{model_id}_{model_type}.csv (global heatmap matrix)
+    """
+    import time
+
+    rng = np.random.RandomState(seed)
+    n = X_val.shape[0]
+    if n > max_samples:
+        idx = rng.choice(n, max_samples, replace=False)
+        X_use = X_val[idx]
+    else:
+        X_use = X_val
+
+    print(f"[{model_type}] Interaction setup: X_val={X_val.shape} -> X_use={X_use.shape}, F={X_use.shape[1]}")
+    if logger:
+        logger.info(f"[{model_type}] Interaction setup: X_use={X_use.shape}")
+
+    explainer = shap.TreeExplainer(model)
+
+    # ---- tiny sanity check (so you know it's not stuck) ----
+    sanity_n = min(50, X_use.shape[0])
+    print(f"[{model_type}] Sanity check: shap_interaction_values on {sanity_n} samples ...")
+    t0 = time.time()
+    _ = explainer.shap_interaction_values(X_use[:sanity_n])
+    print(f"[{model_type}] Sanity OK. Took {(time.time() - t0):.1f}s")
+
+    # ---- full run (this is the expensive one) ----
+    print(f"[{model_type}] START full shap_interaction_values on {X_use.shape[0]} samples ...")
+    t1 = time.time()
+    inter = explainer.shap_interaction_values(X_use)
+    dt = time.time() - t1
+    print(f"[{model_type}] DONE full interactions. Took {dt/60:.1f} min")
+
+    # Normalize to class_0 / class_1 arrays
+    if isinstance(inter, list) and len(inter) == 2:
+        inter0, inter1 = inter[0], inter[1]
+    else:
+        inter1 = inter
+        inter0 = -inter1
+
+    out_npz = os.path.join(shap_dir, f"shap_interaction_{model_id}_{model_type}.npz")
+    np.savez_compressed(
+        out_npz,
+        class_0=inter0,
+        class_1=inter1,
+        feature_names=np.array(feature_names),
+    )
+
+    mean_abs = np.abs(inter1).mean(axis=0)  # (F,F)
+    df = pd.DataFrame(mean_abs, index=feature_names, columns=feature_names)
+
+    # Kaggle convention: double off-diagonal
+    vals = df.values
+    diag = np.diag(vals).copy()
+    vals2 = vals * 2.0
+    np.fill_diagonal(vals2, diag)
+    df2 = pd.DataFrame(vals2, index=feature_names, columns=feature_names)
+
+    out_csv = os.path.join(shap_dir, f"shap_interaction_mean_{model_id}_{model_type}.csv")
+    df2.to_csv(out_csv, index=True)
+
+    print(f"[{model_type}] Saved interaction tensor: {out_npz}")
+    print(f"[{model_type}] Saved mean(|interaction|) matrix: {out_csv}")
+
+    if logger:
+        logger.info(f"[{model_type}] SHAP interactions saved at: {out_npz}")
+        logger.info(f"[{model_type}] Mean(|interaction|) heatmap CSV saved at: {out_csv}")
 
 def main(config):
     SEED = config['seed']
