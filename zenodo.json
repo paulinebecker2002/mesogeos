@@ -9,8 +9,8 @@
   ],
   "description": "Code accompanying the paper <Assessing and Explaining Temporal Deep Learning Models for Wildfire Danger Prediction>",
   "license": "MIT",
+  "version": "1.0.0",
   "keywords": ["Wildfires", "Mediterranean", "Explainable AI", "SHAP", "Transformers", "AI in Climate Science"],
   "upload_type": "software",
-  "access_right": "open",
-  "version": "1.0.0"
+  "access_right": "open"
 }
