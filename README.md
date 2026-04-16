@@ -1,4 +1,7 @@
 # Assessing and Explaining Temporal Deep Learning Models for Wildfire Danger Prediction
+
+Interested in the project? Explore the full details, methodology, and results here: [DOI 10.1088/3049-4753/ae5aa0](https://iopscience.iop.org/article/10.1088/3049-4753/ae5aa0)
+
 This project focuses on **wildfire danger forecasting** using advanced **temporal deep learning models** combined with **explainable AI (XAI)** techniques, based on the [**Mesogeos** dataset](https://orionlab.space.noa.gr/mesogeos/) — a publicly available spatio-temporal datacube covering the Mediterranean region from 2006 to 2022 at a resolution of **1 km × 1 km × 1 day**.
 
 In this work, we evaluate multiple deep learning architectures (including LSTM, GRU, CNN, MLP, Transformer, Gated Transformer Network and Temporal Fusion Transformer) against a Random Forest and XGBoost baseline and apply state-of-the-art XAI methods to enhance interpretability.  
@@ -9,9 +12,6 @@ In this work, we evaluate multiple deep learning architectures (including LSTM, 
 - **Case studies and interpretability metrics:** Detailed analysis of model predictions for significant fire events and comparison of explanation patterns.
 
 These analyses not only provide accurate fire danger predictions but also offer insights into **how and why the models make their decisions**, bridging the gap between data-driven methods and domain knowledge in wildfire science.
-
-Interested in the project? Explore the full details, methodology, and results here: [DOI 10.1088/3049-4753/ae5aa0](https://iopscience.iop.org/article/10.1088/3049-4753/ae5aa0)
-
 
 ## Data Repository
 
