@@ -1,0 +1,16 @@
+{
+  "title": "Assessing and Explaining Temporal Deep Learning Models for Wildfire Danger Prediction code repository",
+  "creators": [
+    {
+      "name": "Becker, Pauline",
+      "affiliation": "Karlsruher Institute of Technology",
+      "orcid": "0009-0009-6298-1258"
+    }
+  ],
+  "description": "Code accompanying the paper <Assessing and Explaining Temporal Deep Learning Models for Wildfire Danger Prediction>",
+  "license": "MIT",
+  "keywords": ["Wildfires", "Mediterranean", "Explainable AI", "SHAP", "Transformers", "AI in Climate Science"],
+  "upload_type": "software",
+  "access_right": "open",
+  "version": "1.0.0"
+}
