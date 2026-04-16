@@ -1,7 +1,7 @@
 # Assessing and Explaining Temporal Deep Learning Models for Wildfire Danger Prediction
 This project focuses on **wildfire danger forecasting** using advanced **temporal deep learning models** combined with **explainable AI (XAI)** techniques, based on the [**Mesogeos** dataset](https://orionlab.space.noa.gr/mesogeos/) — a publicly available spatio-temporal datacube covering the Mediterranean region from 2006 to 2022 at a resolution of **1 km × 1 km × 1 day**.
 
-In this work, we evaluate multiple deep learning architectures (including LSTM, GRU, CNN, MLP, Transformer, Gated Transformer Network and Temporal Fusion Transformer) against a Random Forest baseline and apply state-of-the-art XAI methods to enhance interpretability.  
+In this work, we evaluate multiple deep learning architectures (including LSTM, GRU, CNN, MLP, Transformer, Gated Transformer Network and Temporal Fusion Transformer) against a Random Forest and XGBoost baseline and apply state-of-the-art XAI methods to enhance interpretability.  
 
 ### Key XAI Analyses:
 - **SHAP (SHapley Additive exPlanations):** Feature attribution and ranking across models, temporal dynamics of variable importance, and physical consistency checks with known wildfire drivers.
@@ -10,10 +10,8 @@ In this work, we evaluate multiple deep learning architectures (including LSTM, 
 
 These analyses not only provide accurate fire danger predictions but also offer insights into **how and why the models make their decisions**, bridging the gap between data-driven methods and domain knowledge in wildfire science.
 
-Interested in the project? Explore the full details, methodology, and results here:  
-- 📄 [Assessing and Explaining Temporal Deep Learning Models for Wildfire Danger Prediction (Paper)](Documentation/Revised_Manuscript2_0_Assessing_and_Explaining_Temporal_Deep_Learning_Models_for_Wildfire_Danger_Prediction.pdf)
+Interested in the project? Explore the full details, methodology, and results here: [DOI 10.1088/3049-4753/ae5aa0](https://iopscience.iop.org/article/10.1088/3049-4753/ae5aa0)
 
----
 
 ## Data Repository
 
@@ -55,21 +53,12 @@ mesogeos/
 │       ├── datasets/                 # Dataset definitions
 │       ├── integrated_gradients/     # IG computation & plotting
 │       ├── models/                   # Model architectures & metrics
-│       ├── saved/                    # Stores all model outputs and artifacts
-│       │   └── ale/                  # Stores first-order and second-order ALE plots for feature effect analysis
-│       │   └── ig/                   # Stores computed Integrated Gradients (CSV/NPZ) and their corresponding plots
-│       │   ├── model/                # Stores trained model checkpoints (e.g., model_best.pth)
-│       │   ├── log/                  # Contains log files and the used config files for each training/testing run
-│       │   ├── shap_plot/            # Stores computed SHAP values (CSV/NPZ) and their corresponding plots
 │       ├── shap_local/               # SHAP computation & plotting
 │       ├── trainer/                  # Training scripts & utilities
 │       ├── tester/                   # Evaluation and testing scripts
 │       └── utils/                    # Helper utilities
 │       └── train.py                  # Entry point for training
 │       └── test.py                   # Entry point for testing
-|
-├── notebooks/                        # Jupyter notebooks for exploring the Mesogeos datacube and analyzing raw variables
-├── outputs/                          # Analysis outputs and notebooks for evaluating ML and XAI results and generating plots
 ├── requirements.txt                  # Python dependencies
 └── README.md                         # Project documentation
 ```
