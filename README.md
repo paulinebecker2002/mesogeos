@@ -134,6 +134,6 @@ The `outputs/` folder contains Jupyter notebooks specifically designed to **anal
 This project was developed as part of my Bachelor's thesis on Designing and Explaining Temporal Deep Learning Models for Wildfire Danger Prediction.  
 
 I would like to express my sincere gratitude to [Peer Nowack](mailto:peer.nowack@kit.edu) and [Carolina Moura](mailto:carolina.moura@kit.edu) for their invaluable guidance and continuous support throughout the research. Their expertise, encouragement, and insightful feedback were instrumental in shaping the direction and quality of this work.  
-I am also deeply thankful to [Lina Rennstein](mailto:lina.rennstein@kit.edu) (PhD at the Chair for AI in Climate and Environmental Sciences) for her patience and for answering my numerous questions about HoreKa, as well as for her suggestions regarding visualization approaches for my thesis.  
+I am also deeply thankful to [Lina Rennstich](mailto:lina.rennstich@kit.edu) (PhD at the Chair for AI in Climate and Environmental Sciences) for her patience and for answering my numerous questions about HoreKa, as well as for her suggestions regarding visualization approaches for my thesis.  
 Finally, I would like to thank [Julian Strietzel](https://www.linkedin.com/in/julian-strietzel/) for his unwavering support, understanding, and encouragement.
 
